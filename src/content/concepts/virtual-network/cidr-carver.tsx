@@ -125,8 +125,8 @@ function evaluate(config: CidrConfig, vpcStr: string, subStr: string): Verdict {
   if (config.maxPrefix && s.p > config.maxPrefix)
     return {
       kind: "fail",
-      title: "Too small for Azure",
-      body: `${intToIp(s.first)}/${s.p} fits inside the ${name}, but Azure's smallest subnet is /${config.maxPrefix}. After the ${config.reserved} reserved addresses there'd be nothing usable here.`,
+      title: "Subnet too small",
+      body: `${intToIp(s.first)}/${s.p} fits inside the ${name}, but the smallest allowed subnet is /${config.maxPrefix}. After the ${config.reserved} reserved addresses there'd be nothing usable here.`,
       ruler,
     };
 
@@ -137,7 +137,7 @@ function evaluate(config: CidrConfig, vpcStr: string, subStr: string): Verdict {
 
   const usableLine =
     config.reserved > 0
-      ? `Of its ${s.size.toLocaleString()} addresses, Azure reserves ${config.reserved}, leaving ${Math.max(0, s.size - config.reserved).toLocaleString()} usable.`
+      ? `Of its ${s.size.toLocaleString()} addresses, ${config.reserved} are reserved, leaving ${Math.max(0, s.size - config.reserved).toLocaleString()} usable.`
       : `It holds ${s.size.toLocaleString()} addresses.`;
 
   return {

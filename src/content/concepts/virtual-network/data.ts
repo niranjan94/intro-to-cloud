@@ -80,9 +80,9 @@ export interface CidrConfig {
   spaceLabel: string;
   netName: string;
   presets: CidrPreset[];
-  /** Addresses the provider reserves per subnet (Azure = 5, AWS surfaced as 0). */
+  /** Addresses reserved per subnet. Both AWS and Azure reserve 5. */
   reserved: number;
-  /** Largest prefix number allowed, e.g. Azure caps subnets at /29. */
+  /** Largest prefix number allowed: AWS caps subnets at /28, Azure at /29. */
   maxPrefix?: number;
   callouts: CalloutData[];
 }
@@ -484,7 +484,8 @@ const AWS: NetworkContent = {
   cidr: {
     spaceLabel: "VPC range",
     netName: "VPC",
-    reserved: 0,
+    reserved: 5,
+    maxPrefix: 28,
     presets: [
       { label: "a valid slice", vpc: "10.0.0.0/16", sub: "10.0.1.0/24" },
       { label: "outside the VPC", vpc: "10.0.0.0/16", sub: "192.168.1.0/24" },
@@ -502,6 +503,13 @@ const AWS: NetworkContent = {
         title:
           "If I give the subnet a public-looking range like 8.8.8.0/24, it'll have internet access.",
         body: "The numbers don't grant internet access, and using someone else's public range inside your VPC just breaks routing to those real addresses. Reaching the internet is about routing through a gateway, not about which numbers you picked (that's the next chapter). Subnets normally use private ranges (10.x, 172.16-31.x, 192.168.x), and a subnet's range must always fit inside the VPC's range.",
+      },
+      {
+        kind: "note",
+        tag: "AWS specifics",
+        title:
+          "AWS reserves 5 addresses in every subnet, and the smallest subnet is /28.",
+        body: "In each subnet AWS keeps the first four addresses and the last one for its own use, so a /24 gives you 251 usable addresses, not 256. Subnet sizes run from /28 (the smallest) up to /16.",
       },
     ],
   },
