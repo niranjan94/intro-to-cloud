@@ -1,71 +1,46 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useProvider } from "@/components/provider-context";
 import { ProviderLogo } from "@/components/provider-logo";
-import { PROVIDER_LABELS, PROVIDERS, type Provider } from "@/content/types";
-import {
-  buildProviderSwitchUrl,
-  getStoredProvider,
-  isProvider,
-  setStoredProvider,
-} from "@/lib/provider";
+import { PROVIDER_LABELS, PROVIDERS } from "@/content/types";
 import { cn } from "@/lib/utils";
 
-/** Provider from the leading URL segment, if any. */
-function providerFromPath(pathname: string): Provider | null {
-  const first = pathname.split("/").filter(Boolean)[0];
-  return first && isProvider(first) ? first : null;
-}
-
 /**
- * AWS/Azure toggle. Muted and logo/label-led per ADR-0002 (no saturated brand
- * colors); the active provider is marked with a subtle pale-sage accent. Writes
- * the choice to localStorage and navigates while preserving the concept.
+ * The global lens switcher: a segmented control of provider chips, each showing
+ * the real vendor wordmark. The active provider's logo is full-color and lifts
+ * onto a white surface; inactive logos are desaturated. Switching is delegated
+ * to the provider context (navigates in place on lesson routes, updates state
+ * on home).
  */
 export function ProviderSwitcher() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const pathProvider = providerFromPath(pathname);
-
-  // On provider-scoped routes the path is authoritative; elsewhere (e.g. home)
-  // fall back to the stored preference, resolved after mount to avoid a
-  // hydration mismatch.
-  const [active, setActive] = useState<Provider | null>(pathProvider);
-  useEffect(() => {
-    setActive(pathProvider ?? getStoredProvider());
-  }, [pathProvider]);
-
-  function choose(provider: Provider) {
-    setStoredProvider(provider);
-    setActive(provider);
-    router.push(buildProviderSwitchUrl(pathname, provider));
-  }
+  const { provider, setProvider } = useProvider();
 
   return (
     <fieldset
-      aria-label="Choose cloud provider"
-      className="inline-flex items-center gap-4 rounded-pills border border-border p-4"
+      aria-label="Choose a provider lens"
+      className="flex items-center gap-[4px] rounded-[12px] border border-line bg-surface-muted p-[4px]"
     >
-      {PROVIDERS.map((provider) => {
-        const isActive = active === provider;
+      {PROVIDERS.map((id) => {
+        const active = id === provider;
         return (
           <button
-            key={provider}
+            key={id}
             type="button"
-            aria-pressed={isActive}
-            aria-label={PROVIDER_LABELS[provider]}
-            onClick={() => choose(provider)}
+            onClick={() => setProvider(id)}
+            aria-pressed={active}
+            aria-label={`View through the ${PROVIDER_LABELS[id]} lens`}
             className={cn(
-              "inline-flex items-center rounded-pills px-12 py-6 transition-colors",
-              isActive ? "bg-accent" : "hover:bg-bone",
+              "inline-flex items-center rounded-[9px] px-[13px] py-[8px] transition-all",
+              active
+                ? "bg-surface shadow-[0_1px_3px_oklch(0.4_0.03_230_/_0.14)]"
+                : "bg-transparent hover:bg-surface/60",
             )}
           >
             <ProviderLogo
-              provider={provider}
+              provider={id}
               className={cn(
-                "h-16 w-auto transition-all",
-                isActive ? "grayscale-0" : "opacity-60 grayscale",
+                "h-[16px] w-auto transition-all",
+                active ? "opacity-100 grayscale-0" : "opacity-55 grayscale",
               )}
             />
           </button>
