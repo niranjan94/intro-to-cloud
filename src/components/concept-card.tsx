@@ -1,48 +1,31 @@
 import Link from "next/link";
-import { CATEGORIES, type Concept } from "@/content/types";
-import { cn } from "@/lib/utils";
-
-/*
- * DESIGN.md's pastels carry a project-status taxonomy; per ADR-0002 that
- * semantic is dropped and the three pastels are reassigned to Concept
- * Categories (one color per Category, cycling if there are more than three).
- */
-const CATEGORY_BACKGROUNDS = [
-  "bg-pale-sage",
-  "bg-lavender-mist",
-  "bg-dusty-rose",
-] as const;
-
-function categoryBackground(category: Concept["category"]): string {
-  const index = Math.max(0, CATEGORIES.indexOf(category));
-  return CATEGORY_BACKGROUNDS[index % CATEGORY_BACKGROUNDS.length];
-}
+import type { Concept, Provider } from "@/content/types";
 
 /**
- * Pastel Category tile for home / overview grids ("Project Card" variants):
- * 8px radius, 24px padding, 1px stone hairline, ink-black title (DESIGN.md).
+ * A concept summary card for the home and browse grids. Shows the concept's
+ * provider-agnostic title and blurb, plus the concrete service name for the
+ * active lens. Links into the lesson for the current provider.
  */
 export function ConceptCard({
   concept,
-  href,
+  provider,
 }: {
   concept: Concept;
-  href: string;
+  provider: Provider;
 }) {
   return (
     <Link
-      href={href}
-      className={cn(
-        "flex flex-col gap-16 rounded-cards border border-stone-border p-24 transition-colors",
-        "hover:border-ink-black",
-        categoryBackground(concept.category),
-      )}
+      href={`/${provider}/${concept.id}`}
+      className="flex flex-col rounded-[16px] border border-line bg-surface p-[18px] shadow-[0_1px_2px_oklch(0.4_0.02_230_/_0.03)] transition-all hover:-translate-y-[2px] hover:border-[oklch(0.78_0.06_195)] hover:shadow-[0_10px_26px_-16px_oklch(0.4_0.06_195_/_0.5)]"
     >
-      <span className="text-micro font-medium uppercase tracking-[0.04em] text-slate-gray">
-        {concept.category}
-      </span>
-      <span className="text-subheading font-medium text-ink-black">
+      <span className="text-[16px] font-semibold tracking-[-0.01em] text-ink-soft">
         {concept.title}
+      </span>
+      <span className="mt-[6px] font-mono text-[12.5px] text-teal">
+        {concept.services[provider]}
+      </span>
+      <span className="mt-[10px] text-pretty text-[12.5px] leading-[1.45] text-muted">
+        {concept.short}
       </span>
     </Link>
   );
