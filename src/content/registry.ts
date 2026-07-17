@@ -71,8 +71,10 @@ export const concepts: readonly Concept[] = [
     stage: "Reaching users",
     short: "Cache content at the edge, close to users.",
     services: { aws: "Amazon CloudFront", azure: "Azure Front Door" },
-    wip: true,
-    components: {},
+    components: {
+      aws: () => import("./concepts/cdn/aws"),
+      azure: () => import("./concepts/cdn/azure"),
+    },
   },
   {
     id: "block-storage",
