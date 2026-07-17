@@ -1,10 +1,11 @@
 ---
 name: add-concept
 description: >-
-  Author a new cloud concept lesson end to end in the intro-to-cloud app:
-  research the idea for both AWS and Azure, register it in the concept catalog,
-  and write the complete per-provider lesson (equivalence panel, diagrams, and
-  interactivity) that matches the quality of the existing Virtual Network lesson.
+  Author a new cloud concept lesson end to end in the intro-to-cloud app: ground
+  the facts in official AWS and Azure documentation, register it in the concept
+  catalog, and write the complete per-provider lesson (equivalence panel,
+  diagrams, interactivity, and links to the authoritative docs) that matches the
+  quality of the existing Virtual Network lesson.
   Use this whenever the user wants to add, author, build, or fill in a concept,
   lesson, or topic (for example "add a DNS concept", "write the object storage
   lesson", "build out the load balancer topic", "fill in the relational database
@@ -58,19 +59,37 @@ Establish, with the user if unclear:
   stub in `registry.ts`, its metadata is likely already filled; reuse it.
 - **short** — one-line, provider-agnostic card description.
 
-### 2. Research for accuracy (both providers)
+### 2. Ground the facts in official documentation (both providers)
 
-Lessons teach real infrastructure; wrong facts are the worst failure mode. Use
-`mcp__exa__web_search_exa` and `mcp__exa__web_fetch_exa` to verify the technical
-claims you plan to make, for **both** providers. Delegate this to a subagent so
-the research doesn't crowd your context; ask it to return a compact fact sheet
-with sources. Prior authoring caught a real error this way (AWS reserves 5
-addresses per subnet, not 0), so treat research as load-bearing, not decorative.
+Lessons teach real infrastructure; wrong facts are the worst failure mode, and a
+plausible-sounding blog post is not a source. Before you write a line of the
+lesson, ground every technical claim you plan to make in the provider's own
+first-party documentation, for **both** providers: the AWS Documentation
+(`docs.aws.amazon.com`) and Microsoft Learn / Azure docs (`learn.microsoft.com`).
+Other clouds have first-party docs too (Google Cloud at `cloud.google.com/docs`,
+etc.); the principle is the same, ground in the vendor's own pages, not
+third-party summaries.
 
-Capture, per provider: the exact service name, the CLI invocation, the key
-resource nouns (for the glossary), and any provider-specific gotcha worth a
-callout. Note where the two providers genuinely diverge — that divergence is
-what justifies bespoke content rather than a shared component.
+The repo ships a `docs-grounding` skill built for exactly this; invoke it for the
+grounding pass, or run the same idea by hand with `mcp__exa__web_search_exa` and
+`mcp__exa__web_fetch_exa` pointed at the official domains. Delegate the work to a
+subagent so the research does not crowd your context, and ask it to return a
+compact fact sheet in which every claim carries the authoritative URL it was
+verified against. Prior authoring caught a real error this way (AWS reserves 5
+addresses per subnet, not 0), so treat grounding as load-bearing, not decorative.
+
+Capture, per provider:
+
+- the exact service name and the key resource nouns (for the glossary);
+- the real CLI invocation, checked against the official CLI reference;
+- any provider-specific gotcha worth a callout;
+- the canonical documentation URL backing each major claim. These URLs are not
+  only for your own verification: they become the reader-facing "Further reading"
+  links in step 4, so tie each one to the specific page a curious learner would
+  actually want, not a generic product landing page.
+
+Note where the two providers genuinely diverge; that divergence is what justifies
+bespoke content rather than a shared component.
 
 ### 3. Choose the interactivity depth
 
@@ -107,6 +126,15 @@ following the exact pattern of the existing concepts:
 Rich lessons add `data.ts` plus the client components (see the virtual-network
 folder for the full set). Keep provider differences in `data.ts`, not in
 `if (provider === ...)` branches scattered through render code.
+
+Every lesson closes with a **Further reading** section: a short list of links to
+the authoritative provider documentation for the active lens, so a reader who
+wants the real thing can go straight to it. The URLs come from the fact sheet in
+step 2. Keep the links per-provider (they swap with the lens), label each by what
+the page actually is (not "click here"), and render them as real external links.
+See `references/lesson-kit.md` for where this lives; if the shared kit has no
+links component yet, add a small one under `src/components/lesson/` following the
+kit conventions rather than hand-rolling anchor markup inside the lesson.
 
 ### 5. Register it
 
@@ -147,7 +175,31 @@ These are non-negotiable in committed artifacts (code, comments, copy):
   mouse and keyboard, focus rings are visible, and the lens switch swaps
   providers. Confirm no brand color is used as a surface.
 
-### 8. Commit
+### 8. Re-ground: review the finished lesson against the docs
+
+After the lesson builds and both lenses render, spawn a fresh subagent to review
+the finished lesson against current official documentation, for **both**
+providers. A clean re-read by an agent that did not write the copy catches drift
+between what you intended in step 2 and what the lesson actually says, and catches
+links that rot or point at the wrong page. This is a separate pass from your own
+step 7 verification, and it is not optional: shipping a wrong fact is worse than
+shipping late.
+
+Give the subagent the rendered copy (or the lesson source) plus the
+`docs-grounding` skill, and ask it to, for each provider:
+
+- confirm every factual claim (service names, limits, reserved counts, CLI
+  syntax, default behaviors) against the first-party docs, citing the page it
+  checked;
+- confirm every "Further reading" link resolves and is the page its label
+  promises;
+- flag anything unverifiable or contradicted, with the correct value and its
+  source.
+
+Fix whatever it flags, then re-run the check if the fixes were substantive. Treat
+an unverifiable claim as one to cut or soften, not to ship on faith.
+
+### 9. Commit
 
 Conventional Commits, no co-authors, no "Generated with Claude Code". Typical
 sequence:

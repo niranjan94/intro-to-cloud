@@ -83,6 +83,31 @@ const TERMS: GlossaryTerm[] = [
 Pair the AWS and Azure noun in the `term` (e.g. "Bucket / Container") so the
 glossary itself teaches the cross-provider mapping.
 
+## Further reading links
+
+Every lesson closes with a short list of links to the authoritative provider
+documentation for the active lens, so a reader can go deeper on the real service.
+The links are per-provider and swap with the lens, and their URLs come from the
+grounding pass (SKILL step 2), verified again in the step 8 re-ground review.
+
+There is no shared kit component for this yet. Add a small one (e.g.
+`further-reading.tsx`) under `src/components/lesson/` rather than hand-rolling
+anchors in each lesson, following the kit conventions: light-only, design tokens,
+a mono label via `SectionHeading`, real external anchors (`target="_blank"` with
+`rel="noreferrer noopener"`), and no em dashes in labels.
+
+```tsx
+const DOCS: Record<Provider, { label: string; href: string }[]> = {
+  aws: [{ label: "Amazon S3 User Guide", href: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/" }],
+  azure: [{ label: "Azure Blob Storage documentation", href: "https://learn.microsoft.com/azure/storage/blobs/" }],
+};
+<FurtherReading links={DOCS[provider]} />
+```
+
+Label each link by what the page is, never "click here" or "docs", and point at
+the specific page a learner wants (a service user guide or a concept page), not a
+marketing landing page.
+
 ## `ComingSoonLesson` (`coming-soon.tsx`)
 
 You do not call this; the route renders it automatically for concepts without a
@@ -104,6 +129,8 @@ export function ObjectStorageLesson({ provider }: { provider: Provider }) {
       <SectionHeading>The command</SectionHeading>
       <CliBlock command={lens.cli} />
       <Glossary terms={TERMS} />
+      <SectionHeading>Further reading</SectionHeading>
+      <FurtherReading links={DOCS[provider]} />
     </LessonLayout>
   );
 }
