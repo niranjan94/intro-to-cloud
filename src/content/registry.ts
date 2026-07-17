@@ -60,8 +60,10 @@ export const concepts: readonly Concept[] = [
     stage: "Reaching users",
     short: "Map domain names to your resources.",
     services: { aws: "Amazon Route 53", azure: "Azure DNS" },
-    wip: true,
-    components: {},
+    components: {
+      aws: () => import("./concepts/dns/aws"),
+      azure: () => import("./concepts/dns/azure"),
+    },
   },
   {
     id: "cdn",
