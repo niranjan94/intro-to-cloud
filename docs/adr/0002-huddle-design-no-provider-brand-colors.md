@@ -41,3 +41,24 @@ Rationale: a generic cloud glyph made the two providers visually interchangeable
 generic. The real marks are instantly recognizable and are the clearest possible provider signal,
 which matters for a tool whose whole point is comparing providers. Confining the color to the marks
 preserves the calm register the original decision was protecting.
+
+## Revision (2026-07): Huddle palette replaced by the delivered pastel-teal system
+
+The Huddle palette (burnt amber, bone hairlines, flat/no-shadow) has been replaced wholesale by the
+visual system a designer delivered (see the handoff prototype the implementation was built from).
+The load-bearing decision this ADR records — **provider brand color is signalled by identity, not by
+re-skinning the app** — is unchanged and stronger than before. What changed is the surrounding
+system, now the single source of truth in `src/app/globals.css`:
+
+- **Palette:** a cool off-white canvas (`oklch(0.985 0.006 220)`) with a single **teal** accent, all
+  in oklch. No burnt amber; the primary action is deep teal.
+- **Provider identity:** brand logos in the top switcher (active full-color, inactive desaturated)
+  and small brand-colored **dots** in the equivalence panel, lens badge, and home flip card. Surfaces
+  are never tinted orange/blue on switch — the constraint above holds.
+- **Category color:** four muted category hues (Storage 280, Compute 195, Networking 235,
+  Databases 50) used only as small wayfinding dots.
+- **Shadows are now allowed.** The original "no box-shadow" rule was a Huddle trait; the delivered
+  system uses soft shadows for card hover and the home flip card. That rule is retired.
+
+`DESIGN.md` was removed earlier in the project's history; `globals.css` (heavily commented) plus this
+ADR are the design record now.
