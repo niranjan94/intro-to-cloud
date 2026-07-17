@@ -15,7 +15,7 @@ export function CategoryLabel({ category }: { category: Category }) {
         className="inline-block h-[9px] w-[9px] shrink-0 rounded-[3px]"
         style={{ background: CATEGORY_META[category].accent }}
       />
-      <span className="font-mono text-[12px] uppercase tracking-[0.08em] text-muted">
+      <span className="font-mono text-[12px] uppercase tracking-[0.08em] text-ink-muted">
         {category}
       </span>
     </div>

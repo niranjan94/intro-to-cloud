@@ -24,7 +24,7 @@ export default function Home() {
           </p>
           <div className="mt-[30px] flex flex-wrap items-center gap-[14px]">
             <StartLensButton />
-            <span className="text-[13.5px] text-muted">
+            <span className="text-[13.5px] text-ink-muted">
               or switch the lens up top — the concepts never change.
             </span>
           </div>

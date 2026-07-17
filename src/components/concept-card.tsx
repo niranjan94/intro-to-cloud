@@ -24,7 +24,7 @@ export function ConceptCard({
       <span className="mt-[6px] font-mono text-[12.5px] text-teal">
         {concept.services[provider]}
       </span>
-      <span className="mt-[10px] text-pretty text-[12.5px] leading-[1.45] text-muted">
+      <span className="mt-[10px] text-pretty text-[12.5px] leading-[1.45] text-ink-muted">
         {concept.short}
       </span>
     </Link>

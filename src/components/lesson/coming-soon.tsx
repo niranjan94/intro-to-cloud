@@ -26,8 +26,7 @@ export function ComingSoonLesson({
           Lesson in progress
         </div>
         <p className="mx-auto mt-[10px] max-w-[44ch] text-[14px] leading-[1.55] text-body-soft">
-          The full {concept.title} lesson is being written. The cross-provider
-          equivalence above is the shape of what&rsquo;s coming.
+          {`The full ${concept.title} lesson is being written. The cross-provider equivalence above is the shape of what’s coming.`}
         </p>
       </div>
     </LessonLayout>

@@ -25,7 +25,7 @@ export function AppHeader() {
         </Link>
 
         <div className="flex items-center gap-[14px]">
-          <span className="hidden text-[12px] font-medium text-muted min-[900px]:inline">
+          <span className="hidden text-[12px] font-medium text-ink-muted min-[900px]:inline">
             Viewing through
           </span>
           <ProviderSwitcher />

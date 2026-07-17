@@ -21,7 +21,7 @@ export function ConceptOverview() {
         <h2 className="text-[24px] font-bold tracking-[-0.02em] text-ink-soft">
           The concepts
         </h2>
-        <span className="text-[13.5px] text-muted">
+        <span className="text-[13.5px] text-ink-muted">
           Grouped by category · showing the{" "}
           <strong className="font-semibold text-primary">
             {PROVIDER_LABELS[provider]}

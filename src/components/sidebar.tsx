@@ -30,7 +30,7 @@ export function Sidebar({ provider }: { provider: Provider }) {
               className="inline-block h-[9px] w-[9px] shrink-0 rounded-[3px]"
               style={{ background: CATEGORY_META[group.category].accent }}
             />
-            <span className="text-[11.5px] font-semibold uppercase tracking-[0.05em] text-muted">
+            <span className="text-[11.5px] font-semibold uppercase tracking-[0.05em] text-ink-muted">
               {group.category}
             </span>
           </div>

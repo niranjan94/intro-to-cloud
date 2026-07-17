@@ -70,7 +70,7 @@ export function DiagramNode({
       <div
         className={cn(
           "mt-[4px] font-mono text-[11px]",
-          tone === "teal" ? "text-teal" : "text-muted",
+          tone === "teal" ? "text-teal" : "text-ink-muted",
         )}
       >
         {sub}

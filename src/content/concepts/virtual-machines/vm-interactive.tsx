@@ -81,10 +81,31 @@ function OptionButton({
  * as the learner tweaks it — and, when the lens switches, shows the same
  * machine named the other provider's way.
  */
+/**
+ * Machine config kept at module scope so it survives the remount that a lens
+ * switch causes (switching provider navigates to the sibling URL). This is what
+ * makes "switch the lens — your settings stay put" actually hold: the tiers and
+ * regions are index-aligned across providers, so the same choice re-labels.
+ */
+const config = { name: "web-01", sizeIx: 0, regionIx: 0 };
+
 export function VmInteractive({ provider }: { provider: Provider }) {
-  const [name, setName] = useState("web-01");
-  const [sizeIx, setSizeIx] = useState(0);
-  const [regionIx, setRegionIx] = useState(0);
+  const [name, setNameState] = useState(config.name);
+  const [sizeIx, setSizeIxState] = useState(config.sizeIx);
+  const [regionIx, setRegionIxState] = useState(config.regionIx);
+
+  const setName = (value: string) => {
+    config.name = value;
+    setNameState(value);
+  };
+  const setSizeIx = (value: number) => {
+    config.sizeIx = value;
+    setSizeIxState(value);
+  };
+  const setRegionIx = (value: number) => {
+    config.regionIx = value;
+    setRegionIxState(value);
+  };
 
   const vm = VM[provider];
   const service = concept?.services[provider] ?? "";
@@ -121,7 +142,7 @@ export function VmInteractive({ provider }: { provider: Provider }) {
       </DiagramCanvas>
 
       <SectionHeading>Try it · provision a machine</SectionHeading>
-      <p className="mt-[10px] text-[14px] text-muted">
+      <p className="mt-[10px] text-[14px] text-ink-muted">
         Configure a server and watch the{" "}
         <strong className="font-semibold">same resource</strong> get named the{" "}
         {PROVIDER_LABELS[provider]} way. Switch the lens up top — your settings
@@ -132,7 +153,7 @@ export function VmInteractive({ provider }: { provider: Provider }) {
           <div>
             <label
               htmlFor="vm-name"
-              className="text-[11.5px] font-semibold uppercase tracking-[0.04em] text-muted"
+              className="text-[11.5px] font-semibold uppercase tracking-[0.04em] text-ink-muted"
             >
               Name
             </label>
@@ -146,7 +167,7 @@ export function VmInteractive({ provider }: { provider: Provider }) {
               }
               className="mt-[8px] w-full rounded-[10px] border border-input bg-surface-muted px-[12px] py-[10px] font-mono text-[14px] text-ink-soft"
             />
-            <span className="mt-[18px] block text-[11.5px] font-semibold uppercase tracking-[0.04em] text-muted">
+            <span className="mt-[18px] block text-[11.5px] font-semibold uppercase tracking-[0.04em] text-ink-muted">
               Size
             </span>
             <div className="mt-[8px] flex flex-col gap-[8px]">
@@ -162,7 +183,7 @@ export function VmInteractive({ provider }: { provider: Provider }) {
             </div>
           </div>
           <div>
-            <span className="text-[11.5px] font-semibold uppercase tracking-[0.04em] text-muted">
+            <span className="text-[11.5px] font-semibold uppercase tracking-[0.04em] text-ink-muted">
               Region
             </span>
             <div className="mt-[8px] flex flex-col gap-[8px]">

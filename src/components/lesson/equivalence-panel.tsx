@@ -43,7 +43,7 @@ function LensBox({
         {facts.service}
       </div>
       {facts.code ? (
-        <div className="mt-[4px] font-mono text-[11.5px] text-muted">
+        <div className="mt-[4px] font-mono text-[11.5px] text-ink-muted">
           {facts.code}
         </div>
       ) : null}
@@ -80,7 +80,7 @@ export function EquivalencePanel({
         <LensBox provider="azure" facts={azure} active={provider === "azure"} />
       </div>
       {elevator ? (
-        <p className="mt-[16px] text-center text-[13.5px] text-muted">
+        <p className="mt-[16px] text-center text-[13.5px] text-ink-muted">
           Same idea:{" "}
           <strong className="font-semibold text-ink-strong">{elevator}</strong>
         </p>

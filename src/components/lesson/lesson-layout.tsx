@@ -9,7 +9,7 @@ import {
 /** The "you're viewing the X lens" marker shown beside the lesson title. */
 function LensBadge({ provider }: { provider: Provider }) {
   return (
-    <div className="flex items-center gap-[8px] rounded-[10px] border border-line bg-surface-muted px-[12px] py-[8px] text-[12.5px] text-muted">
+    <div className="flex items-center gap-[8px] rounded-[10px] border border-line bg-surface-muted px-[12px] py-[8px] text-[12.5px] text-ink-muted">
       <span
         aria-hidden
         className="h-[9px] w-[9px] rounded-full"
@@ -43,7 +43,7 @@ export function LessonLayout({
 }) {
   return (
     <article className="max-w-[820px] px-[44px] pt-[40px] motion-safe:animate-[fadeUp_0.4s_ease_both] max-[760px]:px-[20px] max-[760px]:pt-[28px]">
-      <div className="flex items-center gap-[8px] font-mono text-[12.5px] text-muted">
+      <div className="flex items-center gap-[8px] font-mono text-[12.5px] text-ink-muted">
         <Link href={`/${provider}`} className="text-teal-ink">
           {concept.category}
         </Link>

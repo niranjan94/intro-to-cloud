@@ -59,7 +59,7 @@ export function LiveLensCard() {
             <div className="mx-auto mb-[12px] flex h-[48px] w-[48px] items-center justify-center rounded-full bg-[oklch(0.94_0.03_195)]">
               <span className="h-[16px] w-[16px] rounded-full bg-[oklch(0.56_0.075_195)]" />
             </div>
-            <div className="font-mono text-[11px] text-muted">
+            <div className="font-mono text-[11px] text-ink-muted">
               {PROVIDER_LABELS[provider]} calls it
             </div>
             <div className="mt-[4px] font-mono text-[16px] font-semibold text-ink-soft">
@@ -79,13 +79,13 @@ export function LiveLensCard() {
             <div className="font-mono text-[11px] text-faint">
               {PROVIDER_LABELS[other]} calls it
             </div>
-            <div className="mt-[4px] font-mono text-[16px] font-semibold text-muted">
+            <div className="mt-[4px] font-mono text-[16px] font-semibold text-ink-muted">
               {otherService}
             </div>
           </div>
         </div>
 
-        <p className="my-[16px] mb-[18px] text-center text-[13.5px] leading-[1.5] text-muted">
+        <p className="my-[16px] mb-[18px] text-center text-[13.5px] leading-[1.5] text-ink-muted">
           Files live in a{" "}
           <strong className="font-semibold text-ink-strong">{unit}</strong> —
           same concept, different label.
@@ -104,7 +104,7 @@ export function LiveLensCard() {
                   "inline-flex flex-1 items-center justify-center rounded-[9px] p-[11px] text-[14px] font-semibold transition-colors",
                   active
                     ? "bg-surface text-ink-soft shadow-[0_1px_3px_oklch(0.4_0.03_230_/_0.16)]"
-                    : "bg-transparent text-muted hover:text-ink-soft",
+                    : "bg-transparent text-ink-muted hover:text-ink-soft",
                 )}
               >
                 <span
