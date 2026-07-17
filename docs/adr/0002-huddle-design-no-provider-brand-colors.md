@@ -22,3 +22,22 @@ it is intentional, not an oversight.
 
 - If per-provider theming is ever wanted, it must be introduced as muted accents within the palette,
   not saturated brand colors, or this decision should be revisited explicitly.
+
+## Revision (2026-07): provider brand logos are allowed
+
+We now use the real AWS and Azure brand wordmarks (from the Devicon set, stored in `public/logos/`)
+as the provider identity in the switcher, the landing chooser, and the lens rail. These logos carry
+their own brand colors. This is a deliberate, bounded relaxation of the original decision, not a
+reversal of it:
+
+- Brand color appears **only inside the provider logos themselves** — small wordmarks a few
+  pixels tall. The page chrome (backgrounds, borders, buttons, text, accents) stays entirely within
+  the muted Huddle palette. We do not tint surfaces orange or blue on provider switch.
+- Inactive providers render their logo **desaturated (grayscale, reduced opacity)**; only the active
+  provider shows full brand color. So the brand color also does double duty as the active-state
+  signal, which keeps it purposeful rather than decorative.
+
+Rationale: a generic cloud glyph made the two providers visually interchangeable and slightly
+generic. The real marks are instantly recognizable and are the clearest possible provider signal,
+which matters for a tool whose whole point is comparing providers. Confining the color to the marks
+preserves the calm register the original decision was protecting.

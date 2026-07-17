@@ -3,6 +3,34 @@
 
 **Theme:** light
 
+> ## Project divergences (intro-to-cloud)
+>
+> This file is the imported Huddle style reference. The following project-specific decisions
+> override parts of it; where they conflict, these win. See also `docs/adr/`.
+>
+> - **Two-column layout with a right-hand lens rail.** The original hero pairs an editorial left
+>   column with a right-column *project-status feed*. We keep the two-column shape but the right
+>   column is a **lens rail** (`LensRail`) that shows a concept's cross-provider equivalence
+>   (AWS · Amazon S3 / Azure · Azure Blob Storage), with the active provider emphasized. This is the
+>   core teaching device and appears on both the home hero and every concept page.
+> - **Pastels key off Category, not project status.** The sage/lavender/rose taxonomy
+>   (upcoming/building/shipped) is dropped; the three pastels map to Concept **Categories**, cycling
+>   if there are more than three. (ADR-0002.)
+> - **Provider brand logos are used** in the switcher, chooser, and lens rail, and carry their brand
+>   colors. Inactive providers render grayscale; only the active one shows full color. All other
+>   chrome stays muted. This is a bounded exception to "no provider brand colors." (ADR-0002 revision.)
+> - **Tighter spacing than the reference.** Global header is **56px**; page vertical padding is
+>   **32px** (not 48); the hero column gap is **40px** and top-level section gap is **48px** (not the
+>   reference's 64px). The canvas stayed too empty at the reference's generosity.
+> - **Typography substitutes:** Inter for Nng, JetBrains Mono for Apercu pro mono. Roboto and Moderat
+>   are omitted (no user-generated content). `ss01` + `tnum` are enabled globally.
+> - **Light-only.** No `.dark` tokens or dark variant in v1.
+> - **Spacing scale is literal pixels.** The `--spacing-N` tokens are named by their pixel value
+>   (`--spacing-24: 24px`), so Tailwind's numeric utilities are pixel-valued: `p-24` is 24px, `gap-16`
+>   is 16px, `size-16` is a 16px icon. Values with no token (e.g. `h-64`, since there is no
+>   `--spacing-64`) fall back to Tailwind's `×0.25rem` multiplier and will be far larger than expected
+>   — use an arbitrary value like `h-[56px]` for those. Treat these numbers as px, not rem steps.
+
 Quiet, editorial curation language: off-white canvas, large confident headlines, and three muted pastel card colors (sage, lavender, dusty rose) that function as category tiles for project listings. The palette is intentionally desaturated — no vivid neons, no high-saturation accents — so the system reads as a considered directory rather than a marketplace. Typography is set in a single custom sans (Nng) that carries the entire information hierarchy, with all-caps micro-labels and dot-prefixed status tags adding a catalog/inventory feel. Components lean pill-shaped (100px radius on links, 1000px on primary buttons) and borders are thin 1px hairlines rather than heavy shadows, keeping the surface flat and poster-like.
 
 ## Tokens — Colors
