@@ -115,8 +115,10 @@ export const concepts: readonly Concept[] = [
     stage: "Going further",
     short: "Key-value / document store, built for scale.",
     services: { aws: "Amazon DynamoDB", azure: "Azure Cosmos DB" },
-    wip: true,
-    components: {},
+    components: {
+      aws: () => import("./concepts/nosql/aws"),
+      azure: () => import("./concepts/nosql/azure"),
+    },
   },
 ];
 
