@@ -2,119 +2,161 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/*
+ * Huddle design system tokens (see DESIGN.md — single source of truth).
+ * Light-only v1: no `.dark` block, no dark variant.
+ */
+@theme {
+  /* Colors */
+  --color-paper-white: #ffffff;
+  --color-ink-black: #151515;
+  --color-graphite: #23241f;
+  --color-slate-gray: #3a4444;
+  --color-stone-border: #333333;
+  --color-mist-gray: #808080;
+  --color-bone: #e5e6e1;
+  --color-pale-sage: #d3e5e9;
+  --color-lavender-mist: #bbb2ce;
+  --color-dusty-rose: #cb9da2;
+  --color-deep-violet: #453b60;
+  --color-burnt-amber: #65451d;
+  --color-honey-gold: #e4b976;
+  --color-burgundy: #5c2529;
+  --color-blush-border: #d79caa;
 
+  /* Font families — bound to the next/font variables set on <html> */
+  --font-sans: var(--font-nng);
+  --font-mono: var(--font-apercu-pro-mono);
+
+  /*
+   * Type scale — size paired with matching line-height / tracking / weight
+   * so a single `text-*` utility carries the full DESIGN.md treatment.
+   */
+  --text-micro: 12px;
+  --text-micro--line-height: 1.58;
+  --text-caption: 14px;
+  --text-caption--line-height: 1.5;
+  --text-caption--letter-spacing: -0.01px;
+  --text-body-sm: 16px;
+  --text-body-sm--line-height: 1.45;
+  --text-body-sm--letter-spacing: -0.13px;
+  --text-body: 18px;
+  --text-body--line-height: 1.42;
+  --text-body--letter-spacing: -0.14px;
+  --text-subheading: 22px;
+  --text-subheading--line-height: 1.32;
+  --text-subheading--letter-spacing: -0.22px;
+  --text-heading-sm: 29px;
+  --text-heading-sm--line-height: 1.3;
+  --text-heading-sm--letter-spacing: -0.32px;
+  --text-heading: 40px;
+  --text-heading--line-height: 1.22;
+  --text-heading--letter-spacing: -0.48px;
+  --text-heading-lg: 44px;
+  --text-heading-lg--line-height: 1.2;
+  --text-heading-lg--letter-spacing: -0.92px;
+  --text-display: 69px;
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -1.45px;
+
+  /* Spacing — values are literal pixels, named by their px size */
+  --spacing-4: 4px;
+  --spacing-5: 5px;
+  --spacing-6: 6px;
+  --spacing-8: 8px;
+  --spacing-10: 10px;
+  --spacing-12: 12px;
+  --spacing-14: 14px;
+  --spacing-16: 16px;
+  --spacing-18: 18px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-96: 96px;
+  --spacing-144: 144px;
+
+  /* Border radius — semantic vocabulary (see DESIGN.md § Border Radius Vocabulary) */
+  --radius-badges: 4px;
+  --radius-cards: 8px;
+  --radius-list-items: 24px;
+  --radius-large-cards: 40px;
+  --radius-tags: 100px;
+  --radius-pills: 100px;
+  --radius-buttons: 1000px;
+
+  /* Layout */
+  --page-max-width: 1200px;
+}
+
+/*
+ * shadcn / base-ui semantic token mapping. Reskinned primitives inherit the
+ * Huddle look through these names (see :root below for the concrete values).
+ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
+  --radius: 8px;
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #ffffff; /* paper white */
+  --foreground: #151515; /* ink black */
+  --card: #ffffff;
+  --card-foreground: #151515;
+  --popover: #ffffff;
+  --popover-foreground: #151515;
+  --primary: #65451d; /* burnt amber — the filled primary action */
+  --primary-foreground: #ffffff;
+  --secondary: #e5e6e1; /* bone */
+  --secondary-foreground: #151515;
+  --muted: #e5e6e1; /* bone */
+  --muted-foreground: #3a4444; /* slate gray */
+  --accent: #d3e5e9; /* pale sage — subtle interactive accent */
+  --accent-foreground: #151515;
+  --destructive: #5c2529; /* burgundy */
+  --border: #e5e6e1; /* bone — soft hairline; use stone-border where cards need the darker line */
+  --input: #e5e6e1;
+  --ring: #65451d; /* burnt amber */
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #151515;
+  --sidebar-primary: #65451d;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #d3e5e9;
+  --sidebar-accent-foreground: #151515;
+  --sidebar-border: #e5e6e1;
+  --sidebar-ring: #65451d;
 }
 
 @layer base {
@@ -122,9 +164,9 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings:
+      "ss01" on,
+      "tnum" on;
   }
 }
