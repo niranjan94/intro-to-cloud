@@ -38,7 +38,6 @@ export const concepts: readonly Concept[] = [
     stage: "Storing data",
     short: "Files as objects in a flat namespace, over HTTP.",
     services: { aws: "Amazon S3", azure: "Azure Blob Storage" },
-    wip: true,
     components: {
       aws: () => import("./concepts/object-storage/aws"),
       azure: () => import("./concepts/object-storage/azure"),
