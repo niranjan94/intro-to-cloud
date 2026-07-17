@@ -1,8 +1,8 @@
 "use client";
 
-import { Cloud } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ProviderLogo } from "@/components/provider-logo";
 import { PROVIDER_LABELS, PROVIDERS, type Provider } from "@/content/types";
 import {
   buildProviderSwitchUrl,
@@ -54,16 +54,20 @@ export function ProviderSwitcher() {
             key={provider}
             type="button"
             aria-pressed={isActive}
+            aria-label={PROVIDER_LABELS[provider]}
             onClick={() => choose(provider)}
             className={cn(
-              "inline-flex items-center gap-6 rounded-pills px-12 py-6 text-caption font-medium transition-colors",
-              isActive
-                ? "bg-accent text-accent-foreground"
-                : "text-slate-gray hover:text-ink-black",
+              "inline-flex items-center rounded-pills px-12 py-6 transition-colors",
+              isActive ? "bg-accent" : "hover:bg-bone",
             )}
           >
-            <Cloud aria-hidden="true" className="size-16" />
-            {PROVIDER_LABELS[provider]}
+            <ProviderLogo
+              provider={provider}
+              className={cn(
+                "h-16 w-auto transition-all",
+                isActive ? "grayscale-0" : "opacity-60 grayscale",
+              )}
+            />
           </button>
         );
       })}
