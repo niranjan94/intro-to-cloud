@@ -82,8 +82,10 @@ export const concepts: readonly Concept[] = [
     stage: "Going further",
     short: "Raw disk volumes you attach to a machine.",
     services: { aws: "Amazon EBS", azure: "Azure Managed Disks" },
-    wip: true,
-    components: {},
+    components: {
+      aws: () => import("./concepts/block-storage/aws"),
+      azure: () => import("./concepts/block-storage/azure"),
+    },
   },
   {
     id: "containers",
