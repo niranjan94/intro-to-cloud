@@ -1,5 +1,5 @@
-import { ConceptStub } from "@/components/concept-stub";
+import { ObjectStorageLesson } from "./lesson";
 
 export default function AwsObjectStorage() {
-  return <ConceptStub lens={{ provider: "aws", service: "Amazon S3" }} />;
+  return <ObjectStorageLesson provider="aws" />;
 }

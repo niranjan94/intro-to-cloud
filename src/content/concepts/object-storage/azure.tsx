@@ -1,7 +1,5 @@
-import { ConceptStub } from "@/components/concept-stub";
+import { ObjectStorageLesson } from "./lesson";
 
 export default function AzureObjectStorage() {
-  return (
-    <ConceptStub lens={{ provider: "azure", service: "Azure Blob Storage" }} />
-  );
+  return <ObjectStorageLesson provider="azure" />;
 }
