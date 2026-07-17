@@ -42,7 +42,7 @@ export function LessonLayout({
   children?: React.ReactNode;
 }) {
   return (
-    <article className="max-w-[820px] px-[44px] pt-[40px] motion-safe:animate-[fadeUp_0.4s_ease_both] max-[760px]:px-[20px] max-[760px]:pt-[28px]">
+    <article className="max-w-[1200px] px-[44px] pt-[40px] motion-safe:animate-[fadeUp_0.4s_ease_both] max-[760px]:px-[20px] max-[760px]:pt-[28px]">
       <div className="flex items-center gap-[8px] font-mono text-[12.5px] text-ink-muted">
         <Link href={`/${provider}`} className="text-teal-ink">
           {concept.category}
@@ -58,7 +58,7 @@ export function LessonLayout({
         <LensBadge provider={provider} />
       </div>
 
-      <p className="mt-[16px] text-pretty text-[17px] leading-[1.6] text-body">
+      <p className="mt-[16px] max-w-[72ch] text-pretty text-[17px] leading-[1.6] text-body">
         {blurb}
       </p>
 
