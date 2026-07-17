@@ -14,6 +14,10 @@ export const concepts: readonly Concept[] = [
     id: "object-storage",
     title: "Object Storage",
     category: "Storage",
+    services: {
+      aws: "Amazon S3",
+      azure: "Azure Blob Storage",
+    },
     components: {
       aws: () => import("./concepts/object-storage/aws"),
       azure: () => import("./concepts/object-storage/azure"),

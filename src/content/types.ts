@@ -44,6 +44,12 @@ export interface Concept {
   id: string;
   title: string;
   category: Category;
+  /**
+   * The named Service each provider maps this concept to (e.g. Amazon S3).
+   * Lightweight metadata so the shell can show the cross-provider equivalence
+   * without loading a lesson component.
+   */
+  services: Partial<Record<Provider, string>>;
   /** Per-provider components; the keys present are the supported providers. */
   components: Partial<Record<Provider, ConceptComponentLoader>>;
 }
