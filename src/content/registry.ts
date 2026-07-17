@@ -104,8 +104,10 @@ export const concepts: readonly Concept[] = [
     stage: "Going further",
     short: "Run code on events, no servers to manage.",
     services: { aws: "AWS Lambda", azure: "Azure Functions" },
-    wip: true,
-    components: {},
+    components: {
+      aws: () => import("./concepts/serverless/aws"),
+      azure: () => import("./concepts/serverless/azure"),
+    },
   },
   {
     id: "nosql",
