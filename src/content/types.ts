@@ -18,26 +18,38 @@ export const PROVIDER_BRAND: Record<Provider, string> = {
   azure: "var(--color-azure)",
 };
 
-/** A grouping of related Concepts used for wayfinding. Provider-agnostic. */
-export type Category = "Storage" | "Compute" | "Networking" | "Databases";
+/**
+ * A stage in the learning path. Concepts are grouped by stage so the catalog
+ * reads as an order to follow rather than a tech taxonomy — you build the
+ * foundations, then store data, then make it reachable, then go deeper.
+ * Provider-agnostic.
+ */
+export type Stage =
+  | "Foundations"
+  | "Storing data"
+  | "Reaching users"
+  | "Going further";
 
-/** Category display order for the sidebar and overview grids. */
-export const CATEGORIES: readonly Category[] = [
-  "Storage",
-  "Compute",
-  "Networking",
-  "Databases",
+/**
+ * Stage display order for the sidebar and overview grids. This IS the learning
+ * order — each stage assumes the ones before it.
+ */
+export const STAGES: readonly Stage[] = [
+  "Foundations",
+  "Storing data",
+  "Reaching users",
+  "Going further",
 ] as const;
 
 /**
- * Per-category presentation metadata. `accent` is a CSS custom property that
- * resolves to the category's wayfinding-dot color (see globals.css).
+ * Per-stage presentation metadata. `accent` is a CSS custom property that
+ * resolves to the stage's wayfinding-dot color (see globals.css).
  */
-export const CATEGORY_META: Record<Category, { accent: string }> = {
-  Storage: { accent: "var(--color-cat-storage)" },
-  Compute: { accent: "var(--color-cat-compute)" },
-  Networking: { accent: "var(--color-cat-networking)" },
-  Databases: { accent: "var(--color-cat-databases)" },
+export const STAGE_META: Record<Stage, { accent: string }> = {
+  Foundations: { accent: "var(--color-stage-foundations)" },
+  "Storing data": { accent: "var(--color-stage-storing)" },
+  "Reaching users": { accent: "var(--color-stage-reaching)" },
+  "Going further": { accent: "var(--color-stage-further)" },
 };
 
 /**
@@ -61,7 +73,7 @@ export type ConceptComponentLoader = () => Promise<{ default: ComponentType }>;
 export interface Concept {
   id: string;
   title: string;
-  category: Category;
+  stage: Stage;
   /** One-line card description, provider-agnostic. */
   short: string;
   /**
@@ -70,6 +82,13 @@ export interface Concept {
    * without loading a lesson component.
    */
   services: Partial<Record<Provider, string>>;
+  /**
+   * Marks a concept whose lesson is still being written. Drives a "WIP" badge
+   * in navigation so learners know which lessons are complete. Independent of
+   * whether a `components` entry exists — a concept can have draft content and
+   * still be flagged in progress.
+   */
+  wip?: boolean;
   /**
    * Per-provider lesson components; the keys present are the providers whose
    * lesson has been authored. A concept can appear in navigation before any

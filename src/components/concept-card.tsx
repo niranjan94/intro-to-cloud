@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { WipBadge } from "@/components/wip-badge";
 import type { Concept, Provider } from "@/content/types";
 
 /**
@@ -18,8 +19,11 @@ export function ConceptCard({
       href={`/${provider}/${concept.id}`}
       className="flex flex-col rounded-[16px] border border-line bg-surface p-[18px] shadow-[0_1px_2px_oklch(0.4_0.02_230_/_0.03)] transition-all hover:-translate-y-[2px] hover:border-[oklch(0.78_0.06_195)] hover:shadow-[0_10px_26px_-16px_oklch(0.4_0.06_195_/_0.5)]"
     >
-      <span className="text-[16px] font-semibold tracking-[-0.01em] text-ink-soft">
-        {concept.title}
+      <span className="flex items-center gap-[8px]">
+        <span className="text-[16px] font-semibold tracking-[-0.01em] text-ink-soft">
+          {concept.title}
+        </span>
+        {concept.wip ? <WipBadge /> : null}
       </span>
       <span className="mt-[6px] font-mono text-[12.5px] text-teal">
         {concept.services[provider]}

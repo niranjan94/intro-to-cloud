@@ -1,15 +1,15 @@
 "use client";
 
-import { CategorySection } from "@/components/category-section";
 import { useProvider } from "@/components/provider-context";
-import { conceptsByCategory } from "@/content/registry";
+import { StageSection } from "@/components/stage-section";
+import { conceptsByStage } from "@/content/registry";
 import { PROVIDER_LABELS } from "@/content/types";
 
-const groups = conceptsByCategory();
+const groups = conceptsByStage();
 
 /**
- * The full concept catalog grouped by category, shown through the active lens.
- * Client-side so the service names on each card re-label when the top-bar
+ * The full concept catalog grouped by learning stage, shown through the active
+ * lens. Client-side so the service names on each card re-label when the top-bar
  * switcher changes provider.
  */
 export function ConceptOverview() {
@@ -22,7 +22,7 @@ export function ConceptOverview() {
           The concepts
         </h2>
         <span className="text-[13.5px] text-ink-muted">
-          Grouped by category · showing the{" "}
+          In learning order · showing the{" "}
           <strong className="font-semibold text-primary">
             {PROVIDER_LABELS[provider]}
           </strong>{" "}
@@ -30,10 +30,11 @@ export function ConceptOverview() {
         </span>
       </div>
 
-      {groups.map((group) => (
-        <CategorySection
-          key={group.category}
-          category={group.category}
+      {groups.map((group, index) => (
+        <StageSection
+          key={group.stage}
+          stage={group.stage}
+          index={index}
           concepts={group.concepts}
           provider={provider}
         />

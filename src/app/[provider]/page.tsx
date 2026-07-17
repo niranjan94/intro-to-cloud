@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
-import { CategorySection } from "@/components/category-section";
-import { conceptsByCategory } from "@/content/registry";
+import { StageSection } from "@/components/stage-section";
+import { conceptsByStage } from "@/content/registry";
 import { PROVIDER_LABELS } from "@/content/types";
 import { isProvider } from "@/lib/provider";
 
-const groups = conceptsByCategory();
+const groups = conceptsByStage();
 
 /** Provider overview: browse every concept through this provider's lens. */
 export default async function ProviderOverview({
@@ -28,10 +28,11 @@ export default async function ProviderOverview({
         one to start the lesson.
       </p>
 
-      {groups.map((group) => (
-        <CategorySection
-          key={group.category}
-          category={group.category}
+      {groups.map((group, index) => (
+        <StageSection
+          key={group.stage}
+          stage={group.stage}
+          index={index}
           concepts={group.concepts}
           provider={provider}
         />

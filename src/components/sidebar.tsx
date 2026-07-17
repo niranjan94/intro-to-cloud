@@ -2,17 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { conceptsByCategory } from "@/content/registry";
-import { CATEGORY_META, type Provider } from "@/content/types";
+import { WipBadge } from "@/components/wip-badge";
+import { conceptsByStage } from "@/content/registry";
+import { type Provider, STAGE_META } from "@/content/types";
 import { cn } from "@/lib/utils";
 
-const groups = conceptsByCategory();
+const groups = conceptsByStage();
 
 /**
- * The concept sidebar: every concept grouped by category, each row showing its
- * title and the active provider's service name. The row for the concept in the
- * current URL is highlighted with a teal rail. Links stay within the active
- * provider so navigating concepts keeps the lens.
+ * The concept sidebar: every concept grouped by learning stage, each row
+ * showing its title and the active provider's service name. The row for the
+ * concept in the current URL is highlighted with a teal rail. Links stay within
+ * the active provider so navigating concepts keeps the lens.
  */
 export function Sidebar({ provider }: { provider: Provider }) {
   const pathname = usePathname();
@@ -22,16 +23,17 @@ export function Sidebar({ provider }: { provider: Provider }) {
       <div className="px-[10px] pb-[4px] font-mono text-[11px] tracking-[0.1em] text-faint">
         CONCEPTS
       </div>
-      {groups.map((group) => (
-        <div key={group.category} className="mt-[20px]">
+      {groups.map((group, groupIndex) => (
+        <div key={group.stage} className="mt-[20px]">
           <div className="flex items-center gap-[8px] px-[10px] py-[4px]">
             <span
               aria-hidden
               className="inline-block h-[9px] w-[9px] shrink-0 rounded-[3px]"
-              style={{ background: CATEGORY_META[group.category].accent }}
+              style={{ background: STAGE_META[group.stage].accent }}
             />
             <span className="text-[11.5px] font-semibold uppercase tracking-[0.05em] text-ink-muted">
-              {group.category}
+              <span className="text-faint">{groupIndex + 1}. </span>
+              {group.stage}
             </span>
           </div>
           {group.concepts.map((concept) => {
@@ -54,8 +56,11 @@ export function Sidebar({ provider }: { provider: Provider }) {
                   />
                 ) : null}
                 <span className="flex min-w-0 flex-col items-start gap-[1px]">
-                  <span className="text-[13.5px] font-medium text-ink-strong">
-                    {concept.title}
+                  <span className="flex items-center gap-[7px]">
+                    <span className="text-[13.5px] font-medium text-ink-strong">
+                      {concept.title}
+                    </span>
+                    {concept.wip ? <WipBadge /> : null}
                   </span>
                   <span className="max-w-[180px] truncate font-mono text-[11px] text-teal">
                     {concept.services[provider]}

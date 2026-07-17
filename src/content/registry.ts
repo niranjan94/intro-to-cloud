@@ -1,66 +1,19 @@
-import {
-  CATEGORIES,
-  type Category,
-  type Concept,
-  type Provider,
-} from "./types";
+import { type Concept, type Provider, STAGES, type Stage } from "./types";
 
 /**
- * The concept catalog. Every concept appears in navigation; a lesson component
- * is wired in `components` only once it has been authored. Concepts without a
- * component for the active provider render a "coming soon" lesson state.
+ * The concept catalog, ordered as a learning path. Concepts are grouped into
+ * `stage`s (see `Stage`) that run in dependency order — you stand up the
+ * network and a server, then store data, then make it reachable, then go
+ * deeper. Array order sets the sequence within each stage. Every concept
+ * appears in navigation; a lesson component is wired in `components` only once
+ * it has been authored, and `wip` flags the ones still being written. Concepts
+ * without a component for the active provider render a "coming soon" state.
  */
 export const concepts: readonly Concept[] = [
   {
-    id: "object-storage",
-    title: "Object Storage",
-    category: "Storage",
-    short: "Files as objects in a flat namespace, over HTTP.",
-    services: { aws: "Amazon S3", azure: "Azure Blob Storage" },
-    components: {
-      aws: () => import("./concepts/object-storage/aws"),
-      azure: () => import("./concepts/object-storage/azure"),
-    },
-  },
-  {
-    id: "block-storage",
-    title: "Block Storage",
-    category: "Storage",
-    short: "Raw disk volumes you attach to a machine.",
-    services: { aws: "Amazon EBS", azure: "Azure Managed Disks" },
-    components: {},
-  },
-  {
-    id: "virtual-machines",
-    title: "Virtual Machines",
-    category: "Compute",
-    short: "A whole server you rent by the hour.",
-    services: { aws: "Amazon EC2", azure: "Azure Virtual Machines" },
-    components: {
-      aws: () => import("./concepts/virtual-machines/aws"),
-      azure: () => import("./concepts/virtual-machines/azure"),
-    },
-  },
-  {
-    id: "serverless",
-    title: "Serverless Functions",
-    category: "Compute",
-    short: "Run code on events, no servers to manage.",
-    services: { aws: "AWS Lambda", azure: "Azure Functions" },
-    components: {},
-  },
-  {
-    id: "containers",
-    title: "Containers",
-    category: "Compute",
-    short: "Portable app images run as managed containers.",
-    services: { aws: "Amazon ECS", azure: "Azure Container Apps" },
-    components: {},
-  },
-  {
     id: "virtual-network",
     title: "Virtual Network",
-    category: "Networking",
+    stage: "Foundations",
     short: "A private, isolated slice of cloud network.",
     services: { aws: "Amazon VPC", azure: "Azure Virtual Network" },
     components: {
@@ -69,35 +22,90 @@ export const concepts: readonly Concept[] = [
     },
   },
   {
+    id: "virtual-machines",
+    title: "Virtual Machines",
+    stage: "Foundations",
+    short: "A whole server you rent by the hour.",
+    services: { aws: "Amazon EC2", azure: "Azure Virtual Machines" },
+    wip: true,
+    components: {
+      aws: () => import("./concepts/virtual-machines/aws"),
+      azure: () => import("./concepts/virtual-machines/azure"),
+    },
+  },
+  {
+    id: "object-storage",
+    title: "Object Storage",
+    stage: "Storing data",
+    short: "Files as objects in a flat namespace, over HTTP.",
+    services: { aws: "Amazon S3", azure: "Azure Blob Storage" },
+    wip: true,
+    components: {
+      aws: () => import("./concepts/object-storage/aws"),
+      azure: () => import("./concepts/object-storage/azure"),
+    },
+  },
+  {
+    id: "relational",
+    title: "Relational Database",
+    stage: "Storing data",
+    short: "A managed SQL database with backups handled.",
+    services: { aws: "Amazon RDS", azure: "Azure SQL Database" },
+    wip: true,
+    components: {},
+  },
+  {
     id: "dns",
     title: "DNS",
-    category: "Networking",
+    stage: "Reaching users",
     short: "Map domain names to your resources.",
     services: { aws: "Amazon Route 53", azure: "Azure DNS" },
+    wip: true,
     components: {},
   },
   {
     id: "cdn",
     title: "Content Delivery",
-    category: "Networking",
+    stage: "Reaching users",
     short: "Cache content at the edge, close to users.",
     services: { aws: "Amazon CloudFront", azure: "Azure Front Door" },
+    wip: true,
     components: {},
   },
   {
-    id: "relational",
-    title: "Relational Database",
-    category: "Databases",
-    short: "A managed SQL database with backups handled.",
-    services: { aws: "Amazon RDS", azure: "Azure SQL Database" },
+    id: "block-storage",
+    title: "Block Storage",
+    stage: "Going further",
+    short: "Raw disk volumes you attach to a machine.",
+    services: { aws: "Amazon EBS", azure: "Azure Managed Disks" },
+    wip: true,
+    components: {},
+  },
+  {
+    id: "containers",
+    title: "Containers",
+    stage: "Going further",
+    short: "Portable app images run as managed containers.",
+    services: { aws: "Amazon ECS", azure: "Azure Container Apps" },
+    wip: true,
+    components: {},
+  },
+  {
+    id: "serverless",
+    title: "Serverless Functions",
+    stage: "Going further",
+    short: "Run code on events, no servers to manage.",
+    services: { aws: "AWS Lambda", azure: "Azure Functions" },
+    wip: true,
     components: {},
   },
   {
     id: "nosql",
     title: "NoSQL Database",
-    category: "Databases",
+    stage: "Going further",
     short: "Key-value / document store, built for scale.",
     services: { aws: "Amazon DynamoDB", azure: "Azure Cosmos DB" },
+    wip: true,
     components: {},
   },
 ];
@@ -120,16 +128,16 @@ export function conceptSupportsProvider(
   return provider in concept.components;
 }
 
-/** A category paired with its concepts, in canonical display order. */
-export interface CategoryGroup {
-  category: Category;
+/** A stage paired with its concepts, in learning-path order. */
+export interface StageGroup {
+  stage: Stage;
   concepts: Concept[];
 }
 
-/** Group concepts by category for sidebar / overview rendering. */
-export function conceptsByCategory(): CategoryGroup[] {
-  return CATEGORIES.map((category) => ({
-    category,
-    concepts: concepts.filter((concept) => concept.category === category),
+/** Group concepts by learning stage for sidebar / overview rendering. */
+export function conceptsByStage(): StageGroup[] {
+  return STAGES.map((stage) => ({
+    stage,
+    concepts: concepts.filter((concept) => concept.stage === stage),
   })).filter((group) => group.concepts.length > 0);
 }

@@ -51,11 +51,11 @@
   --color-aws: #e8871e;
   --color-azure: #3b78d0;
 
-  /* Category accents (wayfinding dots) */
-  --color-cat-storage: oklch(0.72 0.09 280);
-  --color-cat-compute: oklch(0.72 0.09 195);
-  --color-cat-networking: oklch(0.72 0.09 235);
-  --color-cat-databases: oklch(0.72 0.09 50);
+  /* Learning-stage accents (wayfinding dots) */
+  --color-stage-foundations: oklch(0.72 0.09 195);
+  --color-stage-storing: oklch(0.72 0.09 280);
+  --color-stage-reaching: oklch(0.72 0.09 235);
+  --color-stage-further: oklch(0.72 0.09 50);
 
   /* Radius vocabulary */
   --radius-input: 10px;

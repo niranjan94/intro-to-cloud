@@ -45,7 +45,7 @@ export function LessonLayout({
     <article className="max-w-[1200px] px-[44px] pt-[40px] motion-safe:animate-[fadeUp_0.4s_ease_both] max-[760px]:px-[20px] max-[760px]:pt-[28px]">
       <div className="flex items-center gap-[8px] font-mono text-[12.5px] text-ink-muted">
         <Link href={`/${provider}`} className="text-teal-ink">
-          {concept.category}
+          {concept.stage}
         </Link>
         <span>/</span>
         <span className="text-body">{concept.title}</span>
