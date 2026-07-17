@@ -93,8 +93,10 @@ export const concepts: readonly Concept[] = [
     stage: "Going further",
     short: "Portable app images run as managed containers.",
     services: { aws: "Amazon ECS", azure: "Azure Container Apps" },
-    wip: true,
-    components: {},
+    components: {
+      aws: () => import("./concepts/containers/aws"),
+      azure: () => import("./concepts/containers/azure"),
+    },
   },
   {
     id: "serverless",
