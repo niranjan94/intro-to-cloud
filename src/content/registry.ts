@@ -50,8 +50,10 @@ export const concepts: readonly Concept[] = [
     stage: "Storing data",
     short: "A managed SQL database with backups handled.",
     services: { aws: "Amazon RDS", azure: "Azure SQL Database" },
-    wip: true,
-    components: {},
+    components: {
+      aws: () => import("./concepts/relational/aws"),
+      azure: () => import("./concepts/relational/azure"),
+    },
   },
   {
     id: "dns",
