@@ -27,7 +27,6 @@ export const concepts: readonly Concept[] = [
     stage: "Foundations",
     short: "A whole server you rent by the hour.",
     services: { aws: "Amazon EC2", azure: "Azure Virtual Machines" },
-    wip: true,
     components: {
       aws: () => import("./concepts/virtual-machines/aws"),
       azure: () => import("./concepts/virtual-machines/azure"),
