@@ -117,7 +117,8 @@ registering a concept before writing its lesson is safe.
 
 ## A minimal lesson body
 
-The simple shape, in full (see `object-storage/lesson.tsx` for the real thing):
+The simple shape, in full. No shipped lesson uses it as-is any more (the built
+ones all grew into the rich shape), so this code block is the reference:
 
 ```tsx
 export function ObjectStorageLesson({ provider }: { provider: Provider }) {

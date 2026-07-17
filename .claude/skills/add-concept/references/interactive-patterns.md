@@ -71,6 +71,7 @@ Rich is justified when either is true: the concept has a *mechanism* a learner
 learns better by manipulating (address math, routing, request filtering), or AWS
 and Azure diverge enough that a shared static diagram would be misleading. If
 neither holds, the simple shape (see `references/lesson-kit.md`) plus maybe one
-focused interactive component (like `virtual-machines/vm-interactive.tsx`) is the
-right amount. Don't build a six-chapter kit for a concept that is really "here is
-the thing and its three parts".
+focused interactive component (a single data-driven `.tsx` fed from `data.ts`,
+in the style of `object-storage/tier-explorer.tsx`) is the right amount. Don't
+build a six-chapter kit for a concept that is really "here is the thing and its
+three parts".

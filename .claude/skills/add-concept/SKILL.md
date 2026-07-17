@@ -96,18 +96,25 @@ bespoke content rather than a shared component.
 Match the interactivity to the concept; do not over- or under-build. Two
 reference shapes exist in the codebase:
 
-- **Simple shape** — equivalence panel, a static diagram, the CLI block, and a
-  glossary. Reference: `src/content/concepts/object-storage/lesson.tsx`. Right
-  for concepts that are mostly "here is the thing and its parts".
+- **Simple shape** — equivalence panel, a static diagram, the CLI block, a
+  glossary, and Further reading, composed directly in `lesson.tsx`. The full
+  code is in `references/lesson-kit.md` ("A minimal lesson body"). Right for
+  concepts that are mostly "here is the thing and its parts". Note: no shipped
+  lesson currently uses the pure simple shape. The three built so far
+  (virtual-network, virtual-machines, object-storage) all grew into the rich
+  shape, so treat this as a documented starting point, not a live example.
 - **Rich shape** — a data-driven, multi-chapter interactive lesson where all
   provider differences live in a `data.ts` and provider-agnostic client
   components render them. Reference: `src/content/concepts/virtual-network/`
   (chapters, hotspot map, CIDR validator, animated packet simulator, firewall
-  trace, quiz). Right for concepts with mechanics worth *doing*, not just
-  reading, or where AWS and Azure diverge enough to need per-provider data.
+  trace, quiz) or `src/content/concepts/object-storage/` (namespace explorer,
+  tier ladder, access layers, decision simulator, lifecycle). Right for concepts
+  with mechanics worth *doing*, not just reading, or where AWS and Azure diverge
+  enough to need per-provider data.
 
-A middle option is the object-storage shape plus a single focused interactive
-component, like `src/content/concepts/virtual-machines/vm-interactive.tsx`.
+A middle option is the simple shape plus a single focused interactive client
+component: one data-driven `.tsx` fed from a small `data.ts`, in the style of a
+single chapter component like `src/content/concepts/object-storage/tier-explorer.tsx`.
 
 If the depth isn't obvious, ask the user. When building rich interactivity, read
 `references/interactive-patterns.md`.
