@@ -3,96 +3,101 @@
 @import "shadcn/tailwind.css";
 
 /*
- * Huddle design system tokens (see DESIGN.md — single source of truth).
- * Light-only v1: no `.dark` block, no dark variant.
+ * Intro to Cloud design system (see DESIGN.md — single source of truth).
+ *
+ * Calm, editorial pastels on a cool off-white canvas with a single teal accent.
+ * Provider brand color appears only as small identity dots, never as surface
+ * color. Light-only v1: no `.dark` block, no dark variant.
+ *
+ * Spacing note: we deliberately do NOT redefine Tailwind's `--spacing-*` scale.
+ * The design is pixel-specific, so exact gaps use arbitrary `[Npx]` utilities;
+ * bare numeric utilities keep their standard rem behavior.
  */
 @theme {
-  /* Colors */
-  --color-paper-white: #ffffff;
-  --color-ink-black: #151515;
-  --color-graphite: #23241f;
-  --color-slate-gray: #3a4444;
-  --color-stone-border: #333333;
-  --color-mist-gray: #808080;
-  --color-bone: #e5e6e1;
-  --color-pale-sage: #d3e5e9;
-  --color-lavender-mist: #bbb2ce;
-  --color-dusty-rose: #cb9da2;
-  --color-deep-violet: #453b60;
-  --color-burnt-amber: #65451d;
-  --color-honey-gold: #e4b976;
-  --color-burgundy: #5c2529;
-  --color-blush-border: #d79caa;
-
   /* Font families — bound to the next/font variables set on <html> */
-  --font-sans: var(--font-nng);
-  --font-mono: var(--font-apercu-pro-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
 
-  /*
-   * Type scale — size paired with matching line-height / tracking / weight
-   * so a single `text-*` utility carries the full DESIGN.md treatment.
-   */
-  --text-micro: 12px;
-  --text-micro--line-height: 1.58;
-  --text-caption: 14px;
-  --text-caption--line-height: 1.5;
-  --text-caption--letter-spacing: -0.01px;
-  --text-body-sm: 16px;
-  --text-body-sm--line-height: 1.45;
-  --text-body-sm--letter-spacing: -0.13px;
-  --text-body: 18px;
-  --text-body--line-height: 1.42;
-  --text-body--letter-spacing: -0.14px;
-  --text-subheading: 22px;
-  --text-subheading--line-height: 1.32;
-  --text-subheading--letter-spacing: -0.22px;
-  --text-heading-sm: 29px;
-  --text-heading-sm--line-height: 1.3;
-  --text-heading-sm--letter-spacing: -0.32px;
-  --text-heading: 40px;
-  --text-heading--line-height: 1.22;
-  --text-heading--letter-spacing: -0.48px;
-  --text-heading-lg: 44px;
-  --text-heading-lg--line-height: 1.2;
-  --text-heading-lg--letter-spacing: -0.92px;
-  --text-display: 69px;
-  --text-display--line-height: 1.1;
-  --text-display--letter-spacing: -1.45px;
+  /* Surfaces */
+  --color-canvas: oklch(0.985 0.006 220);
+  --color-surface: #ffffff;
+  --color-surface-muted: oklch(0.965 0.006 220);
+  --color-panel: oklch(0.28 0.02 230);
+  --color-panel-deep: oklch(0.26 0.02 230);
 
-  /* Spacing — values are literal pixels, named by their px size */
-  --spacing-4: 4px;
-  --spacing-5: 5px;
-  --spacing-6: 6px;
-  --spacing-8: 8px;
-  --spacing-10: 10px;
-  --spacing-12: 12px;
-  --spacing-14: 14px;
-  --spacing-16: 16px;
-  --spacing-18: 18px;
-  --spacing-20: 20px;
-  --spacing-24: 24px;
-  --spacing-32: 32px;
-  --spacing-40: 40px;
-  --spacing-48: 48px;
-  --spacing-96: 96px;
-  --spacing-144: 144px;
+  /* Text */
+  --color-ink: oklch(0.28 0.02 230);
+  --color-ink-soft: oklch(0.3 0.02 230);
+  --color-ink-strong: oklch(0.34 0.02 230);
+  --color-body: oklch(0.44 0.015 230);
+  --color-body-soft: oklch(0.48 0.015 230);
+  --color-muted: oklch(0.55 0.015 230);
+  --color-faint: oklch(0.58 0.015 230);
 
-  /* Border radius — semantic vocabulary (see DESIGN.md § Border Radius Vocabulary) */
-  --radius-badges: 4px;
-  --radius-cards: 8px;
-  --radius-list-items: 24px;
-  --radius-large-cards: 40px;
-  --radius-tags: 100px;
-  --radius-pills: 100px;
-  --radius-buttons: 1000px;
+  /* Hairlines */
+  --color-line: oklch(0.91 0.008 220);
+  --color-line-soft: oklch(0.92 0.008 220);
+
+  /* Teal accent family */
+  --color-teal: oklch(0.5 0.085 195);
+  --color-teal-ink: oklch(0.46 0.08 195);
+  --color-teal-deep: oklch(0.38 0.045 205);
+  --color-teal-soft: oklch(0.95 0.03 195);
+  --color-teal-tint: oklch(0.965 0.02 195);
+  --color-teal-line: oklch(0.9 0.03 195);
+  --color-teal-ring: oklch(0.58 0.08 195);
+
+  /* Provider brand — used ONLY for small identity dots */
+  --color-aws: #e8871e;
+  --color-azure: #3b78d0;
+
+  /* Category accents (wayfinding dots) */
+  --color-cat-storage: oklch(0.72 0.09 280);
+  --color-cat-compute: oklch(0.72 0.09 195);
+  --color-cat-networking: oklch(0.72 0.09 235);
+  --color-cat-databases: oklch(0.72 0.09 50);
+
+  /* Radius vocabulary */
+  --radius-input: 10px;
+  --radius-button: 12px;
+  --radius-card: 16px;
+  --radius-panel: 18px;
+  --radius-feature: 22px;
+  --radius-pill: 999px;
 
   /* Layout */
-  --page-max-width: 1200px;
+  --page-max-width: 1160px;
+  --shell-max-width: 1280px;
+  --topbar-height: 57px;
+
+  /* Motion */
+  --animate-fade-up: fadeUp 0.5s ease both;
+  --animate-lens-pulse: lensPulse 6s ease-in-out infinite;
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes lensPulse {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.04);
+    }
+  }
 }
 
 /*
  * shadcn / base-ui semantic token mapping. Reskinned primitives inherit the
- * Huddle look through these names (see :root below for the concrete values).
+ * design language through these names (see :root below for concrete values).
  */
 @theme inline {
   --color-background: var(--background);
@@ -113,14 +118,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -128,45 +125,48 @@
 }
 
 :root {
-  --radius: 8px;
+  --radius: 12px;
 
-  --background: #ffffff; /* paper white */
-  --foreground: #151515; /* ink black */
+  --background: oklch(0.985 0.006 220); /* canvas */
+  --foreground: oklch(0.3 0.02 230); /* ink-soft */
   --card: #ffffff;
-  --card-foreground: #151515;
+  --card-foreground: oklch(0.3 0.02 230);
   --popover: #ffffff;
-  --popover-foreground: #151515;
-  --primary: #65451d; /* burnt amber — the filled primary action */
-  --primary-foreground: #ffffff;
-  --secondary: #e5e6e1; /* bone */
-  --secondary-foreground: #151515;
-  --muted: #e5e6e1; /* bone */
-  --muted-foreground: #3a4444; /* slate gray */
-  --accent: #d3e5e9; /* pale sage — subtle interactive accent */
-  --accent-foreground: #151515;
-  --destructive: #5c2529; /* burgundy */
-  --border: #e5e6e1; /* bone — soft hairline; use stone-border where cards need the darker line */
-  --input: #e5e6e1;
-  --ring: #65451d; /* burnt amber */
-
-  --sidebar: #ffffff;
-  --sidebar-foreground: #151515;
-  --sidebar-primary: #65451d;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #d3e5e9;
-  --sidebar-accent-foreground: #151515;
-  --sidebar-border: #e5e6e1;
-  --sidebar-ring: #65451d;
+  --popover-foreground: oklch(0.3 0.02 230);
+  --primary: oklch(0.38 0.045 205); /* deep teal — filled primary action */
+  --primary-foreground: oklch(0.98 0.01 195);
+  --secondary: oklch(0.965 0.006 220);
+  --secondary-foreground: oklch(0.3 0.02 230);
+  --muted: oklch(0.965 0.006 220);
+  --muted-foreground: oklch(0.55 0.015 230);
+  --accent: oklch(0.95 0.03 195); /* soft teal accent surface */
+  --accent-foreground: oklch(0.3 0.02 230);
+  --destructive: oklch(0.55 0.15 25);
+  --border: oklch(0.91 0.008 220);
+  --input: oklch(0.88 0.01 220);
+  --ring: oklch(0.58 0.08 195);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-feature-settings:
-      "ss01" on,
-      "tnum" on;
+    @apply bg-canvas text-body font-sans antialiased;
+    font-feature-settings: "tnum" on;
+  }
+  ::selection {
+    background: oklch(0.9 0.05 195);
+  }
+  a {
+    color: var(--color-teal-ink);
+    text-decoration: none;
+  }
+  a:hover {
+    color: oklch(0.4 0.08 195);
+  }
+  *:focus-visible {
+    outline: 2px solid var(--color-teal-ring);
+    outline-offset: 2px;
   }
 }
