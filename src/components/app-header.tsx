@@ -9,7 +9,7 @@ import { ProviderSwitcher } from "@/components/provider-switcher";
 export function AppHeader() {
   return (
     <header className="sticky top-0 z-10 border-b border-border bg-paper-white">
-      <div className="mx-auto flex h-64 w-full max-w-[var(--page-max-width)] items-center justify-between px-24">
+      <div className="mx-auto flex h-[56px] w-full max-w-[var(--page-max-width)] items-center justify-between px-24">
         <Link
           href="/"
           className="text-body-sm font-medium uppercase tracking-[-0.01em] text-ink-black"

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { LensRail } from "@/components/lens-rail";
 import { getConcept } from "@/content/registry";
 import { isProvider } from "@/lib/provider";
 
@@ -20,5 +21,14 @@ export default async function ConceptPage({
   if (!concept || !loader) notFound();
 
   const { default: Lesson } = await loader();
-  return <Lesson />;
+  return (
+    <div className="grid gap-40 lg:grid-cols-[1fr_300px] lg:items-start">
+      <Lesson />
+      <LensRail
+        concept={concept}
+        activeProvider={provider}
+        className="lg:sticky lg:top-[72px]"
+      />
+    </div>
+  );
 }

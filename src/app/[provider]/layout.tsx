@@ -17,7 +17,7 @@ export default async function ProviderLayout({
   if (!isProvider(provider)) notFound();
 
   return (
-    <div className="mx-auto flex w-full max-w-[var(--page-max-width)] flex-col gap-32 px-24 py-48 md:flex-row md:gap-48">
+    <div className="mx-auto flex w-full max-w-[var(--page-max-width)] flex-col gap-32 px-24 py-32 md:flex-row md:gap-48">
       <Sidebar provider={provider} />
       <main className="min-w-0 flex-1">{children}</main>
     </div>
