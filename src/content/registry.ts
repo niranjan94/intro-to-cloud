@@ -63,7 +63,10 @@ export const concepts: readonly Concept[] = [
     category: "Networking",
     short: "A private, isolated slice of cloud network.",
     services: { aws: "Amazon VPC", azure: "Azure Virtual Network" },
-    components: {},
+    components: {
+      aws: () => import("./concepts/virtual-network/aws"),
+      azure: () => import("./concepts/virtual-network/azure"),
+    },
   },
   {
     id: "dns",
