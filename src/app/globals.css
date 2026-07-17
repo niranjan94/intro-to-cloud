@@ -73,6 +73,8 @@
   /* Motion */
   --animate-fade-up: fadeUp 0.5s ease both;
   --animate-lens-pulse: lensPulse 6s ease-in-out infinite;
+  /* Networking simulators: the marching route guide behind a routed packet. */
+  --animate-net-dash: netDash 0.8s linear infinite;
 
   @keyframes fadeUp {
     from {
@@ -91,6 +93,14 @@
     }
     50% {
       transform: scale(1.04);
+    }
+  }
+  @keyframes netDash {
+    from {
+      stroke-dashoffset: 0;
+    }
+    to {
+      stroke-dashoffset: -13;
     }
   }
 }
