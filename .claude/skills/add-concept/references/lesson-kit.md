@@ -90,23 +90,24 @@ documentation for the active lens, so a reader can go deeper on the real service
 The links are per-provider and swap with the lens, and their URLs come from the
 grounding pass (SKILL step 2), verified again in the step 8 re-ground review.
 
-There is no shared kit component for this yet. Add a small one (e.g.
-`further-reading.tsx`) under `src/components/lesson/` rather than hand-rolling
-anchors in each lesson, following the kit conventions: light-only, design tokens,
-a mono label via `SectionHeading`, real external anchors (`target="_blank"` with
-`rel="noreferrer noopener"`), and no em dashes in labels.
+`FurtherReading` (`further-reading.tsx`) is the shared component; it embeds its
+own `SectionHeading`, renders nothing if empty, and matches the `Glossary`
+card aesthetic. Feed it a per-provider list of `DocLink` (`{ label, href, note? }`):
 
 ```tsx
-const DOCS: Record<Provider, { label: string; href: string }[]> = {
-  aws: [{ label: "Amazon S3 User Guide", href: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/" }],
-  azure: [{ label: "Azure Blob Storage documentation", href: "https://learn.microsoft.com/azure/storage/blobs/" }],
+import { type DocLink, FurtherReading } from "@/components/lesson/further-reading";
+
+const DOCS: Record<Provider, DocLink[]> = {
+  aws: [{ label: "Amazon S3 User Guide", href: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/", note: "Buckets, objects, and access." }],
+  azure: [{ label: "Azure Blob Storage documentation", href: "https://learn.microsoft.com/azure/storage/blobs/", note: "Containers, blobs, and tiers." }],
 };
 <FurtherReading links={DOCS[provider]} />
 ```
 
 Label each link by what the page is, never "click here" or "docs", and point at
 the specific page a learner wants (a service user guide or a concept page), not a
-marketing landing page.
+marketing landing page. The URLs must come from the grounding pass and survive
+the step 8 re-ground review.
 
 ## `ComingSoonLesson` (`coming-soon.tsx`)
 

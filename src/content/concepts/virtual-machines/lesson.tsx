@@ -1,4 +1,8 @@
 import { EquivalencePanel } from "@/components/lesson/equivalence-panel";
+import {
+  type DocLink,
+  FurtherReading,
+} from "@/components/lesson/further-reading";
 import { Glossary, type GlossaryTerm } from "@/components/lesson/glossary";
 import { LessonLayout } from "@/components/lesson/lesson-layout";
 import { getConcept } from "@/content/registry";
@@ -6,6 +10,33 @@ import type { Provider } from "@/content/types";
 import { VmChapters } from "./chapters";
 
 const concept = getConcept("virtual-machines");
+
+const DOCS: Record<Provider, DocLink[]> = {
+  aws: [
+    {
+      label: "What is Amazon EC2?",
+      href: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html",
+      note: "EC2 as on-demand, scalable compute you rent by the second.",
+    },
+    {
+      label: "Get started with Amazon EC2",
+      href: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html",
+      note: "Launch and connect to your first instance.",
+    },
+  ],
+  azure: [
+    {
+      label: "Overview of virtual machines in Azure",
+      href: "https://learn.microsoft.com/en-us/azure/virtual-machines/overview",
+      note: "What to decide before you create a VM: size, region, OS, disks.",
+    },
+    {
+      label: "Quickstart: Create a Linux VM in the portal",
+      href: "https://learn.microsoft.com/en-us/azure/virtual-machines/linux/quick-create-portal",
+      note: "Deploy an Ubuntu VM from the Azure portal.",
+    },
+  ],
+};
 
 const BLURB =
   "Rent a full computer in the cloud: CPU, memory, a disk, an operating system, reachable like a server you could touch. You pay by the second, shape it to the workload, and throw it away when you are done.";
@@ -61,6 +92,7 @@ export function VirtualMachinesLesson({ provider }: { provider: Provider }) {
       />
       <VmChapters provider={provider} />
       <Glossary terms={TERMS} />
+      <FurtherReading links={DOCS[provider]} />
     </LessonLayout>
   );
 }
