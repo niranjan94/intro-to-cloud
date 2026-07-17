@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
-import { ConceptCard } from "@/components/concept-card";
-import { SectionLabel } from "@/components/section-label";
-import { conceptSupportsProvider, concepts } from "@/content/registry";
+import { CategorySection } from "@/components/category-section";
+import { conceptsByCategory } from "@/content/registry";
 import { PROVIDER_LABELS } from "@/content/types";
 import { isProvider } from "@/lib/provider";
 
-/** Provider overview: lists the concepts available through this provider's lens. */
+const groups = conceptsByCategory();
+
+/** Provider overview: browse every concept through this provider's lens. */
 export default async function ProviderOverview({
   params,
 }: {
@@ -14,29 +15,27 @@ export default async function ProviderOverview({
   const { provider } = await params;
   if (!isProvider(provider)) notFound();
 
-  const available = concepts.filter((concept) =>
-    conceptSupportsProvider(concept, provider),
-  );
-
   return (
-    <div className="flex flex-col gap-24">
-      <div className="flex flex-col gap-12">
-        <SectionLabel>{PROVIDER_LABELS[provider]} LENS</SectionLabel>
-        <h1 className="text-heading font-light text-ink-black">Concepts</h1>
-        <p className="max-w-[60ch] text-body text-slate-gray">
-          Pick a concept to explore it through the {PROVIDER_LABELS[provider]}{" "}
-          lens. Switch providers any time from the top bar.
-        </p>
-      </div>
-      <div className="grid grid-cols-1 gap-16 sm:grid-cols-2">
-        {available.map((concept) => (
-          <ConceptCard
-            key={concept.id}
-            concept={concept}
-            href={`/${provider}/${concept.id}`}
-          />
-        ))}
-      </div>
+    <div className="px-[44px] pt-[40px] motion-safe:animate-[fadeUp_0.4s_ease_both] max-[760px]:px-[20px] max-[760px]:pt-[28px]">
+      <div className="font-mono text-[12px] text-faint">/{provider}</div>
+      <h1 className="mt-[8px] text-[34px] font-extrabold tracking-[-0.03em] text-ink">
+        Browse concepts through the{" "}
+        <span className="text-teal-ink">{PROVIDER_LABELS[provider]}</span> lens
+      </h1>
+      <p className="mt-[12px] max-w-[52em] text-[16px] leading-[1.55] text-body-soft">
+        Every concept below is provider-agnostic. Switching the lens up top only
+        changes the concrete service names — never the concepts themselves. Open
+        one to start the lesson.
+      </p>
+
+      {groups.map((group) => (
+        <CategorySection
+          key={group.category}
+          category={group.category}
+          concepts={group.concepts}
+          provider={provider}
+        />
+      ))}
     </div>
   );
 }

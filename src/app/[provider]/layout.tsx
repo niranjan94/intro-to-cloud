@@ -3,8 +3,9 @@ import { Sidebar } from "@/components/sidebar";
 import { isProvider } from "@/lib/provider";
 
 /**
- * Provider-scoped shell: hosts the concept sidebar alongside the page content.
- * Validates the provider segment here so every nested route is guarded.
+ * Provider-scoped shell: the concept sidebar alongside the page content, capped
+ * to the wide shell width. Validates the provider segment here so every nested
+ * route is guarded.
  */
 export default async function ProviderLayout({
   children,
@@ -17,9 +18,9 @@ export default async function ProviderLayout({
   if (!isProvider(provider)) notFound();
 
   return (
-    <div className="mx-auto flex w-full max-w-[var(--page-max-width)] flex-col gap-32 px-24 py-32 md:flex-row md:gap-48">
+    <div className="mx-auto flex w-full max-w-[var(--shell-max-width)] flex-1 items-stretch">
       <Sidebar provider={provider} />
-      <main className="min-w-0 flex-1">{children}</main>
+      <main className="min-w-0 flex-1 pb-[90px]">{children}</main>
     </div>
   );
 }
