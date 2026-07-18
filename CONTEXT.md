@@ -26,8 +26,10 @@ The named provider product that a Lens points at (Amazon S3, Azure Blob Storage)
 always belongs to exactly one Provider and realizes exactly one Concept.
 _Avoid_: Product, offering
 
-**Category**:
-A grouping of related Concepts used for wayfinding in the sidebar, e.g. Storage, Compute,
-Networking, Databases. A Concept belongs to exactly one Category. Categories are
-provider-agnostic like the Concepts they group.
-_Avoid_: Section, group, topic
+**Stage**:
+A step in the learning path that groups related Concepts for wayfinding in the sidebar,
+e.g. Foundations, Storing data, Reaching users, Going further. Stages run in dependency
+order (each assumes the ones before it), so the catalog reads as an order to follow rather
+than a tech taxonomy. A Concept belongs to exactly one Stage. Stages are provider-agnostic
+like the Concepts they group.
+_Avoid_: Category, section, group, topic

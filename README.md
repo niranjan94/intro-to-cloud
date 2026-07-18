@@ -16,26 +16,26 @@ The result is deliberately provider-agnostic. Most beginners get lost switching 
 - **Provider** — a cloud vendor you choose between: AWS or Azure. Choosing one changes the concrete examples shown for a concept.
 - **Lens** — a single provider's realization of a concept. The AWS lens on Object Storage is Amazon S3; the Azure lens is Blob Storage.
 - **Service** — the named provider product a lens points at (Amazon S3, Azure Blob Storage).
-- **Category** — a grouping of related concepts for wayfinding in the sidebar (Storage, Compute, Networking, Databases).
+- **Stage** — a step in the learning path that groups related concepts in the sidebar (Foundations, Storing data, Reaching users, Going further). Stages run in dependency order, so the catalog reads as an order to follow rather than a tech taxonomy.
 
 Concepts are catalogued in `src/content/registry.ts`. Every concept shows up in navigation; a concept renders a full lesson once one has been authored for the active provider, and a "coming soon" state otherwise.
 
 ## Concepts covered
 
-| Category | Concept | AWS | Azure |
+| Stage | Concept | AWS | Azure |
 | --- | --- | --- | --- |
-| Storage | Object Storage | Amazon S3 | Azure Blob Storage |
-| Storage | Block Storage | Amazon EBS | Azure Managed Disks |
-| Compute | Virtual Machines | Amazon EC2 | Azure Virtual Machines |
-| Compute | Serverless Functions | AWS Lambda | Azure Functions |
-| Compute | Containers | Amazon ECS | Azure Container Apps |
-| Networking | Virtual Network | Amazon VPC | Azure Virtual Network |
-| Networking | DNS | Amazon Route 53 | Azure DNS |
-| Networking | Content Delivery | Amazon CloudFront | Azure Front Door |
-| Databases | Relational Database | Amazon RDS | Azure SQL Database |
-| Databases | NoSQL Database | Amazon DynamoDB | Azure Cosmos DB |
+| Foundations | Virtual Network | Amazon VPC | Azure Virtual Network |
+| Foundations | Virtual Machines | Amazon EC2 | Azure Virtual Machines |
+| Storing data | Object Storage | Amazon S3 | Azure Blob Storage |
+| Storing data | Relational Database | Amazon RDS | Azure SQL Database |
+| Reaching users | DNS | Amazon Route 53 | Azure DNS |
+| Reaching users | Content Delivery | Amazon CloudFront | Azure Front Door |
+| Going further | Block Storage | Amazon EBS | Azure Managed Disks |
+| Going further | Containers | Amazon ECS | Azure Container Apps |
+| Going further | Serverless Functions | AWS Lambda | Azure Functions |
+| Going further | NoSQL Database | Amazon DynamoDB | Azure Cosmos DB |
 
-Lessons are being written concept by concept. Object Storage and Virtual Machines have full lessons today; the rest are catalogued and coming soon.
+All ten concepts have full lessons for both providers today. There are also **projects** — guided, end-to-end builds that assemble concepts into a working system (starting with Web Server on a VM), catalogued in `src/content/projects.ts`.
 
 ## Getting started
 
@@ -66,7 +66,7 @@ pnpm format   # Biome formatting
 
 ## Contributing
 
-The most valuable contribution is a lesson for a concept that does not have one yet, especially if it clears up something that confused you when you were learning. Lessons live under `src/content/concepts/<concept>/` as per-provider React components; see an authored concept such as `object-storage` for the shape to follow. Architectural decisions are recorded in `docs/adr/`.
+The most valuable contribution is sharpening a lesson so it clears up something that confused you when you were learning, or adding a new concept or project. Lessons live under `src/content/concepts/<concept>/` as per-provider React components; see an authored concept such as `object-storage` or `virtual-network` for the shape to follow, and projects under `src/content/projects/`. Architectural decisions are recorded in `docs/adr/`.
 
 ## License
 
