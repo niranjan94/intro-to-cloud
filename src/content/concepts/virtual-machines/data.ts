@@ -174,18 +174,38 @@ export interface AccessStep {
   label: string;
   /** Which place acts this step; it is highlighted in the diagram. */
   actor: PlaceId;
+  /** Plain "who does this" badge, e.g. "You run this" or "AWS does this for you". */
+  agency: string;
   title: string;
   detail: string;
   /** A command, file path, or metadata request to show for the step. */
   line: string;
-  lineKind: "cmd" | "file" | "http";
+  lineKind: "cmd" | "file" | "internal";
+  /** A caption under the line, e.g. clarifying that the provider reads it, not you. */
+  lineCaption?: string;
   /** Where the public key sits after this step (the private key is always with you). */
   publicKeyAt: PlaceId | null;
   /** The final step: reveal the SSH handshake between you and the guest. */
   connect?: boolean;
 }
 
+/** One half of the key pair, explained by analogy before the flow. */
+export interface PrimerKey {
+  kind: "public" | "private";
+  label: string;
+  body: string;
+}
+
+/** A plain-language primer on key pairs, shown above the flow. */
+export interface AccessPrimer {
+  intro: string;
+  keys: PrimerKey[];
+  /** The bridge sentence into the flow diagram. */
+  bridge: string;
+}
+
 export interface AccessContent {
+  primer: AccessPrimer;
   places: AccessPlace[];
   steps: AccessStep[];
   /** The line shown when the SSH handshake fires on the last step. */
@@ -561,13 +581,31 @@ const AWS: LessonContent = {
     note: "Bars show illustrative relative unit price, not a quote. Real discounts depend on term, instance, and Region.",
   },
   access: {
+    primer: {
+      intro:
+        "You do not log in with a password here. You use a key pair: two long strings of characters, generated together as one matched set. They are made so that whatever one of them locks, only the other can unlock. That is the whole idea, and you do not need the math behind it, just the two rules below.",
+      keys: [
+        {
+          kind: "public",
+          label: "Public key",
+          body: "Think of an open padlock you can photocopy and hand out freely. It is safe to leave on any server. It can lock something shut, but it cannot open what it locked. Sharing it gives nothing away.",
+        },
+        {
+          kind: "private",
+          label: "Private key",
+          body: "The one key that opens what the matching padlock locked. It never leaves your computer, and nobody, not even AWS, ever gets a copy. If you lose it, no one can get in.",
+        },
+      ],
+      bridge:
+        "So logging in only ever needs your public key on the server. Now watch where each half goes when you create a machine: the public key travels, the private key never moves.",
+    },
     places: [
-      { id: "you", label: "You", sub: "keep the private key" },
-      { id: "provider", label: "AWS", sub: "stores the public key" },
+      { id: "you", label: "You", sub: "hold the private key" },
+      { id: "provider", label: "AWS", sub: "stores your public key" },
       {
         id: "metadata",
         label: "Instance metadata",
-        sub: "serves the key at boot",
+        sub: "AWS puts the key here",
       },
       { id: "guest", label: "The instance", sub: "ec2-user's authorized_keys" },
     ],
@@ -576,52 +614,60 @@ const AWS: LessonContent = {
         id: "create",
         label: "Create pair",
         actor: "provider",
+        agency: "You do this, once",
         title: "Create the key pair",
         detail:
-          "A key pair is asymmetric: two mathematically linked keys. AWS keeps the public key; you keep the private key. Either import your own public key, or let AWS generate the pair and download the private .pem once. AWS never stores the private key, so if you lose it there is no recovery.",
+          "You either import a public key you already made, or let AWS generate the pair and download the private half (a .pem file) one time. AWS keeps only the public key. It never stores your private key, so if you lose that file there is no recovery.",
         line: "aws ec2 create-key-pair --key-name my-key --query KeyMaterial --output text > my-key.pem",
         lineKind: "cmd",
+        lineCaption: "You run this once. The private key lands in my-key.pem on your machine and stays there.",
         publicKeyAt: "provider",
       },
       {
         id: "launch",
         label: "Launch",
         actor: "metadata",
-        title: "Launch, naming the key",
+        agency: "AWS does this for you",
+        title: "You launch; AWS places the key",
         detail:
-          "At launch you pass --key-name my-key. EC2 publishes that public key on the Instance Metadata Service, a link-local address (169.254.169.254) reachable only from inside the instance itself, never from the internet.",
+          "You run one launch command naming your key. From there AWS takes over: it copies your public key to a small read-only address that exists only inside the new instance, so the machine can look up its own settings. You never open this address; it is AWS talking to the instance for you.",
         line: "http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key",
-        lineKind: "http",
+        lineKind: "internal",
+        lineCaption: "You never visit this. It is an internal address AWS fills in and the instance reads on its own, not a page you open.",
         publicKeyAt: "metadata",
       },
       {
         id: "boot",
         label: "First boot",
         actor: "guest",
+        agency: "cloud-init does this automatically",
         title: "First boot writes authorized_keys",
         detail:
-          "On first boot cloud-init reads the public key from that metadata path and writes it into ~/.ssh/authorized_keys for the default user: ec2-user on Amazon Linux, ubuntu on Ubuntu. No password is set, and password and root login are disabled by default, so the key is the only way in.",
+          "The very first time the instance boots, a setup program called cloud-init runs automatically, reads your public key from that internal address, and saves it into the login file for the default user (ec2-user on Amazon Linux, ubuntu on Ubuntu). No password is set, so this key is the only way in.",
         line: "/home/ec2-user/.ssh/authorized_keys",
         lineKind: "file",
+        lineCaption: "The public key is appended here for you. authorized_keys is simply the list of public keys allowed to log in as this user.",
         publicKeyAt: "guest",
       },
       {
         id: "login",
         label: "Log in",
         actor: "you",
+        agency: "You do this",
         title: "Connect over SSH",
         detail:
-          "You connect with the private key. The instance sends a challenge; your client signs it with the private key; the instance verifies the signature against the public key already in authorized_keys. The private key itself never crosses the network.",
+          "Now you connect using your private key. The instance sends a one-time puzzle; your computer solves it with the private key and sends back the answer; the instance checks that answer against the public key already in authorized_keys. The private key itself never leaves your machine.",
         line: "ssh -i my-key.pem ec2-user@<public-ip>",
         lineKind: "cmd",
+        lineCaption: "You run this. -i points at your private key file; ec2-user is the default login name; the address is your instance's public IP.",
         publicKeyAt: "guest",
         connect: true,
       },
     ],
     handshake:
-      "The instance verifies a signature made by your private key against the public key in authorized_keys. Prove you hold the private key and you are in. No password, no secret sent over the wire.",
+      "The instance checks your answer against the public key in authorized_keys. Solve the puzzle only your private key can solve and you are in. No password, and the private key is never sent over the wire.",
     authorizedKeysNote:
-      "cloud-init writes to /home/ec2-user/.ssh/authorized_keys on Amazon Linux (ubuntu on Ubuntu images). The exact metadata path is /latest/meta-data/public-keys/0/openssh-key.",
+      "All of the above happens for you. You only run the create and the ssh commands; AWS and cloud-init handle the middle two steps.",
     callouts: [
       {
         kind: "myth",
@@ -1069,13 +1115,31 @@ const AZURE: LessonContent = {
     note: "Bars show illustrative relative unit price, not a quote. Real discounts depend on term, size, and Region.",
   },
   access: {
+    primer: {
+      intro:
+        "You do not log in with a password here. You use a key pair: two long strings of characters, generated together as one matched set. They are made so that whatever one of them locks, only the other can unlock. That is the whole idea, and you do not need the math behind it, just the two rules below.",
+      keys: [
+        {
+          kind: "public",
+          label: "Public key",
+          body: "Think of an open padlock you can photocopy and hand out freely. It is safe to leave on any server. It can lock something shut, but it cannot open what it locked. Sharing it gives nothing away.",
+        },
+        {
+          kind: "private",
+          label: "Private key",
+          body: "The one key that opens what the matching padlock locked. It never leaves your computer, and nobody, not even Azure, ever gets a copy. If you lose it, no one can get in.",
+        },
+      ],
+      bridge:
+        "So logging in only ever needs your public key on the server. Now watch where each half goes when you create a VM: the public key travels, the private key never moves.",
+    },
     places: [
-      { id: "you", label: "You", sub: "keep the private key" },
-      { id: "provider", label: "Azure", sub: "stores the public key" },
+      { id: "you", label: "You", sub: "hold the private key" },
+      { id: "provider", label: "Azure", sub: "stores your public key" },
       {
         id: "metadata",
         label: "Provisioning data",
-        sub: "passed to the guest agent",
+        sub: "Azure hands it to the VM",
       },
       { id: "guest", label: "The VM", sub: "azureuser's authorized_keys" },
     ],
@@ -1084,52 +1148,60 @@ const AZURE: LessonContent = {
         id: "create",
         label: "Create pair",
         actor: "provider",
+        agency: "You do this, once",
         title: "Create the key pair",
         detail:
-          "A key pair is asymmetric: two mathematically linked keys. Azure keeps the public key; you keep the private key. Pass your own public key with --ssh-key-values, or --generate-ssh-keys creates the pair in ~/.ssh and hands Azure only the public half. Azure never stores the private key.",
+          "You either pass a public key you already made with --ssh-key-values, or let --generate-ssh-keys create the pair in your ~/.ssh folder and hand Azure only the public half. Azure keeps only the public key. It never stores your private key.",
         line: "az vm create -g intro-cloud -n web-01 --image Ubuntu2204 --admin-username azureuser --generate-ssh-keys",
         lineKind: "cmd",
+        lineCaption: "You run this once. The private key stays in ~/.ssh on your machine; only the public half is uploaded.",
         publicKeyAt: "provider",
       },
       {
         id: "deploy",
         label: "Deploy",
         actor: "metadata",
-        title: "Deploy delivers the key",
+        agency: "Azure does this for you",
+        title: "Azure hands the key to the VM",
         detail:
-          "The public key and the admin username travel in the VM's osProfile. Azure hands that provisioning data to the agent running inside the newly created VM. Unlike a password, the key is configuration the platform injects, not a secret you type.",
+          "As the VM is created, Azure packages your public key and admin username into the machine's settings and passes them to a setup program running inside the new VM. Unlike a password, the key is configuration the platform delivers for you, not a secret you type in.",
         line: "osProfile.linuxConfiguration.ssh.publicKeys[0].keyData",
-        lineKind: "file",
+        lineKind: "internal",
+        lineCaption: "This is a field in the VM's deployment settings that Azure fills in. You do not open or edit it by hand.",
         publicKeyAt: "metadata",
       },
       {
         id: "boot",
         label: "First boot",
         actor: "guest",
+        agency: "cloud-init or waagent, automatically",
         title: "First boot writes authorized_keys",
         detail:
-          "On first boot the provisioning agent writes the public key into ~/.ssh/authorized_keys for your admin user. On current Marketplace images that agent is cloud-init; on older images it is the Azure Linux Agent (waagent). Either way, only the public key lands here.",
+          "The very first time the VM boots, a setup program runs automatically and saves your public key into the login file for your admin user. On current images that program is cloud-init; on older images it is the Azure Linux Agent (waagent). Either way it happens for you, and no password is set.",
         line: "/home/azureuser/.ssh/authorized_keys",
         lineKind: "file",
+        lineCaption: "The public key is appended here for you. authorized_keys is simply the list of public keys allowed to log in as this user.",
         publicKeyAt: "guest",
       },
       {
         id: "login",
         label: "Log in",
         actor: "you",
+        agency: "You do this",
         title: "Connect over SSH",
         detail:
-          "You connect with the private key. The VM sends a challenge; your client signs it with the private key; the VM verifies the signature against the public key already in authorized_keys. The private key itself never crosses the network.",
+          "Now you connect using your private key. The VM sends a one-time puzzle; your computer solves it with the private key and sends back the answer; the VM checks that answer against the public key already in authorized_keys. The private key itself never leaves your machine.",
         line: "ssh -i ~/.ssh/id_rsa azureuser@<public-ip>",
         lineKind: "cmd",
+        lineCaption: "You run this. -i points at your private key file; azureuser is the admin name you chose; the address is your VM's public IP.",
         publicKeyAt: "guest",
         connect: true,
       },
     ],
     handshake:
-      "The VM verifies a signature made by your private key against the public key in authorized_keys. Prove you hold the private key and you are in. No password, no secret sent over the wire.",
+      "The VM checks your answer against the public key in authorized_keys. Solve the puzzle only your private key can solve and you are in. No password, and the private key is never sent over the wire.",
     authorizedKeysNote:
-      "The provisioning agent writes to /home/azureuser/.ssh/authorized_keys, where azureuser is the --admin-username you chose. Windows VMs use a username and password instead of a key.",
+      "All of the above happens for you. You only run the create and the ssh commands; Azure and its setup program handle the middle two steps. Windows VMs use a username and password instead of a key.",
     callouts: [
       {
         kind: "myth",
