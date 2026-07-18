@@ -223,49 +223,49 @@ export interface NetworkContent {
 const AWS: NetworkContent = {
   chapters: [
     {
-      navLabel: "The map",
+      navLabel: "map",
       kicker: "Chapter 0 · Orientation",
       title: "The whole map on one screen",
       intro:
         "Tap any labelled piece to read what it is and, more importantly, how it relates to its neighbours. Notice which pieces are boxes you put things in and which are rules you attach.",
     },
     {
-      navLabel: "What contains what",
+      navLabel: "nesting",
       kicker: "Chapter 1 · The nesting",
       title: "What lives inside what",
       intro:
         "This is the part that trips almost everyone up. Flip between the mental model people imagine and how things actually nest.",
     },
     {
-      navLabel: "Addresses",
+      navLabel: "addresses",
       kicker: "Chapter 2 · Addresses & subnets",
       title: "Carving up the address range",
       intro:
         "A VPC owns a private address range, written as CIDR like 10.0.0.0/16. A subnet is just a slice of that range. Two hard rules live here: try to break them below.",
     },
     {
-      navLabel: "Reaching the internet",
+      navLabel: "internet",
       kicker: "Chapter 3 · Reaching the internet",
       title: "What a gateway is actually for",
       intro:
         "The clearest way to learn what the Internet Gateway and NAT Gateway do is to take them away and watch traffic break. Toggle them, pick a packet to send, and read the verdict.",
     },
     {
-      navLabel: "The two firewalls",
+      navLabel: "firewalls",
       kicker: "Chapter 4 · The two firewalls",
       title: "Security group vs. network ACL",
       intro:
         "There are two firewalls and they sit in different places. Trace a web request on port 80 coming in, and its reply going back out.",
     },
     {
-      navLabel: "Peering",
+      navLabel: "peering",
       kicker: "Chapter 5 · Peering",
       title: "Wiring two VPCs together",
       intro:
         "Two separate VPCs can be joined so their instances reach each other over private IPs, with no internet in between. One hard rule governs whether that join is even allowed. Try to break it below.",
     },
     {
-      navLabel: "Check yourself",
+      navLabel: "check",
       kicker: "Chapter 6 · Check yourself",
       title: "Six questions",
       intro:
@@ -884,49 +884,49 @@ const AWS: NetworkContent = {
 const AZURE: NetworkContent = {
   chapters: [
     {
-      navLabel: "The map",
+      navLabel: "map",
       kicker: "Chapter 0 · Orientation",
       title: "The whole map on one screen",
       intro:
         "Tap any labelled piece to read what it is and how it relates to its neighbours. Notice which pieces are boxes you put things in and which are things you attach.",
     },
     {
-      navLabel: "What contains what",
+      navLabel: "nesting",
       kicker: "Chapter 1 · The nesting",
       title: "What lives inside what",
       intro:
         "This is the part that trips almost everyone up. Flip between the model people imagine and how things actually nest.",
     },
     {
-      navLabel: "Addresses",
+      navLabel: "addresses",
       kicker: "Chapter 2 · Addresses & subnets",
       title: "Carving up the address space",
       intro:
         "A VNet owns a private address space, written as CIDR like 10.0.0.0/16. A subnet is a slice of it. Try to break the rules below.",
     },
     {
-      navLabel: "Reaching the internet",
+      navLabel: "internet",
       kicker: "Chapter 3 · Reaching the internet",
       title: "Getting in and out, without an internet gateway",
       intro:
         "Azure has no Internet Gateway object to attach. Instead, being reachable from the internet needs a public IP, and reaching out needs an explicit method like a NAT gateway. Toggle them and send packets.",
     },
     {
-      navLabel: "The firewall (NSG)",
+      navLabel: "firewall",
       kicker: "Chapter 4 · The firewall",
       title: "One NSG, possibly at two levels",
       intro:
         "Azure has a single firewall resource, the NSG, but it can sit on the subnet and on the NIC at the same time. When it does, traffic must pass both. Trace a web request on port 80 in, and its reply out.",
     },
     {
-      navLabel: "Peering",
+      navLabel: "peering",
       kicker: "Chapter 5 · Peering",
       title: "Wiring two VNets together",
       intro:
         "Two separate VNets can be joined so their VMs reach each other over private IPs, staying on Azure's backbone with no internet in between. One hard rule governs whether that join is even allowed. Try to break it below.",
     },
     {
-      navLabel: "Check yourself",
+      navLabel: "check",
       kicker: "Chapter 6 · Check yourself",
       title: "Six questions",
       intro:
