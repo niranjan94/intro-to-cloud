@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { MobileConceptNav } from "@/components/mobile-concept-nav";
 import { Sidebar } from "@/components/sidebar";
 import { isProvider } from "@/lib/provider";
 
@@ -18,9 +19,12 @@ export default async function ProviderLayout({
   if (!isProvider(provider)) notFound();
 
   return (
-    <div className="flex w-full flex-1 items-stretch">
-      <Sidebar provider={provider} />
-      <main className="min-w-0 flex-1 pb-[90px]">{children}</main>
-    </div>
+    <>
+      <MobileConceptNav provider={provider} />
+      <div className="flex w-full flex-1 items-stretch">
+        <Sidebar provider={provider} />
+        <main className="min-w-0 flex-1 pb-[90px]">{children}</main>
+      </div>
+    </>
   );
 }
