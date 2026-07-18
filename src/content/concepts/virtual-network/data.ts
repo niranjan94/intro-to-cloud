@@ -310,7 +310,7 @@ const AWS: NetworkContent = {
       kicker: "Chapter 4 · The route table",
       title: "The thing that made the subnet public",
       intro:
-        "A route table is a subnet's set of directions: a list of rules called routes, where each route pairs a destination (a range of addresses in CIDR) with a target, the next hop that traffic for that range should take. Every subnet is associated with exactly one route table, and for each packet leaving the subnet the network looks up the route whose destination best matches and forwards the packet to that hop. It's also the thing you kept hearing about: a subnet is public precisely because its table sends 0.0.0.0/0 to the Internet Gateway. Send a packet to a few destinations to watch a next hop get chosen, then pull the internet route out and watch the subnet go dark.",
+        "A route table is a subnet's set of directions: a list of routes, each pairing a destination range with a target, the next hop for traffic to it. The subnet consults it for every packet, taking the route whose destination fits best. It's what you kept hearing about: a subnet is public precisely because its table sends 0.0.0.0/0 to the Internet Gateway. Send a packet below, then pull that route out and watch the subnet go dark.",
     },
     {
       navLabel: "firewalls",
@@ -1056,7 +1056,7 @@ const AZURE: NetworkContent = {
       kicker: "Chapter 4 · The route table",
       title: "The routes Azure already wrote for you",
       intro:
-        "A route table is a subnet's set of directions: a list of rules called routes, where each route pairs a destination (a range of addresses in CIDR) with a next hop that traffic for that range should take. For every packet leaving a subnet, Azure looks up the route whose destination best matches and forwards it there. The twist versus AWS is where the list comes from: Azure pre-fills every subnet's table with system routes before you touch it, one for the VNet, one for the internet, one for each peered VNet, and you can't delete them, only override them. Send a packet to a few destinations to see which route wins, then add a user-defined route and watch it outrank the system one.",
+        "A route table is a subnet's set of directions: a list of routes, each pairing a destination range with a next hop for traffic to it. The subnet consults it for every packet, taking the route whose destination fits best. Unlike AWS, Azure pre-fills every table with system routes you can't delete, only override: one for the VNet, one for the internet, one per peered VNet. Send a packet below, then add a user-defined route and watch it outrank the system one.",
     },
     {
       navLabel: "firewall",

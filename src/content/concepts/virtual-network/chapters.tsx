@@ -171,7 +171,7 @@ export function NetworkChapters({
         <h2 className="mt-[6px] text-[26px] font-extrabold tracking-[-0.02em] text-ink max-[520px]:text-[22px]">
           {chapter.title}
         </h2>
-        <p className="mt-[10px] max-w-[62ch] text-pretty text-[15px] leading-[1.6] text-body">
+        <p className="mt-[10px] max-w-[86ch] text-pretty text-[15px] leading-[1.6] text-body">
           {chapter.intro}
         </p>
         {body()}

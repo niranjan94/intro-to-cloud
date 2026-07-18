@@ -16,7 +16,7 @@ export function ConceptOverview() {
   const { provider } = useProvider();
 
   return (
-    <section className="mx-auto w-full max-w-[var(--page-max-width)] px-[28px] pb-[80px] pt-[36px]">
+    <section className="mx-auto w-full max-w-[var(--page-max-width)] px-[28px] pb-[48px] pt-[36px]">
       <div className="flex items-baseline justify-between gap-[16px] border-t border-line pt-[36px]">
         <h2 className="text-[24px] font-bold tracking-[-0.02em] text-ink-soft">
           The concepts
