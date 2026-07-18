@@ -80,6 +80,20 @@ export const concepts: readonly Concept[] = [
     },
   },
   {
+    id: "tls-certificates",
+    title: "TLS Certificates",
+    stage: "Reaching users",
+    short: "Prove your domain and serve traffic over HTTPS.",
+    services: {
+      aws: "AWS Certificate Manager",
+      azure: "Key Vault + managed certs",
+    },
+    components: {
+      aws: () => import("./concepts/tls-certificates/aws"),
+      azure: () => import("./concepts/tls-certificates/azure"),
+    },
+  },
+  {
     id: "cdn",
     title: "Content Delivery",
     stage: "Reaching users",
