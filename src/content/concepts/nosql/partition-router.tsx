@@ -87,7 +87,10 @@ export function PartitionRouter({ content }: { content: PartitioningContent }) {
       </div>
 
       <div className="mt-[16px] rounded-[18px] border border-line bg-surface p-[18px]">
-        <div className="flex flex-wrap items-center justify-between gap-[10px]">
+        <div
+          aria-live="polite"
+          className="flex flex-wrap items-center justify-between gap-[10px]"
+        >
           <p className="font-mono text-[11.5px] text-ink-muted">
             {strategy.sampleKeys.length} items · partition key{" "}
             <span className="text-ink-strong">{strategy.keyName}</span> ·{" "}

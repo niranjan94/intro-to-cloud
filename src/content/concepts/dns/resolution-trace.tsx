@@ -287,7 +287,7 @@ export function ResolutionTrace({ content }: { content: ResolutionContent }) {
         </svg>
       </div>
 
-      <div>
+      <div aria-live="polite">
         <div className="flex items-center gap-[8px]">
           {playing ? (
             <button

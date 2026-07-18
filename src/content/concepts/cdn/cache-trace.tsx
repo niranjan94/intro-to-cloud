@@ -315,6 +315,7 @@ export function CacheTrace({ content }: { content: TraceContent }) {
         </div>
 
         <div
+          aria-live="polite"
           className={cn(
             "mt-[16px] min-h-[104px] rounded-[12px] border-[1.5px] p-[14px]",
             v ? "" : "border-dashed border-line bg-surface",

@@ -33,7 +33,10 @@ export function ScalingSim({ content }: { content: ScalingContent }) {
           >
             Simultaneous requests
           </label>
-          <div className="flex items-center gap-[10px] font-mono text-[12px]">
+          <div
+            aria-live="polite"
+            className="flex items-center gap-[10px] font-mono text-[12px]"
+          >
             <span className="flex items-center gap-[6px]">
               <span
                 className={cn(

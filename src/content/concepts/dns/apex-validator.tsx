@@ -67,7 +67,7 @@ export function ApexValidator({ content }: { content: ApexContent }) {
       </p>
 
       <div
-        key={target.id}
+        aria-live="polite"
         className="mt-[14px] flex flex-col gap-[10px] motion-safe:animate-[fadeUp_0.3s_ease_both]"
       >
         {target.mechanisms.map((mech) => {

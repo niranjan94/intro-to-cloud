@@ -20,7 +20,10 @@ export function ConsistencyLadder({
   const t = TONE[level.tone];
 
   return (
-    <div className="mt-[16px] grid grid-cols-1 gap-[18px] min-[820px]:grid-cols-[0.95fr_1.05fr]">
+    <div
+      aria-live="polite"
+      className="mt-[16px] grid grid-cols-1 gap-[18px] min-[820px]:grid-cols-[0.95fr_1.05fr]"
+    >
       <div className="rounded-[18px] border border-line bg-surface p-[16px]">
         <div className="flex items-center justify-between px-[4px]">
           <p className="font-mono text-[11.5px] uppercase tracking-[0.04em] text-ink-muted">

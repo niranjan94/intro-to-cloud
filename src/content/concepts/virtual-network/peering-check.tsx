@@ -212,6 +212,7 @@ export function PeeringCheck({ config }: { config: PeeringConfig }) {
       </div>
 
       <div
+        aria-live="polite"
         className={cn(
           "rounded-[18px] border p-[18px]",
           pass

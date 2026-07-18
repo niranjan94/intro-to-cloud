@@ -174,7 +174,10 @@ export function TtlSim({ content }: { content: TtlContent }) {
               Reset
             </button>
           ) : null}
-          <span className="ml-auto font-mono text-[11.5px] text-ink-muted">
+          <span
+            aria-live="polite"
+            className="ml-auto font-mono text-[11.5px] text-ink-muted"
+          >
             {phase === "done"
               ? "all caches refreshed"
               : phase === "running"

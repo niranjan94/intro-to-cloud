@@ -233,6 +233,7 @@ export function CidrCarver({ config }: { config: CidrConfig }) {
       </div>
 
       <div
+        aria-live="polite"
         className={cn(
           "rounded-[18px] border p-[18px]",
           pass

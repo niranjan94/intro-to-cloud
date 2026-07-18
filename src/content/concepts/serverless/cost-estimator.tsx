@@ -68,7 +68,10 @@ export function CostEstimator({ content }: { content: PricingContent }) {
           />
         </div>
 
-        <div className="rounded-[18px] border-[1.5px] border-teal-line bg-teal-tint p-[18px]">
+        <div
+          aria-live="polite"
+          className="rounded-[18px] border-[1.5px] border-teal-line bg-teal-tint p-[18px]"
+        >
           <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-teal">
             Estimated monthly cost
           </p>

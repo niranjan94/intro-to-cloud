@@ -22,7 +22,10 @@ export function QueryPlanner({ content }: { content: AccessContent }) {
         </p>
       </div>
 
-      <div className="mt-[16px] grid grid-cols-1 gap-[18px] min-[820px]:grid-cols-[0.9fr_1.1fr]">
+      <div
+        aria-live="polite"
+        className="mt-[16px] grid grid-cols-1 gap-[18px] min-[820px]:grid-cols-[0.9fr_1.1fr]"
+      >
         <div className="flex flex-col gap-[8px]">
           {content.patterns.map((p, i) => {
             const active = i === current;

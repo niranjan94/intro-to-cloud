@@ -217,7 +217,10 @@ export function PerformanceProvisioner({ content }: { content: PerfContent }) {
       </div>
 
       {/* Chosen config + cost split */}
-      <div className="mt-[16px] rounded-[16px] border border-line bg-surface p-[18px]">
+      <div
+        aria-live="polite"
+        className="mt-[16px] rounded-[16px] border border-line bg-surface p-[18px]"
+      >
         <p className="font-mono text-[11px] uppercase tracking-[0.05em] text-ink-muted">
           Provisioned volume
         </p>

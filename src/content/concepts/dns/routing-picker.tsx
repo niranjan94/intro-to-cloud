@@ -22,7 +22,10 @@ export function RoutingPicker({ content }: { content: RoutingContent }) {
         </p>
       </div>
 
-      <div className="mt-[16px] grid grid-cols-1 gap-[18px] min-[820px]:grid-cols-[0.85fr_1.15fr]">
+      <div
+        aria-live="polite"
+        className="mt-[16px] grid grid-cols-1 gap-[18px] min-[820px]:grid-cols-[0.85fr_1.15fr]"
+      >
         <div className="rounded-[18px] border border-line bg-surface p-[12px]">
           <p className="px-[6px] font-mono text-[11.5px] uppercase tracking-[0.04em] text-ink-muted">
             Your goal

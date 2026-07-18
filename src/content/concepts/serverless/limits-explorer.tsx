@@ -91,6 +91,7 @@ function SizingControl({ sizing }: { sizing: SizingModel }) {
       )}
 
       <div
+        aria-live="polite"
         className={cn(
           "mt-[16px] rounded-[12px] border-[1.5px] p-[14px]",
           TONE.invoke.frame,

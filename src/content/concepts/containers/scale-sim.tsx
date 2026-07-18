@@ -64,7 +64,10 @@ export function ScaleSim({ content }: { content: ScaleContent }) {
         </div>
 
         {/* Instance count read-out */}
-        <div className="mt-[20px] flex flex-wrap items-end justify-between gap-[12px]">
+        <div
+          aria-live="polite"
+          className="mt-[20px] flex flex-wrap items-end justify-between gap-[12px]"
+        >
           <div>
             <div className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-muted">
               Running {nounPlural}

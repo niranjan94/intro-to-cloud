@@ -41,7 +41,10 @@ export function VolumePicker({ content }: { content: PickerContent }) {
         </p>
       </div>
 
-      <div className="mt-[16px] grid grid-cols-1 gap-[18px] min-[820px]:grid-cols-[0.85fr_1.15fr]">
+      <div
+        aria-live="polite"
+        className="mt-[16px] grid grid-cols-1 gap-[18px] min-[820px]:grid-cols-[0.85fr_1.15fr]"
+      >
         <div className="flex flex-col gap-[8px]">
           {content.scenarios.map((s, i) => {
             const active = i === current;
