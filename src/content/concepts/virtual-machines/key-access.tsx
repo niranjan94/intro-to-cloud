@@ -48,7 +48,9 @@ function PrimerCard({ item }: { item: PrimerKey }) {
           {item.label}
         </h4>
       </div>
-      <p className="mt-[8px] text-[13px] leading-[1.6] text-body">{item.body}</p>
+      <p className="mt-[8px] text-[13px] leading-[1.6] text-body">
+        {item.body}
+      </p>
     </div>
   );
 }
@@ -71,7 +73,9 @@ function PlaceNode({
     <div
       className={cn(
         "flex-1 min-w-[132px] rounded-[12px] border-[1.5px] p-[12px] transition-colors",
-        active ? "border-teal-ring bg-teal-tint" : "border-line bg-surface-muted",
+        active
+          ? "border-teal-ring bg-teal-tint"
+          : "border-line bg-surface-muted",
       )}
     >
       <div

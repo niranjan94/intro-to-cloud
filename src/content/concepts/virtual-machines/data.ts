@@ -280,7 +280,7 @@ const AWS: LessonContent = {
       kicker: "Chapter 6",
       title: "Check yourself",
       intro:
-        "Six questions on the model you just built. Answer to reveal the explanation.",
+        "Twelve questions on the model you just built. Answer to reveal the explanation.",
     },
   ],
   anatomy: {
@@ -620,7 +620,8 @@ const AWS: LessonContent = {
           "You either import a public key you already made, or let AWS generate the pair and download the private half (a .pem file) one time. AWS keeps only the public key. It never stores your private key, so if you lose that file there is no recovery.",
         line: "aws ec2 create-key-pair --key-name my-key --query KeyMaterial --output text > my-key.pem",
         lineKind: "cmd",
-        lineCaption: "You run this once. The private key lands in my-key.pem on your machine and stays there.",
+        lineCaption:
+          "You run this once. The private key lands in my-key.pem on your machine and stays there.",
         publicKeyAt: "provider",
       },
       {
@@ -633,7 +634,8 @@ const AWS: LessonContent = {
           "You run one launch command naming your key. From there AWS takes over: it copies your public key to a small read-only address that exists only inside the new instance, so the machine can look up its own settings. You never open this address; it is AWS talking to the instance for you.",
         line: "http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key",
         lineKind: "internal",
-        lineCaption: "You never visit this. It is an internal address AWS fills in and the instance reads on its own, not a page you open.",
+        lineCaption:
+          "You never visit this. It is an internal address AWS fills in and the instance reads on its own, not a page you open.",
         publicKeyAt: "metadata",
       },
       {
@@ -646,7 +648,8 @@ const AWS: LessonContent = {
           "The very first time the instance boots, a setup program called cloud-init runs automatically, reads your public key from that internal address, and saves it into the login file for the default user (ec2-user on Amazon Linux, ubuntu on Ubuntu). No password is set, so this key is the only way in.",
         line: "/home/ec2-user/.ssh/authorized_keys",
         lineKind: "file",
-        lineCaption: "The public key is appended here for you. authorized_keys is simply the list of public keys allowed to log in as this user.",
+        lineCaption:
+          "The public key is appended here for you. authorized_keys is simply the list of public keys allowed to log in as this user.",
         publicKeyAt: "guest",
       },
       {
@@ -659,7 +662,8 @@ const AWS: LessonContent = {
           "Now you connect using your private key. The instance sends a one-time puzzle; your computer solves it with the private key and sends back the answer; the instance checks that answer against the public key already in authorized_keys. The private key itself never leaves your machine.",
         line: "ssh -i my-key.pem ec2-user@<public-ip>",
         lineKind: "cmd",
-        lineCaption: "You run this. -i points at your private key file; ec2-user is the default login name; the address is your instance's public IP.",
+        lineCaption:
+          "You run this. -i points at your private key file; ec2-user is the default login name; the address is your instance's public IP.",
         publicKeyAt: "guest",
         connect: true,
       },
@@ -685,16 +689,28 @@ const AWS: LessonContent = {
   },
   quiz: [
     {
-      q: "You stop an EC2 instance overnight to save money. What are you still paying for?",
+      q: "What is an AMI?",
       opts: [
-        "Nothing, a stopped instance is free",
-        "The attached EBS volumes",
-        "The compute, at half rate",
-        "Only the public IP",
+        "The physical machine your instance runs on",
+        "The billing account for the instance",
+        "The disk image the instance boots from",
+        "The firewall protecting the instance",
+      ],
+      answer: 2,
+      explain:
+        "An Amazon Machine Image is the template of OS plus software that gets copied onto the root volume and booted when you launch an instance.",
+    },
+    {
+      q: "Your security group allows inbound traffic on port 443. The instance answers a request and sends the reply back out. Do you also need an outbound rule for that reply?",
+      opts: [
+        "Yes, every direction needs its own explicit rule",
+        "No, a security group is stateful: the reply to an allowed request is allowed back automatically",
+        "Yes, but only for HTTPS traffic",
+        "No, because outbound traffic is never filtered",
       ],
       answer: 1,
       explain:
-        "Stopping releases the compute charge, but the EBS volumes persist and keep billing. To pay nothing you must terminate and remove the volumes.",
+        "A security group is stateful. Because the inbound request was allowed, its reply is allowed back out automatically, so you only write the inbound rule.",
     },
     {
       q: "Reading the instance type c7i.xlarge, what does the c tell you?",
@@ -709,40 +725,76 @@ const AWS: LessonContent = {
         "The first letter is the family. C means compute optimized; the 7 is the generation and xlarge is the size.",
     },
     {
-      q: "An instance had an auto-assigned public IP. You stop it and start it again. The address:",
+      q: "You need to run a large in-memory cache that wants far more RAM than CPU. Which instance family fits best?",
       opts: [
-        "Stays exactly the same",
-        "Is a new, different address",
-        "Is deleted permanently",
-        "Becomes a private address",
+        "C, compute optimized",
+        "T, burstable general purpose",
+        "R, memory optimized",
+        "P, GPU accelerated",
+      ],
+      answer: 2,
+      explain:
+        "R is the memory-optimized family, sized for workloads like in-memory caches and large databases that need much more memory than compute.",
+    },
+    {
+      q: "A Region offers both m5.large and m7i.large for a steady web server. All else equal, which is usually the better pick?",
+      opts: [
+        "m5.large, older generations are more stable",
+        "m7i.large, later generations are usually faster and cheaper per unit",
+        "Whichever has the lower number, it is a smaller size",
+        "It makes no difference, the generation is cosmetic",
       ],
       answer: 1,
       explain:
-        "An auto-assigned public IPv4 is released on stop and a new one is assigned on start. Use an Elastic IP if you need it to stay put.",
+        "The number is the generation. Later generations are usually faster and cheaper per unit than earlier ones, so prefer the newest generation a Region offers.",
     },
     {
-      q: "What is an AMI?",
+      q: "You write some files to the instance store, then stop the instance for the night. What happens to those files?",
       opts: [
-        "The physical machine your instance runs on",
-        "The billing account for the instance",
-        "The disk image the instance boots from",
-        "The firewall protecting the instance",
+        "They are safe; instance store survives a stop",
+        "They are erased; instance store is ephemeral and wiped when the instance stops",
+        "They move to the EBS root volume automatically",
+        "They are billed as a snapshot until you restart",
       ],
-      answer: 2,
+      answer: 1,
       explain:
-        "An Amazon Machine Image is the template of OS plus software that gets copied onto the root volume and booted when you launch an instance.",
+        "Instance store is local, ephemeral storage. Its data is erased when the instance stops or terminates. Keep anything you care about on an EBS volume.",
     },
     {
-      q: "You run a fault-tolerant batch job that can restart if interrupted. Which purchasing model fits best?",
+      q: "You stop an EC2 instance overnight to save money. What are you still paying for?",
       opts: [
-        "On-Demand",
-        "A 3-year Reserved Instance",
-        "Spot Instances",
-        "None, batch jobs need dedicated hosts",
+        "Nothing, a stopped instance is free",
+        "The attached EBS volumes",
+        "The compute, at half rate",
+        "Only the public IP",
       ],
-      answer: 2,
+      answer: 1,
       explain:
-        "Spot Instances give the deepest discount in exchange for possible reclamation with a two-minute warning, which a restartable batch job can tolerate.",
+        "Stopping releases the compute charge, but the EBS volumes persist and keep billing. To pay nothing you must terminate and remove the volumes.",
+    },
+    {
+      q: "You want to terminate an instance but keep the data on its root volume. What must you do first?",
+      opts: [
+        "Nothing, the root volume is always kept after termination",
+        "Snapshot the volume (or keep it), because by default the root EBS volume is deleted on termination",
+        "Stop the instance first; that preserves the volume forever",
+        "Release the public IP",
+      ],
+      answer: 1,
+      explain:
+        "By default the root EBS volume is deleted when an instance terminates. Take a snapshot or preserve the volume beforehand, or the data is gone for good.",
+    },
+    {
+      q: "A DNS record points at your instance's auto-assigned public IP. You stop the instance and start it again. What happens?",
+      opts: [
+        "Nothing, the address is stable across restarts",
+        "The record breaks: a new public IP is assigned on start, so an Elastic IP is needed to keep it stable",
+        "The instance keeps the old IP for 24 hours",
+        "The public IP becomes a private address",
+      ],
+      answer: 1,
+      explain:
+        "An auto-assigned public IPv4 is released on stop and a new one is assigned on start, so anything pointing at the old address breaks. Allocate an Elastic IP for an address that stays fixed across restarts.",
     },
     {
       q: "When you launch a Linux instance with a key pair, how does your public key end up in ~/.ssh/authorized_keys?",
@@ -755,6 +807,30 @@ const AWS: LessonContent = {
       answer: 1,
       explain:
         "EC2 publishes the public key on the Instance Metadata Service. On first boot cloud-init fetches it from /latest/meta-data/public-keys/0/openssh-key and writes it into the default user's authorized_keys. AWS never holds your private key.",
+    },
+    {
+      q: "You let AWS generate the key pair and downloaded the .pem file, but you have now lost it. Can AWS give you the private key again?",
+      opts: [
+        "Yes, AWS keeps a backup copy of every private key",
+        "No, AWS only ever stores the public key; the private key is handed to you once and never stored",
+        "Yes, but only within the first 24 hours",
+        "Only if you enabled key backup at launch",
+      ],
+      answer: 1,
+      explain:
+        "AWS holds only the public key. A generated private key is given to you exactly once at creation and never stored, so if you lose the .pem there is no recovery through AWS.",
+    },
+    {
+      q: "The instance is already running and you now want to grant a teammate SSH access with their own key. What do you do?",
+      opts: [
+        "Relaunch the instance; the key is only ever set at launch",
+        "Add their public key to authorized_keys (or use EC2 Instance Connect); cloud-init injects the key only on first boot",
+        "Send AWS their private key so it can install it",
+        "Nothing is possible; an instance allows exactly one key for life",
+      ],
+      answer: 1,
+      explain:
+        "cloud-init writes authorized_keys on first boot only and does not re-fetch afterward. To add or rotate keys later you edit authorized_keys yourself, or use EC2 Instance Connect to push a short-lived key on demand.",
     },
   ],
 };
@@ -803,7 +879,7 @@ const AZURE: LessonContent = {
       kicker: "Chapter 6",
       title: "Check yourself",
       intro:
-        "Six questions on the model you just built. Answer to reveal the explanation.",
+        "Twelve questions on the model you just built. Answer to reveal the explanation.",
     },
   ],
   anatomy: {
@@ -1154,7 +1230,8 @@ const AZURE: LessonContent = {
           "You either pass a public key you already made with --ssh-key-values, or let --generate-ssh-keys create the pair in your ~/.ssh folder and hand Azure only the public half. Azure keeps only the public key. It never stores your private key.",
         line: "az vm create -g intro-cloud -n web-01 --image Ubuntu2204 --admin-username azureuser --generate-ssh-keys",
         lineKind: "cmd",
-        lineCaption: "You run this once. The private key stays in ~/.ssh on your machine; only the public half is uploaded.",
+        lineCaption:
+          "You run this once. The private key stays in ~/.ssh on your machine; only the public half is uploaded.",
         publicKeyAt: "provider",
       },
       {
@@ -1167,7 +1244,8 @@ const AZURE: LessonContent = {
           "As the VM is created, Azure packages your public key and admin username into the machine's settings and passes them to a setup program running inside the new VM. Unlike a password, the key is configuration the platform delivers for you, not a secret you type in.",
         line: "osProfile.linuxConfiguration.ssh.publicKeys[0].keyData",
         lineKind: "internal",
-        lineCaption: "This is a field in the VM's deployment settings that Azure fills in. You do not open or edit it by hand.",
+        lineCaption:
+          "This is a field in the VM's deployment settings that Azure fills in. You do not open or edit it by hand.",
         publicKeyAt: "metadata",
       },
       {
@@ -1180,7 +1258,8 @@ const AZURE: LessonContent = {
           "The very first time the VM boots, a setup program runs automatically and saves your public key into the login file for your admin user. On current images that program is cloud-init; on older images it is the Azure Linux Agent (waagent). Either way it happens for you, and no password is set.",
         line: "/home/azureuser/.ssh/authorized_keys",
         lineKind: "file",
-        lineCaption: "The public key is appended here for you. authorized_keys is simply the list of public keys allowed to log in as this user.",
+        lineCaption:
+          "The public key is appended here for you. authorized_keys is simply the list of public keys allowed to log in as this user.",
         publicKeyAt: "guest",
       },
       {
@@ -1193,7 +1272,8 @@ const AZURE: LessonContent = {
           "Now you connect using your private key. The VM sends a one-time puzzle; your computer solves it with the private key and sends back the answer; the VM checks that answer against the public key already in authorized_keys. The private key itself never leaves your machine.",
         line: "ssh -i ~/.ssh/id_rsa azureuser@<public-ip>",
         lineKind: "cmd",
-        lineCaption: "You run this. -i points at your private key file; azureuser is the admin name you chose; the address is your VM's public IP.",
+        lineCaption:
+          "You run this. -i points at your private key file; azureuser is the admin name you chose; the address is your VM's public IP.",
         publicKeyAt: "guest",
         connect: true,
       },
@@ -1219,16 +1299,28 @@ const AZURE: LessonContent = {
   },
   quiz: [
     {
-      q: "You shut your VM down from inside the operating system to save money. What happens to the bill?",
+      q: "What is an image in Azure Virtual Machines?",
       opts: [
-        "Compute billing stops immediately",
-        "Compute is still billed, the VM is only stopped, not deallocated",
-        "The whole VM is deleted",
-        "You are charged double",
+        "The physical host the VM runs on",
+        "A screenshot of the running VM",
+        "The disk template the VM boots from",
+        "The network security group",
+      ],
+      answer: 2,
+      explain:
+        "An image is the OS-plus-software template copied onto the OS disk at create time. Marketplace images use an alias or URN; custom images live in an Azure Compute Gallery.",
+    },
+    {
+      q: "Your NSG allows an inbound request on port 443, and the VM sends the reply back out. Do you need a matching outbound rule for that reply?",
+      opts: [
+        "Yes, inbound and outbound are always separate",
+        "No, an NSG is stateful: the reply to an allowed request is allowed back automatically",
+        "Yes, but only for the first connection",
+        "No, outbound traffic is never filtered at all",
       ],
       answer: 1,
       explain:
-        "An OS shutdown (or az vm stop) leaves the VM allocated and still billing compute. You must deallocate to release the hardware and stop the compute charge.",
+        "An NSG is stateful, so the reply to an allowed inbound request is allowed back automatically. An NSG can attach either to the network interface or to the whole subnet.",
     },
     {
       q: "Reading the size Standard_F4s_v2, what does the 4 tell you?",
@@ -1243,6 +1335,54 @@ const AZURE: LessonContent = {
         "In Azure size names the digit after the family letter is the vCPU count. F is compute optimized, 4 is four vCPUs, s means Premium-SSD capable, v2 is the version.",
     },
     {
+      q: "You need a VM for a large in-memory database that wants far more RAM than CPU. Which family fits best?",
+      opts: [
+        "F, compute optimized",
+        "B, burstable",
+        "E, memory optimized",
+        "N, GPU accelerated",
+      ],
+      answer: 2,
+      explain:
+        "E is the memory-optimized family, sized for workloads like in-memory caches and large databases that need much more memory than compute.",
+    },
+    {
+      q: "Two sizes are offered for a steady web server: Standard_D2s_v3 and Standard_D2s_v5. All else equal, which is usually the better pick?",
+      opts: [
+        "v3, older versions are more stable",
+        "v5, later versions mark newer hardware and are usually faster and cheaper per unit",
+        "Whichever has the lower version, it uses less memory",
+        "It makes no difference, the version is cosmetic",
+      ],
+      answer: 1,
+      explain:
+        "The trailing version (v5) marks the hardware generation. Newer is usually faster and cheaper per unit, so prefer the newest version a Region offers.",
+    },
+    {
+      q: "You store some scratch files on the VM's temp disk (D:), then deallocate the VM. What happens to those files?",
+      opts: [
+        "They persist; the temp disk survives deallocation",
+        "They are erased; the temp disk is ephemeral and wiped on deallocate",
+        "They are copied to the OS managed disk automatically",
+        "They are billed as a snapshot until you restart",
+      ],
+      answer: 1,
+      explain:
+        "The temp disk is local, ephemeral storage. Its data is lost on deallocate, redeploy, or host maintenance. Keep anything you care about on a managed disk.",
+    },
+    {
+      q: "You shut your VM down from inside the operating system to save money. What happens to the bill?",
+      opts: [
+        "Compute billing stops immediately",
+        "Compute is still billed, the VM is only stopped, not deallocated",
+        "The whole VM is deleted",
+        "You are charged double",
+      ],
+      answer: 1,
+      explain:
+        "An OS shutdown (or az vm stop) leaves the VM allocated and still billing compute. You must deallocate to release the hardware and stop the compute charge.",
+    },
+    {
       q: "Your VM is Stopped (deallocated). Which of these still costs you money?",
       opts: [
         "The compute",
@@ -1255,28 +1395,28 @@ const AZURE: LessonContent = {
         "Deallocating stops the compute charge, but the managed disks persist and keep billing so your data survives. The temp disk is wiped on deallocate.",
     },
     {
-      q: "What is an image in Azure Virtual Machines?",
+      q: "You delete a VM to stop all charges. Its managed disks and network interface are separate resources. What happens to them?",
       opts: [
-        "The physical host the VM runs on",
-        "A screenshot of the running VM",
-        "The disk template the VM boots from",
-        "The network security group",
+        "They are always deleted along with the VM",
+        "They can linger and keep billing unless you delete them too",
+        "They are automatically snapshotted and archived for free",
+        "They convert into a temp disk",
       ],
-      answer: 2,
+      answer: 1,
       explain:
-        "An image is the OS-plus-software template copied onto the OS disk at create time. Marketplace images use an alias or URN; custom images live in an Azure Compute Gallery.",
+        "In Azure the disks and NIC are separate resources from the VM. Deleting the VM does not necessarily remove them, so unless you delete them too they can linger and keep billing.",
     },
     {
-      q: "You run a fault-tolerant batch job that can restart if interrupted. Which purchasing model fits best?",
+      q: "A dynamic public IP points a DNS record at your VM. You deallocate the VM and start it again. What happens?",
       opts: [
-        "Pay-as-you-go",
-        "A 3-year reservation",
-        "Spot VMs",
-        "None, batch jobs need dedicated hosts",
+        "Nothing, the address is stable across restarts",
+        "The record can break: a dynamic public IP is released on deallocate and may change; a static IP keeps it fixed",
+        "The VM keeps the old IP for 24 hours",
+        "The public IP becomes a private address",
       ],
-      answer: 2,
+      answer: 1,
       explain:
-        "Spot VMs give the deepest discount in exchange for possible eviction when Azure needs the capacity, which a restartable batch job can tolerate.",
+        "A dynamic public IP is released when the VM is deallocated and may differ on restart, so anything pointing at the old address can break. Assign a static public IP for an address that stays fixed.",
     },
     {
       q: "You create a Linux VM with an SSH key. Who writes your public key into the VM's ~/.ssh/authorized_keys?",
@@ -1289,6 +1429,18 @@ const AZURE: LessonContent = {
       answer: 1,
       explain:
         "The public key travels in the VM's osProfile. On first boot the provisioning agent (cloud-init on modern images, otherwise waagent) writes it into the admin user's authorized_keys. Azure only ever holds the public key.",
+    },
+    {
+      q: "Everything so far used an SSH key to log in to a Linux VM. How do you sign in to a Windows VM instead?",
+      opts: [
+        "The same SSH key pair works unchanged",
+        "With an admin username and password, set when the VM is created",
+        "Azure emails you a one-time code on each login",
+        "Windows VMs cannot be reached remotely",
+      ],
+      answer: 1,
+      explain:
+        "SSH key pairs are for Linux VMs. Windows VMs use an admin username and password instead, chosen at create time.",
     },
   ],
 };
