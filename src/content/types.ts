@@ -96,3 +96,40 @@ export interface Concept {
    */
   components: Partial<Record<Provider, ConceptComponentLoader>>;
 }
+
+/**
+ * A guided, end-to-end build that stitches several Concepts into one working
+ * system (e.g. a web server on a VM inside a virtual network). Projects are a
+ * top-level content type parallel to Concepts: they have their own catalog,
+ * route, and navigation section, and their per-provider lesson components are
+ * lazy-loaded and free to be fully bespoke, exactly like Concepts (ADR-0003).
+ */
+export interface Project {
+  id: string;
+  title: string;
+  /** One-line card description, provider-agnostic. */
+  short: string;
+  /**
+   * The ids of the Concepts this project builds on, in the order they come up.
+   * Drives the "concepts you'll use" links back into their lessons, so a
+   * project reinforces the concepts rather than restating them.
+   */
+  concepts: string[];
+  /**
+   * The named Services each provider assembles for this project, in stack order
+   * (e.g. ["Amazon VPC", "Amazon EC2"]). Lightweight metadata so the shell can
+   * show the cross-provider stack without loading a lesson component.
+   */
+  stack: Partial<Record<Provider, string[]>>;
+  /**
+   * Marks a project whose lesson is still being written. Drives a "WIP" badge
+   * in navigation, independent of whether a `components` entry exists.
+   */
+  wip?: boolean;
+  /**
+   * Per-provider lesson components; the keys present are the providers whose
+   * build has been authored. A project can appear in navigation before any
+   * lesson exists (the project page renders a "coming soon" state).
+   */
+  components: Partial<Record<Provider, ConceptComponentLoader>>;
+}

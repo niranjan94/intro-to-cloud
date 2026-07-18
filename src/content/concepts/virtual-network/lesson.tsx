@@ -32,6 +32,16 @@ const DOCS: Record<Provider, DocLink[]> = {
       href: "https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html",
       note: "Joining two VPCs privately, and the no-overlapping-CIDR rule.",
     },
+    {
+      label: "Route table concepts",
+      href: "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html",
+      note: "The local route, targets, and how subnets associate with a table.",
+    },
+    {
+      label: "How route priority works",
+      href: "https://docs.aws.amazon.com/vpc/latest/userguide/route-tables-priority.html",
+      note: "Longest-prefix match, and static routes beating propagated ones.",
+    },
   ],
   azure: [
     {
@@ -48,6 +58,11 @@ const DOCS: Record<Provider, DocLink[]> = {
       label: "Virtual network peering overview",
       href: "https://learn.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview",
       note: "Regional and global peering, and the non-overlapping address-space rule.",
+    },
+    {
+      label: "Virtual network traffic routing",
+      href: "https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview",
+      note: "System routes, user-defined routes, and how Azure selects a route.",
     },
   ],
 };

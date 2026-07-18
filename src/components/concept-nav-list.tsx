@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { WipBadge } from "@/components/wip-badge";
+import { projects } from "@/content/projects";
 import { conceptsByStage } from "@/content/registry";
 import { type Provider, STAGE_META } from "@/content/types";
 import { cn } from "@/lib/utils";
@@ -27,7 +28,7 @@ export function ConceptNavList({
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Concepts">
+    <nav aria-label="Concepts and projects">
       <div className="px-[10px] pb-[4px] font-mono text-[11px] tracking-[0.1em] text-faint">
         CONCEPTS
       </div>
@@ -80,6 +81,53 @@ export function ConceptNavList({
           })}
         </div>
       ))}
+
+      {projects.length > 0 ? (
+        <div className="mt-[28px] border-t border-line pt-[20px]">
+          <div className="px-[10px] pb-[4px] font-mono text-[11px] tracking-[0.1em] text-faint">
+            PROJECTS
+          </div>
+          <div className="mt-[8px]">
+            {projects.map((project) => {
+              const href = `/${provider}/projects/${project.id}`;
+              const active = pathname === href;
+              const stack = project.stack[provider] ?? [];
+              return (
+                <Link
+                  key={project.id}
+                  href={href}
+                  onClick={onNavigate}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "relative flex w-full items-center gap-[10px] rounded-[10px] py-[9px] pl-[14px] pr-[10px] transition-colors",
+                    active
+                      ? "bg-teal-soft"
+                      : "hover:bg-[oklch(0.96_0.012_195)]",
+                  )}
+                >
+                  {active ? (
+                    <span
+                      aria-hidden
+                      className="absolute bottom-[8px] left-[4px] top-[8px] w-[3px] rounded-[2px] bg-teal-ring"
+                    />
+                  ) : null}
+                  <span className="flex min-w-0 flex-col items-start gap-[1px]">
+                    <span className="flex items-center gap-[7px]">
+                      <span className="text-[13.5px] font-medium text-ink-strong">
+                        {project.title}
+                      </span>
+                      {project.wip ? <WipBadge /> : null}
+                    </span>
+                    <span className="max-w-[180px] truncate font-mono text-[11px] text-teal">
+                      {stack.join(" + ")}
+                    </span>
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </nav>
   );
 }

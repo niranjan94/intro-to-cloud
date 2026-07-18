@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
+import { ProjectCard } from "@/components/project-card";
 import { StageSection } from "@/components/stage-section";
+import { projects } from "@/content/projects";
 import { conceptsByStage } from "@/content/registry";
 import { PROVIDER_LABELS } from "@/content/types";
 import { isProvider } from "@/lib/provider";
@@ -37,6 +39,27 @@ export default async function ProviderOverview({
           provider={provider}
         />
       ))}
+
+      {projects.length > 0 ? (
+        <div className="mt-[48px] border-t border-line pt-[36px]">
+          <h2 className="text-[24px] font-bold tracking-[-0.02em] text-ink-soft">
+            Put it together
+          </h2>
+          <p className="mt-[8px] max-w-[52em] text-[15px] leading-[1.55] text-body-soft">
+            Once a few concepts click, build something end to end. Each project
+            assembles services you have already met into one working system.
+          </p>
+          <div className="mt-[20px] grid gap-[14px] [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
+            {projects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                provider={provider}
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

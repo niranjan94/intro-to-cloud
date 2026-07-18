@@ -137,7 +137,61 @@ export interface PacketScene {
   callouts: CalloutData[];
 }
 
-/* ------------------------- Chapter 4 · the firewalls ---------------------- */
+/* ------------------------- Chapter 4 · the route table -------------------- */
+
+/**
+ * One row in a subnet's route table: a destination CIDR and the next hop that
+ * traffic for it takes. `managed` marks who owns the route (AWS you build every
+ * route; Azure pre-populates `system` routes you can only override). `locked`
+ * routes can't be removed (AWS local, Azure system defaults). `priority` breaks
+ * ties when two routes share a prefix (Azure UDR outranks a system route).
+ * `drop` marks a next hop that discards traffic (Azure's next hop "None").
+ */
+export interface RouteEntry {
+  id: string;
+  destination: string;
+  target: string;
+  tone: Tone;
+  managed: "system" | "user";
+  /** Present in the table when the chapter loads. */
+  on: boolean;
+  /** Can't be toggled off; shows a lock instead of a switch. */
+  locked?: boolean;
+  /** Tooltip explaining why a locked route can't be removed. */
+  lockNote?: string;
+  /** Higher wins when two matching routes share the same prefix length. */
+  priority: number;
+  /** This next hop discards matching traffic rather than forwarding it. */
+  drop?: boolean;
+  /** Shown in the verdict when this route is the one chosen. */
+  note: string;
+}
+
+/** A destination a learner can send a test packet to, as a preset button. */
+export interface RouteProbe {
+  label: string;
+  ip: string;
+}
+
+export interface RouteTableConfig {
+  /** Noun for one network on this lens, e.g. "VPC" or "VNet". */
+  netName: string;
+  /** Heading shown over the table, naming the object, e.g. "The subnet's route table". */
+  tableTitle: string;
+  /** One-line reminder of a route's anatomy, shown under the heading. */
+  tableLede: string;
+  /** Column header over the next-hop column, e.g. "Target" or "Next hop". */
+  targetHeader: string;
+  routes: RouteEntry[];
+  probes: RouteProbe[];
+  /** Caption under the table describing what's fixed and what's editable. */
+  tableNote: string;
+  /** Appended to the verdict when a packet ends up dropped. */
+  droppedNote: string;
+  callouts: CalloutData[];
+}
+
+/* ------------------------- Chapter 5 · the firewalls ---------------------- */
 
 export interface Gate {
   toggleId: string;
@@ -170,7 +224,7 @@ export interface FirewallModel {
   callouts: CalloutData[];
 }
 
-/* ------------------------- Chapter 5 · peering ---------------------------- */
+/* ------------------------- Chapter 6 · peering ---------------------------- */
 
 export interface PeeringPreset {
   /** Short label naming the case, e.g. "identical ranges". */
@@ -194,7 +248,7 @@ export interface PeeringConfig {
   callouts: CalloutData[];
 }
 
-/* --------------------------- Chapter 6 · the quiz ------------------------- */
+/* --------------------------- Chapter 7 · the quiz ------------------------- */
 
 export interface QuizQ {
   q: string;
@@ -213,6 +267,7 @@ export interface NetworkContent {
   nesting: NestingContent;
   cidr: CidrConfig;
   scene: PacketScene;
+  routeTable: RouteTableConfig;
   firewall: FirewallModel;
   peering: PeeringConfig;
   quiz: QuizQ[];
@@ -251,23 +306,30 @@ const AWS: NetworkContent = {
         "The clearest way to learn what the Internet Gateway and NAT Gateway do is to take them away and watch traffic break. Toggle them, pick a packet to send, and read the verdict.",
     },
     {
+      navLabel: "routing",
+      kicker: "Chapter 4 · The route table",
+      title: "The thing that made the subnet public",
+      intro:
+        "A route table is a subnet's set of directions: a list of rules called routes, where each route pairs a destination (a range of addresses in CIDR) with a target, the next hop that traffic for that range should take. Every subnet is associated with exactly one route table, and for each packet leaving the subnet the network looks up the route whose destination best matches and forwards the packet to that hop. It's also the thing you kept hearing about: a subnet is public precisely because its table sends 0.0.0.0/0 to the Internet Gateway. Send a packet to a few destinations to watch a next hop get chosen, then pull the internet route out and watch the subnet go dark.",
+    },
+    {
       navLabel: "firewalls",
-      kicker: "Chapter 4 · The two firewalls",
+      kicker: "Chapter 5 · The two firewalls",
       title: "Security group vs. network ACL",
       intro:
         "There are two firewalls and they sit in different places. Trace a web request on port 80 coming in, and its reply going back out.",
     },
     {
       navLabel: "peering",
-      kicker: "Chapter 5 · Peering",
+      kicker: "Chapter 6 · Peering",
       title: "Wiring two VPCs together",
       intro:
         "Two separate VPCs can be joined so their instances reach each other over private IPs, with no internet in between. One hard rule governs whether that join is even allowed. Try to break it below.",
     },
     {
       navLabel: "check",
-      kicker: "Chapter 6 · Check yourself",
-      title: "Six questions",
+      kicker: "Chapter 7 · Check yourself",
+      title: "Seven questions",
       intro:
         "Pick an answer to see whether it holds up. These are the exact spots people slip.",
     },
@@ -662,7 +724,7 @@ const AWS: NetworkContent = {
                 path: ["NET", "IGW_OUT", "IGW_IN", "PUB"],
                 ok: true,
                 title: "reached the web server",
-                body: "The IGW is a two-way door and the server has a public IP, so an inbound request can reach it. (A firewall could still block it: that's Chapter 4.)",
+                body: "The IGW is a two-way door and the server has a public IP, so an inbound request can reach it. (A firewall could still block it: that's Chapter 5.)",
               }
             : {
                 path: ["NET", "IGW_OUT"],
@@ -724,6 +786,72 @@ const AWS: NetworkContent = {
         title:
           "Internet Gateway = a two-way door for a public subnet. NAT Gateway = a one-way door for a private subnet.",
         body: "A subnet is public only because its route table sends 0.0.0.0/0 to the Internet Gateway, nothing about the IP range. Instances there also need a public IP to be reached from outside. A private subnet has no route to the IGW; instead it routes out through a NAT Gateway (which itself sits in the public subnet). NAT lets private instances start conversations outward, for updates say, but the outside world can never start a conversation inward. That's the whole point of private.",
+      },
+    ],
+  },
+
+  routeTable: {
+    netName: "VPC",
+    tableTitle: "The public subnet's route table",
+    tableLede:
+      "Each row is one route: a destination range on the left, the next hop for it on the right.",
+    targetHeader: "Target",
+    routes: [
+      {
+        id: "local",
+        destination: "10.0.0.0/16",
+        target: "local",
+        tone: "net",
+        managed: "user",
+        on: true,
+        locked: true,
+        lockNote:
+          "Every route table has a local route for the VPC's own range, and AWS won't let you delete it.",
+        priority: 3,
+        note: "This is the VPC's own range, and its local route is in every route table by default: you can't delete it. It's what lets subnets in the VPC reach each other with no gateway involved.",
+      },
+      {
+        id: "peer",
+        destination: "10.1.0.0/16",
+        target: "peering · pcx-",
+        tone: "private",
+        managed: "user",
+        on: true,
+        priority: 2,
+        note: "The range of a VPC you've peered with. You added this route yourself; traffic for it crosses the peering connection privately and never touches the internet.",
+      },
+      {
+        id: "igw",
+        destination: "0.0.0.0/0",
+        target: "Internet Gateway · igw-",
+        tone: "public",
+        managed: "user",
+        on: true,
+        priority: 1,
+        note: "The default route: 0.0.0.0/0 is a catch-all for every destination no more-specific route claimed. This single line is what makes the subnet public. Remove it and the subnet can no longer start conversations with the internet.",
+      },
+    ],
+    probes: [
+      { label: "a VM in this VPC · 10.0.2.31", ip: "10.0.2.31" },
+      { label: "the peered VPC · 10.1.5.40", ip: "10.1.5.40" },
+      { label: "a public site · 93.184.216.34", ip: "93.184.216.34" },
+    ],
+    tableNote:
+      "The local route is locked on; the routes you added carry a switch. Pull the 0.0.0.0/0 route and watch a public site become unreachable.",
+    droppedNote:
+      "AWS starts a route table with only the local route, so a subnet reaches nothing beyond the VPC until you add the routes for it.",
+    callouts: [
+      {
+        kind: "fix",
+        tag: "How a route is chosen",
+        title: "Most specific wins: longest prefix match.",
+        body: "A packet is matched against every route, and the one with the longest prefix (the most specific range) wins. 10.1.5.40 matches both 10.1.0.0/16 and the 0.0.0.0/0 catch-all, but /16 is more specific than /0, so it takes the peering route. Only traffic that no narrower route claims falls through to 0.0.0.0/0. If two routes tie on prefix, a static route (like a peering or gateway route) beats a propagated one.",
+      },
+      {
+        kind: "note",
+        tag: "Table, not subnet",
+        title: "A route table is a separate object you attach to subnets.",
+        body: 'Each subnet is associated with exactly one route table, but one route table can be shared by many subnets, and a subnet you never explicitly wire up falls back to the VPC\'s main route table. "Public" and "private" aren\'t settings on the subnet itself: they\'re just which route table it points at, and whether that table has a route to an internet gateway.',
       },
     ],
   },
@@ -841,6 +969,18 @@ const AWS: NetworkContent = {
         "Public is purely about routing: a default route to the Internet Gateway (plus instances having public IPs). The IP numbers are irrelevant.",
     },
     {
+      q: "A route table has 10.0.0.0/16 → local, 10.1.0.0/16 → a peering connection, and 0.0.0.0/0 → an Internet Gateway. Where does a packet for 10.1.5.40 go?",
+      opts: [
+        "The Internet Gateway, via 0.0.0.0/0",
+        "The peering connection, via 10.1.0.0/16",
+        "Nowhere, two routes match so it's ambiguous",
+        "The local route, via 10.0.0.0/16",
+      ],
+      answer: 1,
+      explain:
+        "10.1.5.40 matches both 10.1.0.0/16 and the 0.0.0.0/0 catch-all. Longest prefix match picks the most specific one, /16 over /0, so it takes the peering connection. Two matches are never ambiguous: the more specific route always wins.",
+    },
+    {
       q: "A security group is…",
       opts: [
         "A box that contains network interfaces",
@@ -912,23 +1052,30 @@ const AZURE: NetworkContent = {
         "Azure has no Internet Gateway object to attach. Instead, being reachable from the internet needs a public IP, and reaching out needs an explicit method like a NAT gateway. Toggle them and send packets.",
     },
     {
+      navLabel: "routing",
+      kicker: "Chapter 4 · The route table",
+      title: "The routes Azure already wrote for you",
+      intro:
+        "A route table is a subnet's set of directions: a list of rules called routes, where each route pairs a destination (a range of addresses in CIDR) with a next hop that traffic for that range should take. For every packet leaving a subnet, Azure looks up the route whose destination best matches and forwards it there. The twist versus AWS is where the list comes from: Azure pre-fills every subnet's table with system routes before you touch it, one for the VNet, one for the internet, one for each peered VNet, and you can't delete them, only override them. Send a packet to a few destinations to see which route wins, then add a user-defined route and watch it outrank the system one.",
+    },
+    {
       navLabel: "firewall",
-      kicker: "Chapter 4 · The firewall",
+      kicker: "Chapter 5 · The firewall",
       title: "One NSG, possibly at two levels",
       intro:
         "Azure has a single firewall resource, the NSG, but it can sit on the subnet and on the NIC at the same time. When it does, traffic must pass both. Trace a web request on port 80 in, and its reply out.",
     },
     {
       navLabel: "peering",
-      kicker: "Chapter 5 · Peering",
+      kicker: "Chapter 6 · Peering",
       title: "Wiring two VNets together",
       intro:
         "Two separate VNets can be joined so their VMs reach each other over private IPs, staying on Azure's backbone with no internet in between. One hard rule governs whether that join is even allowed. Try to break it below.",
     },
     {
       navLabel: "check",
-      kicker: "Chapter 6 · Check yourself",
-      title: "Six questions",
+      kicker: "Chapter 7 · Check yourself",
+      title: "Seven questions",
       intro:
         "Pick an answer to see whether it holds up. These are the exact spots people slip.",
     },
@@ -1313,7 +1460,7 @@ const AZURE: NetworkContent = {
                 path: ["NET", "PIP_OUT", "PIP_IN", "WEB"],
                 ok: true,
                 title: "reached the web VM",
-                body: "The public IP is the VM's front door, so an inbound request can arrive. (An NSG rule still has to allow it: that's Chapter 4.)",
+                body: "The public IP is the VM's front door, so an inbound request can arrive. (An NSG rule still has to allow it: that's Chapter 5.)",
               }
             : {
                 path: ["NET", "PIP_OUT"],
@@ -1357,13 +1504,96 @@ const AZURE: NetworkContent = {
         tag: "The distinction that matters",
         title:
           "A public IP is the front door in. A NAT gateway is the door out.",
-        body: "To be reached from the internet, a VM needs a public IP attached to its NIC (and an NSG rule allowing it, Chapter 4). To reach out, a VM needs an explicit path: its own public IP, or a NAT gateway associated with its subnet (a static outbound IP shared by every VM in that subnet, outbound only). A NAT gateway never lets the outside start a conversation inward, which is what keeps the database private.",
+        body: "To be reached from the internet, a VM needs a public IP attached to its NIC (and an NSG rule allowing it, Chapter 5). To reach out, a VM needs an explicit path: its own public IP, or a NAT gateway associated with its subnet (a static outbound IP shared by every VM in that subnet, outbound only). A NAT gateway never lets the outside start a conversation inward, which is what keeps the database private.",
       },
       {
         kind: "note",
         tag: "Recent change worth knowing",
         title: "It just worked before is going away.",
         body: "Historically Azure quietly gave new VMs implicit outbound internet access through a shared Microsoft IP. Microsoft is retiring that default, and new virtual networks now lean toward being private by default, so you're expected to attach an explicit outbound method (NAT gateway, public IP, or a load balancer). Treat outbound access as something you deliberately configure, not something you inherit.",
+      },
+    ],
+  },
+
+  routeTable: {
+    netName: "VNet",
+    tableTitle: "This subnet's effective route table",
+    tableLede:
+      "Each row is one route: a destination range on the left, the next hop for it on the right.",
+    targetHeader: "Next hop",
+    routes: [
+      {
+        id: "vnet",
+        destination: "10.0.0.0/16",
+        target: "Virtual network",
+        tone: "net",
+        managed: "system",
+        on: true,
+        locked: true,
+        lockNote:
+          "A system route for the VNet's address space. Azure creates it for every subnet and won't let you delete it.",
+        priority: 1,
+        note: "A system route Azure writes for the VNet's own address space. It's why every subnet reaches every other subnet with zero configuration. You can't remove it.",
+      },
+      {
+        id: "peer",
+        destination: "10.1.0.0/16",
+        target: "Virtual network peering",
+        tone: "private",
+        managed: "system",
+        on: true,
+        locked: true,
+        lockNote:
+          "A system route Azure adds automatically when you peer with this VNet. It isn't something you write by hand.",
+        priority: 1,
+        note: "Azure added this system route the moment you peered with the 10.1.0.0/16 VNet. Traffic for that range stays on the Microsoft backbone, and you can't set this next hop in a route of your own.",
+      },
+      {
+        id: "internet",
+        destination: "0.0.0.0/0",
+        target: "Internet",
+        tone: "public",
+        managed: "system",
+        on: true,
+        locked: true,
+        lockNote:
+          "The default system route. You can't delete it, but a user-defined route with the same prefix overrides it.",
+        priority: 1,
+        note: "The default system route. Anything no more-specific route claimed heads to the internet. Azure adds it to every subnet; you can't delete it, only override it with a route of your own.",
+      },
+      {
+        id: "udr",
+        destination: "0.0.0.0/0",
+        target: "None",
+        tone: "firewall",
+        managed: "user",
+        on: false,
+        priority: 2,
+        drop: true,
+        note: "A user-defined route with next hop None. It shares the 0.0.0.0/0 prefix with the system internet route, but a UDR outranks a system route, so it wins the tie and black-holes everything bound for the internet. Swap None for a Virtual appliance and you've force-routed that traffic through a firewall instead.",
+      },
+    ],
+    probes: [
+      { label: "a VM in this VNet · 10.0.1.20", ip: "10.0.1.20" },
+      { label: "the peered VNet · 10.1.4.7", ip: "10.1.4.7" },
+      { label: "a public site · 93.184.216.34", ip: "93.184.216.34" },
+    ],
+    tableNote:
+      "The three system routes are locked on; the user-defined route carries a switch. Add it and watch it beat the system internet route at the same 0.0.0.0/0 prefix.",
+    droppedNote:
+      "Azure never leaves a subnet with nothing: the system routes always cover the VNet, peers, and the internet unless a route of yours overrides them.",
+    callouts: [
+      {
+        kind: "fix",
+        tag: "How a route is chosen",
+        title: "Longest prefix first, then priority breaks the tie.",
+        body: "Azure matches a packet against every route and takes the longest prefix. 10.1.4.7 matches both 10.1.0.0/16 and 0.0.0.0/0, so /16 wins. When two routes share the same prefix, priority decides in this order: user-defined route, then BGP route, then system route. That's why your 0.0.0.0/0 → None beats the system 0.0.0.0/0 → Internet even though the prefixes are identical.",
+      },
+      {
+        kind: "note",
+        tag: "The AWS contrast",
+        title: "Azure hands you a full table; AWS hands you an empty one.",
+        body: "In AWS every route table starts with just the local route and you add the rest. In Azure the table arrives pre-filled with system routes for the VNet, its peers, and the internet, and you can't delete any of them. You shape routing by adding user-defined routes that override them, then associating that route table with a subnet (zero or one table per subnet).",
       },
     ],
   },
@@ -1471,6 +1701,18 @@ const AZURE: NetworkContent = {
       answer: 1,
       explain:
         "Inbound reachability comes from a Public IP on the NIC (the front door) and an NSG rule that permits the traffic. The private IP alone isn't routable from outside, and the numbers themselves are irrelevant.",
+    },
+    {
+      q: "A subnet has Azure's system route 0.0.0.0/0 → Internet. You add a user-defined route 0.0.0.0/0 → None. What happens to internet-bound traffic?",
+      opts: [
+        "Nothing changes, you can't override a system route",
+        "It's dropped: the user-defined route outranks the system route at the same prefix",
+        "It's ambiguous, so Azure rejects the route",
+        "Both routes apply and the traffic is duplicated",
+      ],
+      answer: 1,
+      explain:
+        "The two routes share the 0.0.0.0/0 prefix, so priority breaks the tie, and a user-defined route outranks a system route. Next hop None black-holes the traffic. You can't delete Azure's system routes, but a UDR with the same prefix overrides them.",
     },
     {
       q: "An NSG is…",

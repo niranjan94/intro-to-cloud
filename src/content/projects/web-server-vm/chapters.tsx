@@ -6,48 +6,42 @@ import {
   CheckIcon as Check,
 } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
+import { Callout } from "@/components/lesson/callout";
 import {
   AgentPromptPanel,
   type AgentSetup,
   REFERENCE_CHAPTERS,
   type ResponsibilitySplit,
-  type SecurityChecklist,
-  SecurityPanel,
   SharedResponsibilityPanel,
 } from "@/components/lesson/lesson-reference";
+import { Quiz } from "@/components/lesson/quiz";
 import type { Provider } from "@/content/types";
 import { cn } from "@/lib/utils";
-import { Callout } from "./callout";
-import { CidrCarver } from "./cidr-carver";
+import { ArchitectureMap } from "./architecture-map";
+import { BuildSteps } from "./build-steps";
 import { CONTENT } from "./data";
-import { FirewallTrace } from "./firewall-trace";
-import { NestingFlip } from "./nesting-flip";
-import { NetworkMap } from "./network-map";
-import { PacketSim } from "./packet-sim";
-import { PeeringCheck } from "./peering-check";
-import { Quiz } from "./quiz";
-import { RouteLab } from "./route-lab";
+import { ProvisionScript } from "./provision-script";
+import { RequestFlow } from "./request-flow";
 
 /**
- * The guided, chapter-by-chapter body of the Virtual Network lesson. Chapter
- * order is fixed (map, nesting, addresses, internet, routing, firewall, peering,
- * quiz); every chapter's copy and interactive data comes from CONTENT[provider].
+ * The guided, chapter-by-chapter body of the Web Server on a VM project.
+ * Chapter order is fixed (plan, request, build, provision, then the two shared
+ * reference tabs, then the quiz); every chapter's copy and interactive data
+ * comes from CONTENT[provider].
  */
-export function NetworkChapters({
+export function WebServerChapters({
   provider,
   responsibility,
-  security,
   agent,
 }: {
   provider: Provider;
   responsibility: ResponsibilitySplit;
-  security: SecurityChecklist;
   agent: AgentSetup;
 }) {
   const content = CONTENT[provider];
   // The quiz is the last entry of content.chapters, but it reads as the
-  // capstone, so the reference tabs (ownership, then set it up) slot in ahead
-  // of it: [...guided chapters, ownership, set it up, quiz].
+  // capstone check, so the reference tabs (ownership, then set it up) slot in
+  // ahead of it: [...guided chapters, ownership, set it up, quiz].
   const chapters = [
     ...content.chapters.slice(0, -1),
     ...REFERENCE_CHAPTERS,
@@ -63,63 +57,34 @@ export function NetworkChapters({
         <SharedResponsibilityPanel provider={provider} split={responsibility} />
       );
     if (current === content.chapters.length)
-      return <SecurityPanel provider={provider} checklist={security} />;
-    if (current === content.chapters.length + 1)
       return <AgentPromptPanel cli={agent.cli} scenarios={agent.scenarios} />;
-    if (current === content.chapters.length + 2)
+    if (current === content.chapters.length + 1)
       return <Quiz questions={content.quiz} />;
     switch (current) {
       case 0:
         return (
-          <NetworkMap
-            map={content.map}
+          <ArchitectureMap
+            nodes={content.arch}
             hotspots={content.hotspots}
-            hint={content.mapHint}
+            hint={content.archHint}
           />
         );
       case 1:
-        return <NestingFlip content={content.nesting} />;
-      case 2:
         return (
           <>
-            <CidrCarver config={content.cidr} />
-            {content.cidr.callouts.map((c) => (
+            <RequestFlow flow={content.flow} />
+            {content.flow.callouts.map((c) => (
               <Callout key={c.tag} {...c} />
             ))}
           </>
         );
+      case 2:
+        return <BuildSteps steps={content.steps} provider={provider} />;
       case 3:
         return (
           <>
-            <PacketSim scene={content.scene} />
-            {content.scene.callouts.map((c) => (
-              <Callout key={c.tag} {...c} />
-            ))}
-          </>
-        );
-      case 4:
-        return (
-          <>
-            <RouteLab config={content.routeTable} />
-            {content.routeTable.callouts.map((c) => (
-              <Callout key={c.tag} {...c} />
-            ))}
-          </>
-        );
-      case 5:
-        return (
-          <>
-            <FirewallTrace model={content.firewall} />
-            {content.firewall.callouts.map((c) => (
-              <Callout key={c.tag} {...c} />
-            ))}
-          </>
-        );
-      case 6:
-        return (
-          <>
-            <PeeringCheck config={content.peering} />
-            {content.peering.callouts.map((c) => (
+            <ProvisionScript provision={content.provision} />
+            {content.provision.callouts.map((c) => (
               <Callout key={c.tag} {...c} />
             ))}
           </>
@@ -132,7 +97,7 @@ export function NetworkChapters({
   return (
     <section className="mt-[30px]">
       <nav
-        aria-label="Lesson chapters"
+        aria-label="Project chapters"
         className="flex gap-[2px] overflow-x-auto border-y border-line"
       >
         {chapters.map((c, i) => (
