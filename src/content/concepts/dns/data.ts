@@ -226,9 +226,9 @@ const CHAPTERS: ChapterMeta[] = [
   {
     navLabel: "Quiz",
     kicker: "Chapter 6 · Check yourself",
-    title: "Six questions",
+    title: "Twelve questions",
     intro:
-      "Six quick checks on the model you just built. Each reveals its answer and a short why as soon as you choose.",
+      "Twelve quick checks on the model you just built. Each reveals its answer and a short why as soon as you choose.",
   },
 ];
 
@@ -601,11 +601,59 @@ const AWS_CONTENT: LessonContent = {
         "The recursive resolver does the walking and caches each step. Route 53 name servers are authoritative: they only answer for the zones they hold.",
     },
     {
+      q: "A resolver asks the Route 53 name servers for a name in a zone they do not host. What happens?",
+      opts: [
+        "They walk the hierarchy, resolve it, and cache the answer",
+        "They only answer for the zones they hold, so they do not resolve it for you",
+        "They forward the query to the root servers on the resolver's behalf",
+        "They return the closest matching record they happen to hold",
+      ],
+      answer: 1,
+      explain:
+        "Route 53 name servers are authoritative, not recursive. They only answer for the zones they hold and never resolve other names. Walking the hierarchy is the recursive resolver's job.",
+    },
+    {
+      q: "Delegation is complete only when which records point at your provider's name servers?",
+      opts: [
+        "The NS records in the parent zone at your registrar",
+        "The A records in your zone",
+        "The SOA record",
+        "The MX records",
+      ],
+      answer: 0,
+      explain:
+        "The parent zone must publish NS records naming your provider's servers. Until then the resolution walk never reaches your zone, no matter what records you create inside it.",
+    },
+    {
+      q: "You create a public hosted zone for example.com in Route 53 but add no records of your own yet. Which records already exist?",
+      opts: [
+        "None until you create them",
+        "The NS and SOA records, created automatically with the zone",
+        "An A record for the apex",
+        "The MX records for mail",
+      ],
+      answer: 1,
+      explain:
+        "Creating a hosted zone auto-creates its NS and SOA records. The NS record lists the four name servers assigned to the zone, and that is what delegation points at.",
+    },
+    {
+      q: "You want shop.example.com to resolve to the same place as www.example.com, an ordinary hostname. Which record fits, and what should you know?",
+      opts: [
+        "An alias record, because CNAMEs are not allowed on subdomains",
+        "A CNAME record; it works on a subdomain but cannot sit at the zone apex",
+        "An A record, because a CNAME cannot point at another name",
+        "An NS record delegating shop to www",
+      ],
+      answer: 1,
+      explain:
+        "A CNAME aliases one name to another and is fine on a subdomain like shop. It cannot sit at the zone apex, where an alias record is the supported fix.",
+    },
+    {
       q: "Why can't you create a CNAME for the bare domain example.com?",
       opts: [
         "CNAMEs are deprecated",
         "A CNAME can't coexist with the apex's required SOA and NS records",
-        "Route 53 charges too much for it",
+        "A CNAME at the apex would create a resolution loop",
         "The apex only accepts TXT records",
       ],
       answer: 1,
@@ -622,7 +670,19 @@ const AWS_CONTENT: LessonContent = {
       ],
       answer: 2,
       explain:
-        "An alias record works at the apex, targets the distribution directly, and is free for AWS resources. CloudFront exposes no fixed IP for an A record.",
+        "An alias record works at the apex and targets the distribution directly. CloudFront exposes no fixed IP for an A record.",
+    },
+    {
+      q: "The apex example.com must point at a server you run on a stable, fixed public IP that is not an AWS resource. What is the right record?",
+      opts: [
+        "An alias record",
+        "A CNAME record",
+        "A plain A record at the apex",
+        "An NS record",
+      ],
+      answer: 2,
+      explain:
+        "When you truly own a stable IP, a plain A record at the apex is exactly right and no alias is needed. Alias records target AWS resources, not an arbitrary IP, and a CNAME cannot sit at the apex.",
     },
     {
       q: "In Route 53, where does a weighted or failover routing decision live?",
@@ -637,6 +697,18 @@ const AWS_CONTENT: LessonContent = {
         "Route 53 bundles hosting and routing: the routing policy is an attribute of the record. Azure instead uses a separate Traffic Manager service.",
     },
     {
+      q: "You run an active-passive setup and want DNS to serve the standby only when the primary is down. What makes that work in Route 53?",
+      opts: [
+        "A weighted routing policy with equal weights",
+        "A failover routing policy backed by a health check on the primary",
+        "A latency routing policy",
+        "Lowering the TTL to zero",
+      ],
+      answer: 1,
+      explain:
+        "A failover routing policy marks one record primary and one secondary, and a health check on the primary decides which is served. Without health checks, DNS keeps handing out a dead endpoint's address.",
+    },
+    {
       q: "You lower a record's TTL from 1 hour to 60 seconds, then change its value. What decides how long some users still see the old answer?",
       opts: [
         "The registrar's refresh interval",
@@ -649,16 +721,16 @@ const AWS_CONTENT: LessonContent = {
         "Resolvers serve a cached answer until its TTL expires. Lowering the TTL ahead of a change shrinks that worst-case stale window.",
     },
     {
-      q: "Delegation is complete only when which records point at your provider's name servers?",
+      q: "You set an alias record at the apex pointing to a load balancer and go looking for its TTL to tune the caching window. What do you find?",
       opts: [
-        "The NS records in the parent zone at your registrar",
-        "The A records in your zone",
-        "The SOA record",
-        "The MX records",
+        "The TTL defaults to 300 seconds and you can change it",
+        "There is no TTL to set; Route 53 uses the target's own TTL",
+        "The TTL is fixed at 24 hours for every alias record",
+        "The alias record is never cached at all",
       ],
-      answer: 0,
+      answer: 1,
       explain:
-        "The parent zone must publish NS records naming your provider's servers. Until then the resolution walk never reaches your zone.",
+        "An alias record to an AWS resource has no TTL you can set. Route 53 takes the TTL from the target, so the caching window is decided by the resource, not by you.",
     },
   ],
 };
@@ -972,11 +1044,59 @@ const AZURE_CONTENT: LessonContent = {
         "The recursive resolver does the walking and caches each step. Azure DNS is authoritative only: it answers for its zones and never resolves other names.",
     },
     {
+      q: "A resolver asks the Azure DNS name servers for a name in a zone they do not host. What happens?",
+      opts: [
+        "They walk the hierarchy, resolve it, and cache the answer",
+        "They return the closest matching record they happen to hold",
+        "They only answer for the zones they hold, so they do not resolve it for you",
+        "They forward the query to the root servers on the resolver's behalf",
+      ],
+      answer: 2,
+      explain:
+        "Azure DNS is authoritative only. It answers for the zones it holds and never resolves other names. Walking the hierarchy is the recursive resolver's job.",
+    },
+    {
+      q: "Delegation is complete only when which records point at your provider's name servers?",
+      opts: [
+        "The NS records in the parent zone at your registrar",
+        "The A records in your zone",
+        "The SOA record",
+        "The MX records",
+      ],
+      answer: 0,
+      explain:
+        "The parent zone must publish NS records naming all four Azure DNS servers. Until then the resolution walk never reaches your zone, and delegating all four is what qualifies the zone for the SLA.",
+    },
+    {
+      q: "You add a second A record with the same name to an Azure DNS zone. Where does its TTL come from?",
+      opts: [
+        "Each A record carries its own independent TTL",
+        "From the record set: one TTL shared by every record with that name and type",
+        "From the zone's SOA record",
+        "From the recursive resolver",
+      ],
+      answer: 1,
+      explain:
+        "Azure DNS groups every record with the same name and type into a record set with one shared TTL, so the two A records cannot have different caching windows. SOA and CNAME sets are the exception, holding only one record.",
+    },
+    {
+      q: "You want shop.example.com to resolve to the same place as www.example.com, an ordinary hostname. Which record fits, and what is the constraint?",
+      opts: [
+        "An alias record set, because CNAMEs are not allowed on subdomains",
+        "A CNAME set; it works on a subdomain but holds exactly one record and cannot sit at the apex",
+        "An A record, because a CNAME cannot point at another name",
+        "An NS record set delegating shop to www",
+      ],
+      answer: 1,
+      explain:
+        "A CNAME aliases one name to another and is fine on a subdomain like shop. A CNAME set holds exactly one record, and it cannot sit at the zone apex.",
+    },
+    {
       q: "Why can't you create a CNAME for the bare domain example.com?",
       opts: [
         "CNAMEs are deprecated",
         "A CNAME can't coexist with the apex's required SOA and NS records",
-        "Azure DNS charges too much for it",
+        "A CNAME at the apex would create a resolution loop",
         "The apex only accepts TXT records",
       ],
       answer: 1,
@@ -996,6 +1116,18 @@ const AZURE_CONTENT: LessonContent = {
         "An alias record set works at the apex and points at the Traffic Manager profile. A profile is a name, not a fixed IP, so an A record has nothing to target.",
     },
     {
+      q: "The apex example.com must point at a server you run on a stable, fixed public IP that is not an Azure resource. What is the right record?",
+      opts: [
+        "An alias record set",
+        "A CNAME record",
+        "A plain A record at the apex",
+        "An NS record set",
+      ],
+      answer: 2,
+      explain:
+        "When you own a stable IP that is not an Azure resource, a plain A record at the apex is exactly right. Alias record sets target Azure resources, not an arbitrary external IP, and a CNAME cannot sit at the apex.",
+    },
+    {
       q: "In Azure, where does a weighted or failover routing decision live?",
       opts: [
         "In the Azure DNS record set",
@@ -1006,6 +1138,18 @@ const AZURE_CONTENT: LessonContent = {
       answer: 1,
       explain:
         "Azure DNS only hosts records. Routing lives in Traffic Manager, a separate service a DNS alias record set points at. Route 53 instead does both in one.",
+    },
+    {
+      q: "You run an active-passive setup and want traffic served to the standby only when the primary is down. What makes that work in Azure?",
+      opts: [
+        "A weighted routing method with equal weights",
+        "A Traffic Manager priority routing method, using its built-in endpoint health monitoring",
+        "A performance routing method",
+        "Lowering the record set TTL to zero",
+      ],
+      answer: 1,
+      explain:
+        "Traffic Manager's priority routing method serves the highest-priority healthy endpoint and falls back down the list. Every Traffic Manager profile includes endpoint health monitoring and automatic failover, independent of the DNS zone.",
     },
     {
       q: "You lower a record set's TTL from 1 hour to 60 seconds, then change its value. What decides how long some users still see the old answer?",
@@ -1020,16 +1164,16 @@ const AZURE_CONTENT: LessonContent = {
         "Resolvers serve a cached answer until its TTL expires. Lowering the TTL ahead of a change shrinks that worst-case stale window.",
     },
     {
-      q: "Delegation is complete only when which records point at your provider's name servers?",
+      q: "You want two A records in the same Azure DNS record set to have different caching windows. Can you?",
       opts: [
-        "The NS records in the parent zone at your registrar",
-        "The A records in your zone",
-        "The SOA record",
-        "The MX records",
+        "Yes, set a separate TTL on each record",
+        "No, TTL is a property of the record set and is shared by every record in it",
+        "Yes, but only if the records have different names",
+        "Yes, an alias record overrides the set's TTL",
       ],
-      answer: 0,
+      answer: 1,
       explain:
-        "The parent zone must publish NS records naming all four Azure DNS servers. Until then the resolution walk never reaches your zone.",
+        "In Azure DNS the TTL is set once per record set and shared by every record in it, so you cannot give two A records in the same set different caching windows.",
     },
   ],
 };

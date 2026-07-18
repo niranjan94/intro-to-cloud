@@ -334,7 +334,7 @@ const AWS: NetworkContent = {
     {
       navLabel: "check",
       kicker: "Chapter 7 · Check yourself",
-      title: "Seven questions",
+      title: "Twelve questions",
       intro:
         "Pick an answer to see whether it holds up. These are the exact spots people slip.",
     },
@@ -944,11 +944,28 @@ const AWS: NetworkContent = {
 
   quiz: [
     {
-      q: "You want to peer two VPCs. VPC A is 10.0.0.0/16. Which range for VPC B lets the peering succeed?",
-      opts: ["10.0.0.0/16", "10.0.128.0/17", "10.1.0.0/16", "10.0.0.0/8"],
-      answer: 2,
+      q: "Which describes the real relationship between an EC2 instance, its network interface, and a security group?",
+      opts: [
+        "The EC2 is inside its ENI, which is inside a security group",
+        "The ENI is attached to the EC2; a security group attaches to the ENI",
+        "The security group contains the subnet, which contains the ENI",
+        "The subnet is inside the network interface",
+      ],
+      answer: 1,
       explain:
-        "Peered VPCs can't have matching or overlapping CIDR blocks. 10.0.0.0/16 is identical to A, 10.0.128.0/17 sits inside A, and 10.0.0.0/8 contains A. Only 10.1.0.0/16 shares no addresses with A, so the connection is allowed.",
+        "The instance has the network card (ENI) plugged into it; the security group clips onto that card. Nothing is inside a security group.",
+    },
+    {
+      q: "You attach one security group to fifty instances spread across three different subnets. A teammate says that's impossible because a security group belongs to a subnet. Who's right?",
+      opts: [
+        "The teammate: a security group is owned by exactly one subnet",
+        "You: a security group attaches to network interfaces, so one can cover many instances across subnets",
+        "Neither: a security group can attach to only a single instance",
+        "The teammate: the subnet's firewall and the security group are the same object",
+      ],
+      answer: 1,
+      explain:
+        "A security group attaches to network interfaces, not subnets, so the very same one can travel with instances across many subnets at once. The firewall that belongs to the subnet is the network ACL.",
     },
     {
       q: "You create a VPC as 10.0.0.0/16. Which subnet range is legal?",
@@ -958,16 +975,35 @@ const AWS: NetworkContent = {
         "A subnet must fit inside the VPC's range. Only 10.0.5.0/24 sits within 10.0.0.0/16; the others live outside that block entirely.",
     },
     {
-      q: "What makes a subnet public?",
+      q: "You carve a /24 subnet out of your VPC and expect 256 addresses for your instances. How many can you actually use?",
+      opts: ["256", "251", "254", "255"],
+      answer: 1,
+      explain:
+        "AWS reserves five addresses in every subnet, the first four and the last one, for its own use. A /24 therefore leaves 251 usable, not 256.",
+    },
+    {
+      q: "A subnet's route table sends 0.0.0.0/0 to the Internet Gateway, so it's a public subnet. A server sitting in it has only a private IP. Can the internet reach that server?",
       opts: [
-        "It uses public-looking IP numbers",
-        "Its route table sends 0.0.0.0/0 to an Internet Gateway",
-        "It has more addresses than a private subnet",
-        "You tick a public checkbox and nothing else",
+        "Yes, the route to the Internet Gateway is enough on its own",
+        "No, being reachable from outside also requires the server to have a public IP",
+        "No, servers in a public subnet can never receive inbound traffic",
+        "Yes, but only if the subnet is the largest one in the VPC",
       ],
       answer: 1,
       explain:
-        "Public is purely about routing: a default route to the Internet Gateway (plus instances having public IPs). The IP numbers are irrelevant.",
+        "The route to the Internet Gateway is what makes the subnet public, but to be reached from outside a server also needs a public IP. With only a private IP there's no address the internet can target.",
+    },
+    {
+      q: "A database in a private subnet needs to download updates, and you never want the internet to open a connection to it. What arrangement fits?",
+      opts: [
+        "Give the database a public IP and an Internet Gateway route",
+        "Route the subnet's outbound traffic through a NAT Gateway, which blocks unsolicited inbound",
+        "Nothing works: a private subnet is fully offline",
+        "Add a second Internet Gateway just for the private subnet",
+      ],
+      answer: 1,
+      explain:
+        "A NAT Gateway, sitting in a public subnet, is a one-way door: it lets private instances start outbound conversations like updates, while the outside world can never start one inward. That's exactly what keeps the database private.",
     },
     {
       q: "A route table has 10.0.0.0/16 → local, 10.1.0.0/16 → a peering connection, and 0.0.0.0/0 → an Internet Gateway. Where does a packet for 10.1.5.40 go?",
@@ -982,40 +1018,59 @@ const AWS: NetworkContent = {
         "10.1.5.40 matches both 10.1.0.0/16 and the 0.0.0.0/0 catch-all. Longest prefix match picks the most specific one, /16 over /0, so it takes the peering connection. Two matches are never ambiguous: the more specific route always wins.",
     },
     {
-      q: "A security group is…",
+      q: "Your public subnet is working. You delete the 0.0.0.0/0 → Internet Gateway route from its route table, leaving only the local route. What breaks?",
       opts: [
-        "A box that contains network interfaces",
-        "A firewall that belongs to a subnet",
-        "A rule set you attach to network interfaces",
-        "The same thing as a network ACL",
-      ],
-      answer: 2,
-      explain:
-        "It's a stateful allow-list attached to ENIs, so it follows the instance and can be reused across many. The subnet-level firewall is the network ACL.",
-    },
-    {
-      q: "Which describes the real relationship?",
-      opts: [
-        "EC2 is inside its ENI, which is inside a security group",
-        "The ENI is attached to the EC2; a security group attaches to the ENI",
-        "The security group contains the subnet",
-        "The subnet is inside the network interface",
+        "Nothing: the subnet stays public because of its IP range",
+        "The subnet can no longer start conversations with the internet, though it still reaches other subnets in the VPC",
+        "Every subnet in the VPC loses internet access at once",
+        "The instances lose their private IPs",
       ],
       answer: 1,
       explain:
-        "The instance has the network card (ENI); the security group clips onto that card. Nothing is inside a security group.",
+        "That single 0.0.0.0/0 route is what made the subnet public. Remove it and internet-bound traffic has no next hop, so the subnet goes dark to the internet. The local route still lets it reach other subnets in the VPC.",
     },
     {
-      q: "A database in a private subnet needs to download updates. What lets it?",
+      q: "A network ACL allows port 80 inbound, so a web request reaches your instance. The instance sends its reply, but there's no outbound rule for the ephemeral reply ports. What happens to the reply?",
       opts: [
-        "An Internet Gateway route in its own subnet",
-        "A public IP on the database",
-        "A NAT Gateway it routes outbound through",
-        "Nothing, private means fully offline",
+        "It goes out fine: the network ACL remembers the request",
+        "The network ACL drops it, because it's stateless and treats the reply as a brand-new packet",
+        "The security group blocks it on the way out",
+        "It goes out, but only over port 80",
       ],
+      answer: 1,
+      explain:
+        "A network ACL is stateless: it inspects every packet with no memory, so the reply is unfamiliar. Without an outbound rule for the ephemeral reply ports it's dropped. A security group, being stateful, would have let the reply out automatically.",
+    },
+    {
+      q: "Where do the two AWS firewalls actually sit?",
+      opts: [
+        "Both attach to the subnet border",
+        "The security group is on the ENI; the network ACL guards the subnet border",
+        "Both attach to the instance's network card",
+        "The security group is on the subnet; the network ACL is on the ENI",
+      ],
+      answer: 1,
+      explain:
+        "The security group attaches to the network interface, so it travels with the instance, while the network ACL guards the whole subnet's border. Different places, which is why traffic can be stopped at either.",
+    },
+    {
+      q: "You want to peer two VPCs. VPC A is 10.0.0.0/16. Which range for VPC B lets the peering succeed?",
+      opts: ["10.0.0.0/16", "10.0.128.0/17", "10.1.0.0/16", "10.0.0.0/8"],
       answer: 2,
       explain:
-        "A NAT Gateway (sitting in a public subnet) lets private instances start outbound connections while blocking unsolicited inbound. That's the one-way door.",
+        "Peered VPCs can't have matching or overlapping CIDR blocks. 10.0.0.0/16 is identical to A, 10.0.128.0/17 sits inside A, and 10.0.0.0/8 contains A. Only 10.1.0.0/16 shares no addresses with A, so the connection is allowed.",
+    },
+    {
+      q: "VPC A is peered with VPC B, and VPC B is peered with VPC C. Can instances in A reach instances in C over these peerings?",
+      opts: [
+        "Yes, peering automatically chains through B",
+        "No, peering isn't transitive: A only reaches VPCs it peers with directly",
+        "Yes, but only within the same Region",
+        "Only if all three share one CIDR range",
+      ],
+      answer: 1,
+      explain:
+        "Peering doesn't chain. A peering with B and B with C gives A no path to C, and A can't use B as a transit hop. You'd peer A directly to C, or build a hub with explicit routes.",
     },
   ],
 };
@@ -1076,7 +1131,7 @@ const AZURE: NetworkContent = {
     {
       navLabel: "check",
       kicker: "Chapter 7 · Check yourself",
-      title: "Seven questions",
+      title: "Twelve questions",
       intro:
         "Pick an answer to see whether it holds up. These are the exact spots people slip.",
     },
@@ -1678,11 +1733,28 @@ const AZURE: NetworkContent = {
 
   quiz: [
     {
-      q: "You want to peer two VNets. VNet A's address space is 10.0.0.0/16. Which address space for VNet B lets the peering succeed?",
-      opts: ["10.0.0.0/16", "10.0.64.0/18", "10.2.0.0/16", "10.0.0.0/12"],
-      answer: 2,
+      q: "Which describes the real relationship between a VM, its NIC, and an NSG?",
+      opts: [
+        "The VM is inside its NIC, which is inside an NSG",
+        "The NIC is attached to the VM; an NSG associates to the NIC and/or subnet",
+        "The NSG contains the subnet",
+        "The subnet is inside the NIC",
+      ],
+      answer: 1,
       explain:
-        "Peered VNets must have non-overlapping address spaces. 10.0.0.0/16 is identical to A, 10.0.64.0/18 sits inside A, and 10.0.0.0/12 contains A. Only 10.2.0.0/16 avoids overlap entirely, so Azure allows the peering.",
+        "The VM has the NIC; an NSG associates to that NIC and/or the subnet. Nothing lives inside an NSG.",
+    },
+    {
+      q: "You associate one NSG with a subnet, then associate the very same NSG with three individual NICs in other subnets. Is that allowed?",
+      opts: [
+        "No, an NSG can only ever be associated with one subnet",
+        "Yes, an NSG is a reusable rule set you can associate with many subnets and NICs at once",
+        "No, an NSG attaches to either subnets or NICs, never both kinds",
+        "Yes, but Azure copies it, so each becomes a separate NSG",
+      ],
+      answer: 1,
+      explain:
+        "An NSG is a reusable list of rules, not something owned by one subnet. You can associate the same NSG with many subnets and NICs simultaneously, and where you associate it decides what it guards.",
     },
     {
       q: "You create a VNet with address space 10.0.0.0/16. Which subnet range is legal?",
@@ -1690,6 +1762,13 @@ const AZURE: NetworkContent = {
       answer: 1,
       explain:
         "A subnet must fit inside the VNet's address space. Only 10.0.5.0/24 sits within 10.0.0.0/16; the others are outside that block.",
+    },
+    {
+      q: "You carve a /24 subnet out of your VNet and expect 256 usable addresses. How many do you actually get?",
+      opts: ["256", "251", "254", "255"],
+      answer: 1,
+      explain:
+        "Azure reserves five addresses in every subnet, the first four and the last one, for its own use. A /24 therefore leaves 251 usable, not 256.",
     },
     {
       q: "What lets a VM be reached from the internet?",
@@ -1704,6 +1783,30 @@ const AZURE: NetworkContent = {
         "Inbound reachability comes from a Public IP on the NIC (the front door) and an NSG rule that permits the traffic. The private IP alone isn't routable from outside, and the numbers themselves are irrelevant.",
     },
     {
+      q: "A database VM in a private subnet needs to download updates, and you never want the internet to open a connection to it. What fits?",
+      opts: [
+        "Attach an Internet Gateway to the VNet",
+        "Associate a NAT gateway with the subnet: it gives an outbound-only path and blocks unsolicited inbound",
+        "Nothing works: a private subnet is fully offline",
+        "Give the database a public IP",
+      ],
+      answer: 1,
+      explain:
+        "Azure has no Internet Gateway object. A NAT gateway associated with the subnet gives its VMs a shared, outbound-only path, so the database can fetch updates while the outside world can never start a connection inward.",
+    },
+    {
+      q: "A subnet's effective route table has 10.0.0.0/16 → Virtual network, 10.1.0.0/16 → Virtual network peering, and 0.0.0.0/0 → Internet. Where does a packet for 10.1.4.7 go?",
+      opts: [
+        "The Internet, via 0.0.0.0/0",
+        "The peering route, via 10.1.0.0/16",
+        "Nowhere, two routes match so Azure rejects it",
+        "The Virtual network route, via 10.0.0.0/16",
+      ],
+      answer: 1,
+      explain:
+        "10.1.4.7 matches both 10.1.0.0/16 and the 0.0.0.0/0 catch-all. Azure takes the longest prefix, so /16 beats /0 and the packet follows the peering route onto the backbone.",
+    },
+    {
       q: "A subnet has Azure's system route 0.0.0.0/0 → Internet. You add a user-defined route 0.0.0.0/0 → None. What happens to internet-bound traffic?",
       opts: [
         "Nothing changes, you can't override a system route",
@@ -1716,40 +1819,47 @@ const AZURE: NetworkContent = {
         "The two routes share the 0.0.0.0/0 prefix, so priority breaks the tie, and a user-defined route outranks a system route. Next hop None black-holes the traffic. You can't delete Azure's system routes, but a UDR with the same prefix overrides them.",
     },
     {
-      q: "An NSG is…",
+      q: "You attach an NSG to a subnet and a different NSG to a NIC in that subnet. The subnet NSG allows port 80 inbound, but the NIC NSG denies it. Does the request reach the VM?",
       opts: [
-        "A box that contains NICs",
-        "A firewall permanently owned by one subnet",
-        "A reusable, stateful rule set you associate with a subnet and/or a NIC",
-        "A stateless subnet-only filter, like an AWS network ACL",
-      ],
-      answer: 2,
-      explain:
-        "It's a reusable list of stateful rules. Associate it with a subnet, a NIC, or both, and the same NSG can be reused across many. Azure has no separate stateless ACL; the NSG plays both roles.",
-    },
-    {
-      q: "Which describes the real relationship?",
-      opts: [
-        "The VM is inside its NIC, which is inside an NSG",
-        "The NIC is attached to the VM; an NSG associates to the NIC and/or subnet",
-        "The NSG contains the subnet",
-        "The subnet is inside the NIC",
+        "Yes, one allow rule anywhere is enough",
+        "No, traffic must be allowed by every NSG in the path, and the stricter one wins",
+        "Yes, the NIC NSG is ignored when a subnet NSG exists",
+        "No, attaching NSGs at two levels is not permitted",
       ],
       answer: 1,
       explain:
-        "The VM has the NIC; an NSG associates to that NIC and/or the subnet. Nothing lives inside an NSG.",
+        "When an NSG sits on both the subnet and the NIC, a packet has to be allowed by both to reach the VM. A deny at either level blocks it, so the stricter rule wins.",
     },
     {
-      q: "A database in a private subnet needs to download updates. What lets it out?",
+      q: "Your NSG allows port 80 inbound and the VM sends a reply back out. Do you need to add an outbound rule for that reply?",
       opts: [
-        "An Internet Gateway attached to the VNet",
-        "A public IP on the database",
-        "A NAT gateway associated with its subnet",
-        "Nothing, private means fully offline",
+        "Yes, every NSG needs an explicit rule in each direction",
+        "No, an NSG is stateful: the reply to allowed traffic is permitted back automatically",
+        "Yes, but only if the NSG is on the subnet",
+        "No, because NSGs never filter outbound traffic",
       ],
+      answer: 1,
+      explain:
+        "An NSG is always stateful. Once the inbound request is allowed, the matching reply flows back automatically through every level, so you never write a return rule.",
+    },
+    {
+      q: "You want to peer two VNets. VNet A's address space is 10.0.0.0/16. Which address space for VNet B lets the peering succeed?",
+      opts: ["10.0.0.0/16", "10.0.64.0/18", "10.2.0.0/16", "10.0.0.0/12"],
       answer: 2,
       explain:
-        "Azure has no Internet Gateway object. A NAT gateway associated with the subnet gives its VMs a shared, outbound-only path, perfect for a private VM fetching updates without becoming reachable from outside.",
+        "Peered VNets must have non-overlapping address spaces. 10.0.0.0/16 is identical to A, 10.0.64.0/18 sits inside A, and 10.0.0.0/12 contains A. Only 10.2.0.0/16 avoids overlap entirely, so Azure allows the peering.",
+    },
+    {
+      q: "VNet A is peered with VNet B, and VNet B is peered with VNet C. Can VMs in A reach VMs in C over these peerings?",
+      opts: [
+        "Yes, peering chains automatically through B",
+        "No, peering isn't transitive: A can't reach C through B without gateway transit or user-defined routes",
+        "Yes, but only for global peering",
+        "Only if all three share one address space",
+      ],
+      answer: 1,
+      explain:
+        "Peering is not transitive. A spoke peered to a hub can't reach another spoke through it without gateway transit or user-defined routes, so A has no automatic path to C.",
     },
   ],
 };

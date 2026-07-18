@@ -259,7 +259,7 @@ const AWS: LessonContent = {
       kicker: "Chapter 6",
       title: "Check yourself",
       intro:
-        "Six questions on the model you just built. Answer to reveal the explanation.",
+        "Twelve questions on the model you just built. Answer to reveal the explanation.",
     },
   ],
   attach: {
@@ -613,6 +613,54 @@ const AWS: LessonContent = {
         "DeleteOnTermination defaults to preserve for a data volume attached after launch. A root volume attached at launch defaults to delete. The volume is a separate resource with its own lifecycle.",
     },
     {
+      q: "You stop, but do not terminate, an EC2 instance for the night. What happens to its attached EBS volumes and their data?",
+      opts: [
+        "The volumes detach and their data is wiped",
+        "The volumes stay attached and keep their data",
+        "The volumes are snapshotted automatically, then deleted",
+        "Only the root volume survives; data volumes are released",
+      ],
+      answer: 1,
+      explain:
+        "A stopped instance still exists. Its EBS volumes stay attached and keep their data. Data is only at risk on termination, and then only for volumes whose DeleteOnTermination is true.",
+    },
+    {
+      q: "You terminate an instance but its data volume was set to be preserved. The volume now sits unattached. What is true of it?",
+      opts: [
+        "It stops billing the moment the instance is gone",
+        "It survives in the available state and keeps billing until you delete it",
+        "It is automatically reattached to the next instance you launch",
+        "It is converted into a snapshot in Amazon S3",
+      ],
+      answer: 1,
+      explain:
+        "A preserved volume survives in the available state, ready to attach elsewhere or to snapshot. It keeps billing until you delete it. Termination frees the compute, not a preserved volume.",
+    },
+    {
+      q: "You want a volume your instance can boot from. Which type cannot serve as a boot volume?",
+      opts: [
+        "gp3",
+        "gp2",
+        "st1 (Throughput Optimized HDD)",
+        "io2 Block Express",
+      ],
+      answer: 2,
+      explain:
+        "HDD volumes, st1 and sc1, cannot be boot volumes and deliver only hundreds of IOPS. Boot from an SSD type such as gp3, gp2, or io2 Block Express.",
+    },
+    {
+      q: "Your batch job streams large files sequentially and IOPS is not the bottleneck. Which type fits best?",
+      opts: [
+        "io2 Block Express",
+        "gp3",
+        "st1 (Throughput Optimized HDD)",
+        "A root volume",
+      ],
+      answer: 2,
+      explain:
+        "st1 delivers high sequential throughput cheaply. Its low IOPS ceiling does not matter for sequential scans, and it fits this streaming pattern far better than SSD.",
+    },
+    {
       q: "On a gp3 volume, what do you need to reach the maximum 2,000 MiB/s of throughput?",
       opts: [
         "A volume of at least 16 TiB",
@@ -625,16 +673,40 @@ const AWS: LessonContent = {
         "gp3 throughput scales at 0.25 MiB/s per provisioned IOPS, so 2,000 MiB/s requires at least 8,000 IOPS. IOPS in turn needs enough size: 80,000 IOPS requires at least 160 GiB.",
     },
     {
-      q: "Your batch job streams large files sequentially and IOPS is not the bottleneck. Which type fits best?",
+      q: "On a gp3 volume you set the size to 40 GiB and try to provision 80,000 IOPS. What binds?",
       opts: [
-        "io2 Block Express",
-        "gp3",
-        "st1 (Throughput Optimized HDD)",
-        "A root volume",
+        "It works: IOPS is fully independent of size on gp3",
+        "Size binds: gp3 adds up to 500 IOPS per GiB, so 80,000 IOPS needs at least 160 GiB",
+        "Throughput binds first, capping IOPS at 2,000",
+        "Nothing: 80,000 IOPS is the free baseline at any size",
       ],
-      answer: 2,
+      answer: 1,
       explain:
-        "st1 delivers high sequential throughput cheaply. Its low IOPS ceiling does not matter for sequential scans, and it costs far less than SSD for this pattern.",
+        "gp3 decouples performance from size but still links the dials. It adds up to 500 IOPS per GiB, so reaching 80,000 IOPS requires at least 160 GiB. A 40 GiB volume cannot get there.",
+    },
+    {
+      q: "Which statement about gp3 and gp2 performance is correct?",
+      opts: [
+        "gp2 lets you set IOPS independently of size; gp3 ties them together",
+        "gp3 lets you set IOPS independently of size; gp2 ties IOPS to size",
+        "Both tie performance strictly to size",
+        "Neither lets you change performance after creation",
+      ],
+      answer: 1,
+      explain:
+        "gp3 decouples performance from capacity: a small volume can carry high IOPS. gp2 scaled IOPS with size at 3 IOPS per GiB, so faster meant bigger.",
+    },
+    {
+      q: "A live gp3 volume is running low on IOPS and you want more without downtime. What can you do?",
+      opts: [
+        "Nothing: you must detach the volume or stop the instance first",
+        "Use an Elastic Volumes modify to change size, IOPS, and throughput live, subject to a cooldown before the next change",
+        "Only grow size live; IOPS and throughput are fixed at creation",
+        "Snapshot and restore into a bigger volume; there is no live option",
+      ],
+      answer: 1,
+      explain:
+        "Elastic Volumes let you grow size and tune IOPS and throughput on a live volume with no detach and no instance stop. There is a cooldown of at least six hours before the next change to the same volume.",
     },
     {
       q: "You take a first snapshot, then a second one a week later. What does the second snapshot store?",
@@ -649,16 +721,16 @@ const AWS: LessonContent = {
         "EBS snapshots are incremental: each one saves only the blocks changed since the previous snapshot, while still referencing the unchanged blocks so it can restore a complete volume.",
     },
     {
-      q: "Which statement about gp3 and gp2 performance is correct?",
+      q: "You have a chain of incremental snapshots and delete a middle one. How much storage does that free?",
       opts: [
-        "gp2 lets you set IOPS independently of size; gp3 ties them together",
-        "gp3 lets you set IOPS independently of size; gp2 ties IOPS to size",
-        "Both tie performance strictly to size",
-        "Neither lets you change performance after creation",
+        "The full size of the volume, every time",
+        "Only the blocks no other snapshot still references; blocks a later snapshot needs are kept",
+        "Nothing until you delete the entire chain",
+        "Exactly half of the snapshot's size",
       ],
       answer: 1,
       explain:
-        "gp3 decouples performance from capacity: a small volume can carry high IOPS. gp2 scaled IOPS with size at 3 IOPS per GiB, so faster meant bigger.",
+        "Because snapshots share unchanged blocks, deleting one frees only the blocks no other snapshot references. Blocks a later snapshot depends on are retained so it can still restore a complete volume.",
     },
   ],
 };
@@ -707,7 +779,7 @@ const AZURE: LessonContent = {
       kicker: "Chapter 6",
       title: "Check yourself",
       intro:
-        "Six questions on the model you just built. Answer to reveal the explanation.",
+        "Twelve questions on the model you just built. Answer to reveal the explanation.",
     },
   ],
   attach: {
@@ -1070,6 +1142,44 @@ const AZURE: LessonContent = {
         "Each disk has its own delete-with-VM setting. A portal-created VM defaults its OS disk to delete but leaves data disks as independent resources, so the data disk survives.",
     },
     {
+      q: "You stop (deallocate) an Azure VM for the night without deleting it. What happens to its managed disks and their data?",
+      opts: [
+        "The disks detach and their data is wiped",
+        "The disks stay attached and keep their data",
+        "The disks are snapshotted automatically, then deleted",
+        "Only the OS disk survives; data disks are released",
+      ],
+      answer: 1,
+      explain:
+        "A deallocated VM still exists. Its managed disks stay attached and keep their data. Data is only at risk when the VM is deleted, and then only for disks whose delete-with-VM setting is on.",
+    },
+    {
+      q: "You delete a VM but its data disk was set to be kept. The disk now sits unattached. What is true of it?",
+      opts: [
+        "It stops billing the moment the VM is gone",
+        "It survives as an unattached managed disk and keeps billing until you delete it",
+        "It is automatically reattached to the next VM you create",
+        "It is converted into a snapshot",
+      ],
+      answer: 1,
+      explain:
+        "A preserved disk survives as an unattached managed disk, ready to attach elsewhere or to snapshot. It keeps billing until you delete it. Deleting the VM frees the VM, not a kept disk.",
+    },
+    {
+      q: "You need an OS (boot) disk for a production VM. Which type can you NOT use?",
+      opts: ["Premium SSD", "Standard SSD", "Ultra Disk", "Standard HDD"],
+      answer: 2,
+      explain:
+        "Ultra Disk (and Premium SSD v2) can only be data disks, not OS disks. A common pattern is a Premium SSD OS disk paired with Ultra or Premium SSD v2 data disks.",
+    },
+    {
+      q: "You need a disk to hold backup data that is rarely read, and the lowest storage price is the priority. Which type fits?",
+      opts: ["Ultra Disk", "Premium SSD v2", "Standard HDD", "Premium SSD"],
+      answer: 2,
+      explain:
+        "Standard HDD is the cheapest managed disk. When data is rarely accessed, its low performance is an acceptable trade for the lowest storage price.",
+    },
+    {
       q: "On a Premium SSD v2 disk, what do you need to reach the maximum 2,000 MB/s of throughput?",
       opts: [
         "A disk of at least 32 TiB",
@@ -1082,11 +1192,40 @@ const AZURE: LessonContent = {
         "Premium SSD v2 throughput scales at 0.25 MB/s per provisioned IOPS, so 2,000 MB/s needs at least 8,000 IOPS. IOPS in turn needs size: 80,000 IOPS requires at least 160 GiB.",
     },
     {
-      q: "You need an OS (boot) disk for a production VM. Which type can you NOT use?",
-      opts: ["Premium SSD", "Standard SSD", "Ultra Disk", "Standard HDD"],
-      answer: 2,
+      q: "On a Premium SSD v2 disk you set the size to 40 GiB and try to provision 80,000 IOPS. What binds?",
+      opts: [
+        "It works: IOPS is fully independent of size on Premium SSD v2",
+        "Size binds: it adds up to 500 IOPS per GiB, so 80,000 IOPS needs at least 160 GiB",
+        "Throughput binds first, capping IOPS at 2,000",
+        "Nothing: 80,000 IOPS is the free baseline at any size",
+      ],
+      answer: 1,
       explain:
-        "Ultra Disk (and Premium SSD v2) can only be data disks, not OS disks. A common pattern is a Premium SSD OS disk paired with Ultra or Premium SSD v2 data disks.",
+        "Premium SSD v2 decouples performance from size but still links the dials. After 6 GiB it adds up to 500 IOPS per GiB, so reaching 80,000 IOPS requires at least 160 GiB.",
+    },
+    {
+      q: "Which statement about Premium SSD v2 and classic Premium SSD is correct?",
+      opts: [
+        "Premium SSD lets you set IOPS independently of size; v2 ties them together",
+        "Premium SSD v2 lets you set IOPS independently of size; classic Premium SSD uses fixed tiers",
+        "Both use fixed size tiers",
+        "Neither lets you change performance after creation",
+      ],
+      answer: 1,
+      explain:
+        "Premium SSD v2 decouples performance from capacity and lets you tune IOPS and throughput on their own. Classic Premium SSD uses fixed tiers (P1 to P80) where performance is set by the size tier.",
+    },
+    {
+      q: "A live Premium SSD v2 disk needs more IOPS without downtime. What can you do?",
+      opts: [
+        "Nothing: you must detach the disk or deallocate the VM first",
+        "Change its IOPS and throughput live, up to four times in a 24-hour window, with a change taking up to an hour to apply",
+        "Only grow size live; IOPS and throughput are fixed at creation",
+        "Snapshot and restore into a bigger disk; there is no live option",
+      ],
+      answer: 1,
+      explain:
+        "You can change a Premium SSD v2 disk's IOPS and throughput without detaching it. Up to four performance changes are allowed in a 24-hour window, and a change can take up to an hour to take effect.",
     },
     {
       q: "You take a first snapshot, then an incremental one a week later. What does the second store?",
@@ -1101,16 +1240,16 @@ const AZURE: LessonContent = {
         "Incremental snapshots save only the blocks changed since the previous snapshot, while still referencing unchanged blocks so each one can restore a complete disk. They are independent resources.",
     },
     {
-      q: "Which statement about Premium SSD v2 and classic Premium SSD is correct?",
+      q: "You take incremental snapshots of a managed disk, then delete the source disk. What happens to the snapshots?",
       opts: [
-        "Premium SSD lets you set IOPS independently of size; v2 ties them together",
-        "Premium SSD v2 lets you set IOPS independently of size; classic Premium SSD uses fixed tiers",
-        "Both use fixed size tiers",
-        "Neither lets you change performance after creation",
+        "They are deleted with the disk, since they live inside it",
+        "They remain intact, because each snapshot is a separate managed resource with its own lifecycle",
+        "They become unreadable until the disk is recreated",
+        "They are merged into a single full snapshot automatically",
       ],
       answer: 1,
       explain:
-        "Premium SSD v2 decouples performance from capacity and lets you tune IOPS and throughput on their own. Classic Premium SSD uses fixed tiers (P1 to P80) where performance is set by the size tier.",
+        "A snapshot is a separate managed resource, not something stored inside the disk. Deleting the source disk leaves its snapshots intact. Automate creation and retention with Azure Backup or a snapshot policy.",
     },
   ],
 };

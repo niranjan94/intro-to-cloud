@@ -155,7 +155,7 @@ const AWS: LessonContent = {
       kicker: "Chapter 4",
       title: "Check yourself",
       intro:
-        "Five questions on the managed database you just explored. Answer to reveal the explanation.",
+        "Twelve questions on the managed database you just explored. Answer to reveal the explanation.",
     },
   ],
   anatomy: {
@@ -400,52 +400,52 @@ const AWS: LessonContent = {
   },
   quiz: [
     {
-      q: "You need to offload read-heavy reporting queries from your production RDS database. What do you add?",
-      opts: [
-        "A Multi-AZ standby",
-        "A read replica",
-        "A larger instance class only",
-        "More provisioned IOPS",
-      ],
-      answer: 1,
-      explain:
-        "Read replicas are asynchronous copies you can direct read traffic to. The Multi-AZ standby is not readable; it only takes over on failure.",
-    },
-    {
-      q: "How far back can automated backups let you restore to a point in time?",
-      opts: [
-        "Always exactly 7 days",
-        "Any second within a window of 0 to 35 days",
-        "Only the last hour",
-        "Any second in the last 90 days",
-      ],
-      answer: 1,
-      explain:
-        "Automated backups support point-in-time recovery to any second within a retention window you set from 0 to 35 days (0 disables them). The default is 7 days in the console.",
-    },
-    {
-      q: "Your Multi-AZ primary fails. What do applications have to do?",
-      opts: [
-        "Reconnect using a brand-new endpoint",
-        "Nothing; RDS promotes the standby and keeps the endpoint",
-        "Restore from a snapshot first",
-        "Switch permanently to read-only",
-      ],
-      answer: 1,
-      explain:
-        "RDS promotes the synchronous standby and repoints the same DNS endpoint automatically, typically within 60 to 120 seconds, so the connection string does not change.",
-    },
-    {
-      q: "How do you get shell access to the server running your RDS database?",
+      q: "You want to log into the operating system of your RDS database to install a monitoring agent. How do you get shell access to the host?",
       opts: [
         "SSH in with a key pair",
         "RDP in as administrator",
-        "You cannot; RDS manages the operating system",
+        "You cannot; RDS runs the operating system for you",
         "Through the VPC security group",
       ],
       answer: 2,
       explain:
-        "RDS is fully managed: there is no SSH or RDP to the host. You connect only as a database user over the SQL protocol.",
+        "RDS is fully managed: there is no SSH or RDP to the host. You connect only as a database user over the SQL protocol, so a host-level agent is not something you install.",
+    },
+    {
+      q: "Your RDS instance runs MySQL, but a new feature needs PostgreSQL. What does the lesson say about the engine choice?",
+      opts: [
+        "You can switch the engine on a running instance at any time",
+        "You pick one engine per instance at create time, so PostgreSQL means a different instance",
+        "RDS runs every engine at once and you route per query",
+        "The engine is fixed by the instance class you choose",
+      ],
+      answer: 1,
+      explain:
+        "You pick one engine per instance at create time from the supported set (Db2, MySQL, MariaDB, PostgreSQL, Oracle, SQL Server, plus Aurora), and RDS patches it for you. Moving to PostgreSQL is a different instance, not a toggle.",
+    },
+    {
+      q: "Your 20 GiB gp3 volume is filling up. Can you add storage without taking the database down?",
+      opts: [
+        "No, you must stop the instance to resize storage",
+        "Yes, storage is allocated separately from compute and can grow while the database stays online",
+        "No, you must restore to a larger snapshot",
+        "Only if you switch to Provisioned IOPS first",
+      ],
+      answer: 1,
+      explain:
+        "Storage is allocated separately from compute and can grow while the database stays online. General Purpose SSD (gp3) suits most workloads; Provisioned IOPS SSD (io1/io2) is there when you need guaranteed throughput.",
+    },
+    {
+      q: "You created an RDS instance without encryption at rest and now need it enabled. What does that take?",
+      opts: [
+        "Toggle encryption on the running instance",
+        "It cannot be added later without a snapshot restore; encryption at rest must be enabled at create time",
+        "Add a VPC security group rule",
+        "Switch the master user to IAM database authentication",
+      ],
+      answer: 1,
+      explain:
+        "Encryption at rest must be enabled at create time and cannot be added later without a snapshot restore. Plan for it up front.",
     },
     {
       q: "A DB subnet group must contain subnets in:",
@@ -458,6 +458,90 @@ const AWS: LessonContent = {
       answer: 1,
       explain:
         "A DB subnet group must span at least two Availability Zones so RDS can place a standby in a different AZ from the primary.",
+    },
+    {
+      q: "Your Multi-AZ primary fails. What do applications have to do?",
+      opts: [
+        "Reconnect using a brand-new endpoint",
+        "Nothing; RDS promotes the standby and keeps the same endpoint",
+        "Restore from a snapshot first",
+        "Switch permanently to read-only",
+      ],
+      answer: 1,
+      explain:
+        "RDS promotes the synchronous standby and repoints the same DNS endpoint automatically, typically within 60 to 120 seconds, so the connection string does not change.",
+    },
+    {
+      q: "You add a Multi-AZ standby hoping it will also absorb some of your read traffic. What actually happens?",
+      opts: [
+        "Read traffic is automatically balanced across primary and standby",
+        "Nothing for reads; the synchronous standby is not readable and only takes over on failure",
+        "The standby serves reads but not writes",
+        "You must enable a flag to read from it",
+      ],
+      answer: 1,
+      explain:
+        "The Multi-AZ standby is not readable. It exists for durability and failover, not scale. To offload reads you add read replicas, a separate feature with their own endpoints.",
+    },
+    {
+      q: "You need to offload read-heavy reporting queries from your production RDS database. What do you add?",
+      opts: [
+        "A Multi-AZ standby",
+        "A read replica",
+        "A larger instance class only",
+        "More provisioned IOPS",
+      ],
+      answer: 1,
+      explain:
+        "Read replicas are asynchronous copies you can direct read traffic to (up to 15 per source for MySQL, MariaDB, and PostgreSQL). Because replication is asynchronous, a replica can lag slightly behind the primary.",
+    },
+    {
+      q: "You want a copy of your database in another Region that serves reads to distant users and can become primary if the source Region is lost. What fits?",
+      opts: [
+        "A Multi-AZ standby",
+        "A cross-Region read replica",
+        "A manual snapshot",
+        "A larger instance class",
+      ],
+      answer: 1,
+      explain:
+        "A cross-Region read replica copies data asynchronously to a different Region, serves reads close to distant users, and can be promoted to a standalone primary for disaster recovery if the source Region is lost.",
+    },
+    {
+      q: "How far back can automated backups let you restore to a point in time?",
+      opts: [
+        "Always exactly 7 days",
+        "Any second within a retention window you set from 0 to 35 days",
+        "Only the last hour",
+        "Any second in the last 90 days",
+      ],
+      answer: 1,
+      explain:
+        "Automated backups combine a daily snapshot with continuously streamed transaction logs to restore to any second within a retention window of 0 to 35 days (0 disables them). The console default is 7 days.",
+    },
+    {
+      q: "You run a point-in-time restore to recover from a bad data change an hour ago. What happens to your original instance?",
+      opts: [
+        "It is overwritten with the restored data",
+        "It keeps running; the restore creates a brand-new DB instance you verify and then repoint to",
+        "It is stopped until the restore finishes",
+        "It is deleted automatically",
+      ],
+      answer: 1,
+      explain:
+        "A point-in-time restore always creates a brand-new DB instance at the moment you pick. The original keeps running, so recovery is non-destructive: verify the new instance, then repoint your application.",
+    },
+    {
+      q: "Automated backups are on, so you delete an old DB instance with --skip-final-snapshot. Can you still restore it later?",
+      opts: [
+        "Yes, automated backups outlive the instance",
+        "No; skipping the final snapshot deletes the automated backups along with the instance",
+        "Yes, for 35 more days",
+        "Only from a cross-Region replica",
+      ],
+      answer: 1,
+      explain:
+        "Deleting a DB instance offers a final snapshot, but skipping it (--skip-final-snapshot) deletes the automated backups with the instance. Take or keep a snapshot before deleting anything you might need again.",
     },
   ],
 };
@@ -492,7 +576,7 @@ const AZURE: LessonContent = {
       kicker: "Chapter 4",
       title: "Check yourself",
       intro:
-        "Five questions on the managed database you just explored. Answer to reveal the explanation.",
+        "Twelve questions on the managed database you just explored. Answer to reveal the explanation.",
     },
   ],
   anatomy: {
@@ -738,6 +822,66 @@ const AZURE: LessonContent = {
   },
   quiz: [
     {
+      q: "You want to log into the operating system under your Azure SQL Database to tune the host. How do you get in?",
+      opts: [
+        "SSH in with a key pair",
+        "RDP in as the server admin",
+        "You cannot; Azure runs it as a platform service with no OS to reach",
+        "Through a firewall rule",
+      ],
+      answer: 2,
+      explain:
+        "Azure SQL Database is a platform service: there is no operating system to manage or log into. You connect as a database principal over the SQL (TDS) protocol.",
+    },
+    {
+      q: "You need MySQL rather than SQL Server on Azure. What does Azure SQL Database run?",
+      opts: [
+        "Any engine you choose at create time",
+        "Only the Microsoft SQL Server engine",
+        "MySQL in a compatibility mode",
+        "Whichever engine the service tier selects",
+      ],
+      answer: 1,
+      explain:
+        "Azure SQL Database always runs the SQL Server engine (the latest stable version, patched for you). For MySQL or PostgreSQL, Azure offers separate managed services: Azure Database for MySQL and Azure Database for PostgreSQL.",
+    },
+    {
+      q: "In the vCore purchasing model, which service tiers can you pick for an Azure SQL database?",
+      opts: [
+        "Basic, Standard, Premium",
+        "General Purpose, Business Critical, Hyperscale",
+        "gp3, io1, io2",
+        "Single, Zone, Geo",
+      ],
+      answer: 1,
+      explain:
+        "Storage is managed and sized by your service tier and purchasing model. The vCore model offers General Purpose, Business Critical, and Hyperscale; the older DTU model bundles compute and storage into Basic, Standard, and Premium.",
+    },
+    {
+      q: "What protects your Azure SQL database data at rest, and do you have to turn it on?",
+      opts: [
+        "Transparent Data Encryption, and it is on by default",
+        "A VPC security group you configure",
+        "Nothing until you enable it after create",
+        "The firewall rules",
+      ],
+      answer: 0,
+      explain:
+        "Transparent Data Encryption protects data at rest and is on by default.",
+    },
+    {
+      q: "What is the logical server in Azure SQL Database?",
+      opts: [
+        "A virtual machine you manage",
+        "A management and connection gateway that holds the admin login, firewall, and endpoint for its databases",
+        "The physical host the database runs on",
+        "A backup vault",
+      ],
+      answer: 1,
+      explain:
+        "The logical server is a management and connection gateway, not a machine. It holds the admin login, firewall, and auditing settings for every database on it, and databases are reached through its endpoint on port 1433.",
+    },
+    {
       q: "Which Azure SQL Database configuration survives a single availability-zone outage within a region?",
       opts: [
         "Locally redundant (the default)",
@@ -747,55 +891,79 @@ const AZURE: LessonContent = {
       ],
       answer: 1,
       explain:
-        "Zone-redundant configuration spreads replicas across availability zones in the region. The default locally redundant configuration lives in one zone.",
+        "Zone-redundant configuration spreads replicas across availability zones in the region, and the platform handles failover with no connection-string change. The default locally redundant configuration lives in one zone.",
     },
     {
-      q: "You want reporting queries to run off a read-only copy at no extra charge. What do you use?",
+      q: "You want reporting queries to run off a read-only replica instead of loading the primary. What do you use?",
       opts: [
         "Active geo-replication",
         "Read scale-out with ApplicationIntent=ReadOnly",
         "A second logical server",
-        "An elastic pool",
+        "Zone-redundant configuration",
       ],
       answer: 1,
       explain:
-        "In Premium, Business Critical, and Hyperscale, read scale-out routes read-only connections (ApplicationIntent=ReadOnly) to a built-in replica at no extra cost.",
+        "In Premium, Business Critical, and Hyperscale, read scale-out routes read-only connections (ApplicationIntent=ReadOnly) to a built-in replica, sending reporting traffic off the primary. Reaching it is a connection-string setting, not a separate resource.",
     },
     {
-      q: "What is the logical server in Azure SQL Database?",
+      q: "Your database is on the General Purpose tier and ApplicationIntent=ReadOnly does not reach a replica. Why?",
       opts: [
-        "A virtual machine you manage",
-        "A management and connection gateway for databases",
-        "The physical host the database runs on",
-        "A backup vault",
+        "The connection string is malformed",
+        "Read scale-out is not available in General Purpose; it is on by default only in Premium, Business Critical, and Hyperscale",
+        "You must also enable zone redundancy first",
+        "Read scale-out only works cross-region",
       ],
       answer: 1,
       explain:
-        "The logical server is a container that holds the admin login, firewall, and endpoint for one or more databases. It is not a VM and has no operating system you manage.",
+        "Read scale-out is on by default in Premium, Business Critical, and Hyperscale, and is not available in Basic, Standard, or General Purpose.",
+    },
+    {
+      q: "You need a readable copy in another Region that an application fails over to automatically without changing its connection string. What provides this?",
+      opts: [
+        "Zone-redundant configuration",
+        "A failover group over active geo-replication",
+        "Read scale-out",
+        "Long-term retention",
+      ],
+      answer: 1,
+      explain:
+        "Active geo-replication keeps up to four readable secondaries, which can be in other Regions. A failover group wraps this with automatic failover and a stable listener endpoint, so the application fails over to another Region without a connection-string change.",
+    },
+    {
+      q: "How far back can point-in-time restore recover an Azure SQL database?",
+      opts: [
+        "Always exactly 7 days",
+        "Any second within a retention window of 1 to 35 days (7 by default)",
+        "Only the last hour",
+        "Any second in the last 10 years",
+      ],
+      answer: 1,
+      explain:
+        "Point-in-time restore uses full, differential, and transaction-log backups to recover to any second within a retention window of 1 to 35 days, 7 by default.",
     },
     {
       q: "A point-in-time restore in Azure SQL Database:",
       opts: [
         "Overwrites the database in place",
-        "Creates a new database at the chosen time",
+        "Creates a new database on the same logical server, leaving the original untouched",
         "Only works within the last hour",
         "Requires long-term retention to be on",
       ],
       answer: 1,
       explain:
-        "Point-in-time restore always creates a new database (default retention 7 days, up to 35), leaving the original untouched.",
+        "A point-in-time restore always creates a new database on the same logical server. The original is left untouched, so you verify the restored copy, then rename or repoint your application to it.",
     },
     {
-      q: "You need MySQL rather than SQL Server on Azure. Azure SQL Database:",
+      q: "You need to recover a database to a point three years ago, well beyond the point-in-time retention window. What makes that possible?",
       opts: [
-        "Runs any engine you choose",
-        "Runs only the Microsoft SQL Server engine",
-        "Runs MySQL in a compatibility mode",
-        "Cannot host relational data",
+        "Point-in-time restore stretches to any date",
+        "A long-term retention (LTR) policy keeping weekly, monthly, and yearly backups for up to 10 years",
+        "Zone-redundant configuration",
+        "Read scale-out",
       ],
       answer: 1,
       explain:
-        "Azure SQL Database runs only the SQL Server engine. For MySQL or PostgreSQL, Azure offers separate managed services: Azure Database for MySQL and Azure Database for PostgreSQL.",
+        "Beyond the point-in-time retention window, long-term retention (LTR) policies can keep weekly, monthly, and yearly backups for up to 10 years.",
     },
   ],
 };

@@ -226,9 +226,9 @@ const AWS: CdnContent = {
     {
       navLabel: "Quiz",
       kicker: "Chapter 6 · Check yourself",
-      title: "Six questions",
+      title: "Twelve questions",
       intro:
-        "Six short questions on edges, cache keys, and behaviors. Each explains itself once you answer.",
+        "Twelve short questions on edges, cache keys, and behaviors. Each explains itself once you answer.",
     },
   ],
 
@@ -505,6 +505,30 @@ const AWS: CdnContent = {
 
   quiz: [
     {
+      q: "A viewer in Sydney and a viewer in London both load the same site. How does each one reach a nearby edge location?",
+      opts: [
+        "DNS sends each viewer to the edge location with the lowest latency to them",
+        "Both connect to the origin Region, which forwards them to an edge",
+        "The viewer picks an edge location by hand",
+        "Every viewer is pinned to the London edge location",
+      ],
+      answer: 0,
+      explain:
+        "DNS resolves each viewer to the edge location with the lowest latency, so Sydney and London are each served nearby while copies of your files sit cached in edge locations worldwide.",
+    },
+    {
+      q: "An edge location gets a request but does not hold the file. Before it reaches your origin, where does it usually look next?",
+      opts: [
+        "It gives up and returns an error",
+        "A nearby regional edge cache, a larger and longer-lived tier behind the edge locations",
+        "Another edge location in a different city",
+        "The viewer's browser cache",
+      ],
+      answer: 1,
+      explain:
+        "When an edge location misses, it usually asks a nearby regional edge cache before reaching your origin. That regional tier holds a larger, longer-lived cache, so the origin is hit less often.",
+    },
+    {
       q: "The very first viewer requests a cold object. What happens?",
       opts: [
         "It is served instantly from the edge cache",
@@ -515,6 +539,37 @@ const AWS: CdnContent = {
       answer: 1,
       explain:
         "A cold object is a cache miss. CloudFront fetches it from the origin, streams it to the viewer, and stores it for the next request.",
+    },
+    {
+      q: "A distribution's dashboard shows a low cache hit ratio. What does that tell you?",
+      opts: [
+        "The CDN is speeding up the first request for every object",
+        "Nothing, the hit ratio has no effect on latency",
+        "Most requests are missing the cache and paying the origin fetch cost",
+        "The edge locations are offline",
+      ],
+      answer: 2,
+      explain:
+        "A CDN does not make the first request faster; the win is that later viewers near an edge are served from cache. A low hit ratio means most requests miss and pay the origin fetch cost.",
+    },
+    {
+      q: "An origin marks a response private (no-store). What happens on each request for it, and what do you still gain from CloudFront?",
+      opts: [
+        "It is cached like anything else after the first fetch",
+        "CloudFront rejects the response",
+        "It is never cached, so every request travels to the origin, but you still get the fast backbone path and TLS at the edge",
+        "It is cached, but only for five minutes",
+      ],
+      answer: 2,
+      explain:
+        "A response marked private or no-store is not cacheable, so every request reaches the origin. You still gain the fast backbone path and TLS at the edge, just not a cache hit.",
+    },
+    {
+      q: "How long does a file stay cached at an edge location by default?",
+      opts: ["5 minutes", "1 hour", "24 hours", "Forever"],
+      answer: 2,
+      explain:
+        "The default TTL is 24 hours. Override it with the origin's Cache-Control header or the behavior's minimum, maximum, and default TTL.",
     },
     {
       q: "By default, what is in a CloudFront cache key?",
@@ -541,6 +596,18 @@ const AWS: CdnContent = {
         "If the value does not change the response, keeping it out of the key lets both links share one cached object, which raises the hit ratio.",
     },
     {
+      q: "You add a per-user session cookie like theme=dark to the cache key. What is the likely effect on the hit ratio?",
+      opts: [
+        "It rises, because responses become more specific",
+        "It stays the same, because cookies are ignored",
+        "Caching is turned off entirely",
+        "It drops to near zero, because each user's cookie splits the object into a separate copy",
+      ],
+      answer: 3,
+      explain:
+        "Every value you add to the key can split one cached object into many. A per-user cookie gives almost every request a unique key, which can drop the hit ratio to near zero.",
+    },
+    {
       q: "A distribution lists /images/* before the * default behavior. A request for /images/logo.png arrives. Which behavior serves it?",
       opts: [
         "The * default behavior, because it is the fallback",
@@ -553,7 +620,19 @@ const AWS: CdnContent = {
         "CloudFront uses the first cache behavior whose pattern matches, in list order. /images/* matches first, so the * default never gets a look.",
     },
     {
-      q: "You updated a file but need viewers to stop seeing the old cached copy now. Cheapest durable fix?",
+      q: "A request for /about.html matches neither /images/* nor /api/*. Which behavior serves it?",
+      opts: [
+        "None, CloudFront returns a 404",
+        "The /images/* behavior, as the closest prefix",
+        "The * default behavior, which sits last and catches everything else",
+        "The request is queued until a matching behavior is added",
+      ],
+      answer: 2,
+      explain:
+        "The default behavior with pattern * sits last and catches everything the more specific patterns did not, so /about.html is served by the * default.",
+    },
+    {
+      q: "You updated a file but need viewers to stop seeing the old cached copy now. Most durable fix?",
       opts: [
         "Invalidate the path on every deploy",
         "Serve the file under a new versioned name",
@@ -563,13 +642,6 @@ const AWS: CdnContent = {
       answer: 1,
       explain:
         "Versioned file names are free, roll back easily, and defeat caches between the edge and the viewer. Invalidations are billed per path and cannot reach a corporate proxy.",
-    },
-    {
-      q: "How long does a file stay cached at an edge location by default?",
-      opts: ["5 minutes", "1 hour", "24 hours", "Forever"],
-      answer: 2,
-      explain:
-        "The default TTL is 24 hours. Override it with the origin's Cache-Control header or the behavior's minimum, maximum, and default TTL.",
     },
   ],
 };
@@ -614,9 +686,9 @@ const AZURE: CdnContent = {
     {
       navLabel: "Quiz",
       kicker: "Chapter 6 · Check yourself",
-      title: "Six questions",
+      title: "Twelve questions",
       intro:
-        "Six short questions on edges, cache keys, and routes. Each explains itself once you answer.",
+        "Twelve short questions on edges, cache keys, and routes. Each explains itself once you answer.",
     },
   ],
 
@@ -878,6 +950,30 @@ const AZURE: CdnContent = {
 
   quiz: [
     {
+      q: "A viewer in Sydney and a viewer in London both load the same site through Front Door. What terminates each viewer's connection close to them?",
+      opts: [
+        "An anycast address plus split TCP terminate the connection at the closest point of presence",
+        "A single origin in East US handles both directly",
+        "Each viewer selects a point of presence by hand",
+        "Both are routed to the London PoP",
+      ],
+      answer: 0,
+      explain:
+        "An anycast address plus split TCP terminate each viewer's connection at the closest of Front Door's points of presence, spread across metro areas worldwide.",
+    },
+    {
+      q: "Besides caching static files, what else does the same Front Door edge do for your origins?",
+      opts: [
+        "Nothing, Front Door is only a cache",
+        "It health-probes your origins, routes to the fastest healthy one, and fails over automatically",
+        "It stores your origin's database",
+        "It rewrites your application code",
+      ],
+      answer: 1,
+      explain:
+        "Front Door is a global load balancer as well as a CDN. The same edge health-probes your origins, routes to the fastest healthy one, and fails over automatically. Caching is one feature layered on top.",
+    },
+    {
       q: "The very first viewer requests a cold object on a caching-enabled route. What happens?",
       opts: [
         "It is served instantly from the edge cache",
@@ -888,6 +984,30 @@ const AZURE: CdnContent = {
       answer: 1,
       explain:
         "A cold object is a cache miss. The point of presence forwards to the origin group, streams the response to the viewer, and stores it for next time.",
+    },
+    {
+      q: "One point of presence already holds a warm copy of an object. A viewer at a different PoP requests the same object for the first time. What happens?",
+      opts: [
+        "The second PoP serves it instantly from the first PoP's cache",
+        "Front Door merges the two PoP caches automatically",
+        "It is a miss at the second PoP, which fetches from the origin, because each edge site caches independently",
+        "The request is rejected",
+      ],
+      answer: 2,
+      explain:
+        "Each edge site keeps its own cache. A warm copy at one point of presence does not help another, so the first request at a different PoP is a miss that reaches the origin.",
+    },
+    {
+      q: "A route has caching turned off. What happens on each request to it, and what do you still gain from Front Door?",
+      opts: [
+        "It is cached after the first request anyway",
+        "Front Door returns a 404",
+        "Every request is proxied to the origin, but you still get TLS offload, health-based routing, and the fast network path",
+        "The request is cached for 24 hours",
+      ],
+      answer: 2,
+      explain:
+        "With caching off, or a non-GET method, every request is proxied to the origin. You still gain TLS offload, health-based routing, and the fast network path, just not a cache hit.",
     },
     {
       q: "Which requests can Front Door cache?",
@@ -902,6 +1022,18 @@ const AZURE: CdnContent = {
         "Only GET responses are cacheable, and only when caching is turned on for the route. Caching is off by default and every other method is proxied.",
     },
     {
+      q: "Before you change any query string behavior, what identifies a cached response in Front Door?",
+      opts: [
+        "The full request including all headers and cookies",
+        "The host plus the URL path",
+        "Only the query string",
+        "The viewer's IP address",
+      ],
+      answer: 1,
+      explain:
+        "The host plus the URL path always identify the response. Query strings and headers only shape the key when you turn them on through the query string behavior or the rules engine.",
+    },
+    {
       q: "Two links differ only by a ref query string that does not change the response. What raises the hit ratio?",
       opts: [
         "Cache every unique URL",
@@ -912,6 +1044,30 @@ const AZURE: CdnContent = {
       answer: 1,
       explain:
         "Ignore Query String makes both links resolve to the same key and share one cached response, which raises the hit ratio.",
+    },
+    {
+      q: "You key on a per-user session cookie like theme=dark. What is the likely effect on the hit ratio?",
+      opts: [
+        "It rises, because responses become more specific",
+        "It stays the same, because cookies are ignored",
+        "Caching is turned off entirely",
+        "It drops to near zero, because each user's value splits the response into a separate copy",
+      ],
+      answer: 3,
+      explain:
+        "Every value you key on can split one cached response into many. A per-user cookie value gives almost every request a unique key, which can drop the hit ratio to near zero.",
+    },
+    {
+      q: "When both an exact path and a /* wildcard route could match, which wins?",
+      opts: [
+        "The wildcard, because it is broader",
+        "The exact path, because Front Door picks the most specific match",
+        "Whichever is listed first",
+        "Both, merged together",
+      ],
+      answer: 1,
+      explain:
+        "Front Door always takes the most specific match, and an exact path is more specific than a wildcard.",
     },
     {
       q: "A request arrives for a path that no route matches. What does Front Door do?",
@@ -926,28 +1082,16 @@ const AZURE: CdnContent = {
         "Front Door has no implicit catch-all. An unmatched path returns a 404 unless you add a route with a /* pattern as a fallback.",
     },
     {
-      q: "You need to lock premium video to paying users on Front Door. What is the mechanism?",
+      q: "You replaced logo.png at the origin but viewers still see the old cached copy. What is the durable fix that also reaches caches between the edge and the viewer?",
       opts: [
-        "Built-in signed URLs",
-        "The Web Application Firewall and rules engine",
-        "A private cache key",
-        "Origin Access Control",
+        "Purge the path on every deploy",
+        "Serve the file under a new versioned name",
+        "Delete the Front Door profile",
+        "Turn caching off forever",
       ],
       answer: 1,
       explain:
-        "Front Door has no CloudFront-style signed URL. You gate access at the edge with the WAF and rules engine, checking a token your app issues to authorized viewers.",
-    },
-    {
-      q: "When both an exact path and a /* wildcard route could match, which wins?",
-      opts: [
-        "The wildcard, because it is broader",
-        "The exact path, because Front Door picks the most specific match",
-        "Whichever is listed first",
-        "Both, merged together",
-      ],
-      answer: 1,
-      explain:
-        "Front Door always takes the most specific match, and an exact path is more specific than a wildcard.",
+        "A purge removes the file from Front Door's edge caches, but versioned file names avoid purges entirely and also defeat caches between the edge and the viewer, such as a corporate proxy, which a purge cannot reach.",
     },
   ],
 };

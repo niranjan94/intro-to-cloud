@@ -224,7 +224,7 @@ const AWS: LessonContent = {
       kicker: "Chapter 6",
       title: "Check yourself",
       intro:
-        "Five questions on the model you just built. Answer to reveal the explanation.",
+        "Twelve questions on the model you just built. Answer to reveal the explanation.",
     },
   ],
   itemModel: {
@@ -535,64 +535,148 @@ const AWS: LessonContent = {
   },
   quiz: [
     {
-      q: "In DynamoDB, what does the partition key determine?",
+      q: "You store two items in the same Music table. One carries AlbumTitle, Genre, and Price; the other carries only Genre and Year. DynamoDB accepts both without complaint. Why?",
       opts: [
-        "The column names allowed in each item",
-        "The physical partition an item is stored in, via a hash function",
+        "It quietly adds the missing attributes as null to match a shared column list",
+        "Only the primary key is fixed; every other attribute is per item and is never checked against a schema",
+        "The two items must actually live in two different tables",
+        "It rewrites both items to a common attribute layout on write",
+      ],
+      answer: 1,
+      explain:
+        "A table enforces only the primary key. Every other attribute is per item, so two items in the same table can carry completely different attributes and DynamoDB never validates them against a column list.",
+    },
+    {
+      q: "Every song by 'The Acme Band' shares the Artist partition key, and each has a different SongTitle sort key. What does that arrangement give you?",
+      opts: [
+        "A global secondary index on SongTitle",
+        "An item collection, stored together and ordered by the sort key, so 'all songs by this artist' is a single efficient Query",
+        "A hot partition that throttles the table",
+        "A separate physical table for each song",
+      ],
+      answer: 1,
+      explain:
+        "Items that share a partition key value form an item collection, stored close together and sorted by the sort key. That is what makes a request like 'all songs by this artist, titles A through K' one efficient Query rather than a scan.",
+    },
+    {
+      q: "In DynamoDB, what does the partition key value decide?",
+      opts: [
+        "The set of attribute names each item is allowed to have",
+        "Which physical partition stores the item, chosen by an internal hash function",
         "The order items come back from a Scan",
-        "The table's provisioned throughput",
+        "How many read capacity units a read consumes",
       ],
       answer: 1,
       explain:
-        "DynamoDB hashes the partition key value to pick the physical partition that stores the item. A well-chosen key has many distinct, evenly used values so items spread across partitions.",
+        "DynamoDB feeds the partition key value into a hash function whose output picks the physical partition. A good key has many distinct, evenly used values so items spread across partitions.",
     },
     {
-      q: "Two items share the partition key Artist but have different SongTitle sort keys. Together they are:",
+      q: "You partition an orders table by status, and almost every order is ACTIVE. Traffic climbs and requests start getting throttled, even though the table still has spare capacity overall. What happened?",
       opts: [
-        "A global secondary index",
-        "An item collection, stored together and sorted by sort key",
-        "A hot partition",
-        "A composite table",
+        "The table ran out of storage",
+        "Most requests hash to the single ACTIVE partition, creating a hot partition that throttles while the other partitions sit nearly idle",
+        "Eventually consistent reads were turned off",
+        "DynamoDB requires a sort key on every table and one was missing",
       ],
       answer: 1,
       explain:
-        "Items sharing a partition key value form an item collection, stored close together and ordered by the sort key. A single Query can return the whole collection, optionally ranged by sort key.",
+        "Throughput is spread across partitions. A low-cardinality, skewed key like status sends most traffic to one partition, which can throttle while the rest are idle. Adaptive capacity absorbs short bursts but is not a substitute for a key with many evenly used values.",
     },
     {
-      q: "You need to fetch songs by Genre, which is not part of the primary key. The efficient approach is:",
+      q: "You run a Query where Artist = 'The Acme Band' and set no other condition. What comes back, and in what order?",
+      opts: [
+        "Every item in the table, unordered",
+        "The whole item collection for that artist, ordered by the SongTitle sort key",
+        "Only the single most recently added song",
+        "Nothing, because a Query always needs both parts of the key",
+      ],
+      answer: 1,
+      explain:
+        "The partition key alone selects the item collection, and results come back ordered by the sort key. You can optionally range the Query by sort key to narrow it further.",
+    },
+    {
+      q: "You need every song of a given Genre, but Genre is not part of the primary key. The efficient approach is:",
       opts: [
         "Run a Scan and filter on Genre",
-        "Create a global secondary index keyed on Genre and query it",
-        "Rename the table's partition key to Genre in place",
-        "Enable strongly consistent reads",
+        "Create a global secondary index keyed on Genre and Query the index",
+        "Rename the base table's partition key to Genre in place",
+        "Turn on strongly consistent reads",
       ],
       answer: 1,
       explain:
-        "A global secondary index gives Genre its own key space so you can Query by it. A Scan reads the entire table, and you cannot change a base table's primary key in place.",
+        "A global secondary index gives Genre its own key space, so you can Query by it. A Scan reads the entire table, and you cannot change a base table's primary key in place.",
     },
     {
-      q: "By default, a DynamoDB read is:",
+      q: "You add a global secondary index on Genre and start querying it. What is true of those reads?",
       opts: [
-        "Strongly consistent",
-        "Eventually consistent, at half the cost of a strong read",
-        "Blocked until you attach a cache",
-        "Only available through an index",
+        "They are always strongly consistent",
+        "They are eventually consistent; strongly consistent reads are not available on a global secondary index",
+        "They cost nothing because the index is free",
+        "They require deleting and rebuilding the base table",
       ],
       answer: 1,
       explain:
-        "Eventually consistent is the default and costs half of a strongly consistent read. Set ConsistentRead=true when a read must reflect all prior successful writes.",
+        "All reads from a global secondary index are eventually consistent. Strongly consistent reads are supported only on the base table, not on a GSI or a stream.",
     },
     {
-      q: "In on-demand capacity mode you:",
+      q: "A teammate answers a 'how many Rock songs are there' question by running a Scan with a filter on Genre. Why is this expensive at scale?",
       opts: [
-        "Must set RCU and WCU up front",
-        "Pay per request with no capacity to plan, and it scales automatically",
-        "Can run only eventually consistent reads",
-        "Are limited to a single partition",
+        "A Scan reads every item in the table and consumes capacity for all of it, then filters afterward",
+        "A Scan is blocked unless the table is in on-demand mode",
+        "A Scan can only run against a global secondary index",
+        "A Scan doubles the WCU cost of every write",
+      ],
+      answer: 0,
+      explain:
+        "With no key to narrow it, a Scan reads the whole table and pays capacity for all of it, filtering only after the read. At scale, add a secondary index instead.",
+    },
+    {
+      q: "You issue a GetItem without setting ConsistentRead. What do you get?",
+      opts: [
+        "A strongly consistent read at double the cost",
+        "An eventually consistent read, the default, at half the cost of a strong read",
+        "An error until you attach a cache",
+        "A read that only works through an index",
       ],
       answer: 1,
       explain:
-        "On-demand is the default serverless mode: no capacity planning, pay per request, automatic scaling. Provisioned mode is the alternative when traffic is predictable enough to forecast.",
+        "Eventually consistent is the default and costs half of a strongly consistent read. It may not reflect a very recent write, but a repeat read a moment later converges to the latest value.",
+    },
+    {
+      q: "You just wrote a new inventory count and, on the very next call, must read back the exact latest value. What do you do?",
+      opts: [
+        "Nothing; the default read already guarantees the latest value",
+        "Set ConsistentRead=true for a strongly consistent read, accepting higher latency and twice the read cost",
+        "Query a global secondary index, since GSI reads always return the freshest data",
+        "Turn on auto scaling for the table",
+      ],
+      answer: 1,
+      explain:
+        "A strongly consistent read reflects every write that succeeded before it, at higher latency and twice the read cost. A GSI would not help, since its reads are eventually consistent.",
+    },
+    {
+      q: "You write a single 3 KB item to a table. How much write capacity does it consume?",
+      opts: [
+        "1 WCU, because it is one write operation",
+        "3 WCU, because writes are metered in 1 KB units and larger items round up",
+        "0.5 WCU, the eventually consistent write rate",
+        "It draws from the RCU pool, not the WCU pool",
+      ],
+      answer: 1,
+      explain:
+        "One WCU covers a write of up to 1 KB, and larger items round up to the next unit, so a 3 KB item costs 3 WCU. Writes draw from a pool separate from reads.",
+    },
+    {
+      q: "A brand-new app has spiky, unpredictable traffic that you cannot forecast. Which capacity mode fits, and what does it ask of you?",
+      opts: [
+        "Provisioned; you must set RCU and WCU up front",
+        "On-demand; you set no capacity of any kind, and it scales itself from a few requests to millions per second",
+        "On-demand; but it supports only eventually consistent reads",
+        "Provisioned; it is the only mode that can scale at all",
+      ],
+      answer: 1,
+      explain:
+        "On-demand is the default and recommended mode for new, spiky, or unpredictable workloads: no capacity planning and automatic scaling. Provisioned is the alternative when traffic is steady enough to forecast.",
     },
   ],
 };
@@ -641,7 +725,7 @@ const AZURE: LessonContent = {
       kicker: "Chapter 6",
       title: "Check yourself",
       intro:
-        "Five questions on the model you just built. Answer to reveal the explanation.",
+        "Twelve questions on the model you just built. Answer to reveal the explanation.",
     },
   ],
   itemModel: {
@@ -989,7 +1073,7 @@ const AZURE: LessonContent = {
   },
   quiz: [
     {
-      q: "What is the correct resource hierarchy in Azure Cosmos DB?",
+      q: "What is the correct Azure Cosmos DB resource hierarchy, outermost to innermost?",
       opts: [
         "Container, then database, then account, then item",
         "Account, then database, then container, then item",
@@ -1001,47 +1085,136 @@ const AZURE: LessonContent = {
         "An account holds databases, a database holds containers, and a container holds items. The container is the unit of scale, and it is where you set the partition key.",
     },
     {
+      q: "You store two items under the same /artist partition key. One carries albumTitle, genre, and price; the other carries only genre and year. Cosmos DB accepts both. Why?",
+      opts: [
+        "It adds the missing properties as null to fit a shared schema",
+        "Containers are schema agnostic; only the partition key and id are required, and Cosmos DB indexes the rest with no schema declared",
+        "The two items must actually go in two different containers",
+        "It rewrites both items to a common property layout on write",
+      ],
+      answer: 1,
+      explain:
+        "Containers are schema agnostic. Items sharing a partition key can have completely different shapes, since only the partition key and the id are required and Cosmos DB automatically indexes the rest.",
+    },
+    {
       q: "What uniquely identifies an item in a Cosmos DB container?",
       opts: [
-        "The id alone, across the whole account",
-        "The partition key value together with the item id",
+        "The id alone, unique across the whole account",
+        "The partition key value together with the item id, unique within that logical partition",
         "The container name",
-        "A dedicated sort key",
+        "A dedicated sort key, as in DynamoDB",
       ],
       answer: 1,
       explain:
-        "The partition key routes the item to a logical partition, and the id is unique within that partition. Combined, partition key plus id is the item's unique index. There is no separate sort key.",
+        "The item's true key is the partition key value plus its id, and the id is unique only within that logical partition. Two items in different logical partitions may share an id, and there is no separate sort key.",
     },
     {
-      q: "You filter a query on a property that is not the partition key. By default:",
+      q: "In Cosmos DB, what does an item's partition key value determine?",
       opts: [
-        "It fails until you create a secondary index",
-        "It works, because every property is indexed, but spanning partitions costs more RUs",
+        "The JSON property names the item is allowed to have",
+        "The logical partition the item belongs to, which Cosmos DB then maps onto a physical partition",
+        "The consistency level applied to reads of the item",
+        "How many Request Units a write of the item costs",
+      ],
+      answer: 1,
+      explain:
+        "Cosmos DB groups items that share a partition key value into a logical partition, then maps logical partitions onto physical ones. A key with many distinct, evenly used values spreads load across partitions.",
+    },
+    {
+      q: "You partition a container by /status and nearly every item is 'active'. As traffic grows, requests to that value get throttled and the partition also nears a storage limit. Which two walls does a low-cardinality key hit?",
+      opts: [
+        "A per-account region limit and an id-length limit",
+        "A logical partition caps at 10,000 RU/s and 20 GB, so the key hits both a throughput wall and a storage wall",
+        "A container-count limit and the RU/s minimum of 400",
+        "Strong consistency and serverless mode",
+      ],
+      answer: 1,
+      explain:
+        "A single partition-key value is one logical partition, and a logical partition caps at 10,000 RU/s and 20 GB. A skewed, low-cardinality key concentrates traffic and data there, so it can throttle and hit a storage wall at once.",
+    },
+    {
+      q: "You run SELECT * FROM c WHERE c.artist = 'The Acme Band', filtering on the partition key. What is true of this query?",
+      opts: [
+        "It fans out to every physical partition regardless",
+        "It stays inside a single logical partition, so it is efficient; order results with ORDER BY on any indexed property",
+        "It fails because there is no secondary index defined on artist",
+        "It forces the account into Strong consistency",
+      ],
+      answer: 1,
+      explain:
+        "Filtering on the partition key keeps the query in one logical partition, which is the cheap case. There is no sort key, so you order results with ORDER BY on any indexed property.",
+    },
+    {
+      q: "You filter a query on c.genre, which is not the partition key and for which you defined no index. What happens by default?",
+      opts: [
+        "It fails until you create a secondary index on genre",
+        "It works, because Cosmos DB indexes every property by default, but it fans out across partitions and costs more RUs than an in-partition query",
         "It returns no results",
-        "It forces Strong consistency",
+        "It silently downgrades the read to Eventual consistency",
       ],
       answer: 1,
       explain:
-        "Cosmos DB automatically indexes every property, so the filter works with no extra setup. But a cross-partition query fans out and costs more RUs than an in-partition query; filter on the partition key when you can.",
+        "Every property is indexed automatically, so the filter returns results with no setup. But a query that spans logical partitions fans out and costs more RUs than one that filters on the partition key.",
     },
     {
-      q: "Which consistency level is the default for a new Cosmos DB account?",
-      opts: ["Strong", "Eventual", "Session", "Bounded staleness"],
-      answer: 2,
-      explain:
-        "Session is the default: within a client session you read your own writes at relaxed-level cost. Cosmos DB offers five levels from Strong to Eventual, tunable at the account or per request.",
-    },
-    {
-      q: "In Azure Cosmos DB, throughput and operation cost are measured in:",
+      q: "A query has no partition-key filter and runs over all items. Why does it cost the most RUs?",
       opts: [
-        "Separate read and write capacity units",
-        "Request Units (RU/s), one currency for reads, writes, and queries",
-        "Gigabytes stored per month",
-        "The number of containers",
+        "It rewrites every item as it reads",
+        "With nothing to narrow it, the query fans out to every partition and reads broadly; filtering on the partition key avoids this",
+        "It always runs at Strong consistency",
+        "It provisions extra RU/s automatically to finish",
       ],
       answer: 1,
       explain:
-        "Cosmos DB normalizes every operation into Request Units. A 1 KB point read is 1 RU; writes, larger items, stronger consistency, and complex queries cost more. You provision or consume RU/s.",
+        "A query with no partition-key filter fans out to all partitions and consumes the most RUs. Filtering on the partition key keeps it in one partition and far cheaper.",
+    },
+    {
+      q: "A new Cosmos DB account is created with no consistency override. Which level applies, and what does it guarantee?",
+      opts: [
+        "Strong; every read is linearizable and returns the most recent committed write",
+        "Session; within a client session you read your own writes and your reads never go backward, at relaxed-level cost",
+        "Eventual; reads may arrive out of order and lag",
+        "Bounded staleness; reads lag the latest write by a fixed number of versions",
+      ],
+      answer: 1,
+      explain:
+        "Session is the default. Within a client session you read your own writes and never see your reads go backward, at relaxed-level cost and latency. You can tighten or relax it at the account level or per request.",
+    },
+    {
+      q: "A global app cannot tolerate any stale read and will accept higher latency, so it moves from the default to Strong consistency. What is one consequence at read time?",
+      opts: [
+        "Reads become free",
+        "Reads cost about twice the RUs of the relaxed levels",
+        "Every property stops being indexed",
+        "The container loses its partition key",
+      ],
+      answer: 1,
+      explain:
+        "Strong and bounded-staleness reads cost about twice the RUs of the relaxed levels, and Strong also carries the highest latency because writes commit across regions before returning.",
+    },
+    {
+      q: "In Cosmos DB, how are reads, writes, and queries billed?",
+      opts: [
+        "In separate read and write capacity units",
+        "In one currency, the Request Unit; a 1 KB point read is 1 RU, and larger items, more indexed properties, stronger consistency, and complex queries cost more",
+        "In gigabytes stored per month",
+        "By the number of containers in the account",
+      ],
+      answer: 1,
+      explain:
+        "Cosmos DB normalizes every operation into Request Units, one currency for reads, writes, and queries. A 1 KB point read is 1 RU; item size, indexed properties, consistency level, and query complexity all raise the charge.",
+    },
+    {
+      q: "A light, intermittent workload used mostly for development runs on Cosmos DB. Which throughput mode has nothing to provision and simply serves the RUs your operations actually consume?",
+      opts: [
+        "Provisioned (manual), with a 400 RU/s minimum",
+        "Serverless, which has no throughput to provision and serves only the RUs consumed",
+        "Autoscale, which always bills at the maximum you set",
+        "There is no such mode; you must always provision RU/s",
+      ],
+      answer: 1,
+      explain:
+        "Serverless has no throughput to provision; it serves only the RUs your operations consume, which fits intermittent or light workloads and development. Provisioned and autoscale are the alternatives for steady or variable traffic.",
     },
   ],
 };

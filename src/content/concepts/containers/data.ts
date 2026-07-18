@@ -235,7 +235,7 @@ const AWS: LessonContent = {
       kicker: "Chapter 6",
       title: "Check yourself",
       intro:
-        "Five questions on the model you just built. Answer to reveal the explanation.",
+        "Twelve questions on the model you just built. Answer to reveal the explanation.",
     },
   ],
   image: {
@@ -509,52 +509,136 @@ const AWS: LessonContent = {
         "An image is a read-only, layered package of your app and its libraries. It shares the host kernel, so it is far smaller than a VM image and starts in seconds. A running instance of it is a container.",
     },
     {
-      q: "In ECS, where does the desired number of copies to run live?",
+      q: "A teammate claims a container image carries its own operating system, like a VM image, so it must be slow to start. Why is that wrong?",
       opts: [
-        "In the task definition",
-        "In the container image",
-        "On the service",
-        "In the registry",
+        "Container images are compressed, so they decompress instantly",
+        "A container image holds only the app and its libraries and shares the host kernel, so it stays small and starts in seconds",
+        "The image is rebuilt from scratch on every launch, which happens to be fast",
+        "Images always run on dedicated hardware, so startup is fixed",
+      ],
+      answer: 1,
+      explain:
+        "A VM image carries a whole guest operating system; a container image carries only your app and its libraries, and every container on a host shares the host kernel. That is why images are small and start in seconds, not minutes.",
+    },
+    {
+      q: "You push web:1.4.0 to ECR and deploy it. For production you want to be certain the exact image bytes can never change, even if someone later repushes that same tag. What do you do?",
+      opts: [
+        "Reference the image by an immutable @digest instead of the moving tag",
+        "Push the image to a second repository as a backup",
+        "Rename the tag to latest",
+        "Delete the tag after the first deploy",
+      ],
+      answer: 0,
+      explain:
+        "A tag can be moved to point at new bytes. Pinning an immutable @digest in production means the reference always resolves to the exact same image, so a moving tag never changes what runs.",
+    },
+    {
+      q: "You want three copies of your web app running at all times on ECS. Where does that number of copies come from?",
+      opts: [
+        "The container image sets the copy count",
+        "The image tag, one running copy per tag",
+        "The service, which owns the desired count and keeps that many tasks healthy",
+        "The registry, one copy per pushed repository",
       ],
       answer: 2,
       explain:
-        "The task definition is the per-task blueprint. The service owns desiredCount and keeps that many tasks healthy, replacing any that fail. Blueprint and manager are separate resources.",
+        "The task definition is the per-task blueprint. The service owns desiredCount and keeps that many tasks running, replacing any that fail. Blueprint and manager are separate resources.",
     },
     {
-      q: "What does AWS Fargate give you compared with the EC2 capacity option?",
+      q: "You change the image tag in your ECS task definition to ship a new build. What happens when you register that change, and how does it reach your running app?",
       opts: [
-        "Cheaper storage for images",
-        "Serverless compute with no instances to provision, patch, or scale",
-        "A different container image format",
-        "Automatic DNS records",
+        "The existing task definition is edited in place and tasks update themselves",
+        "Registering the change creates a new task definition revision, and you then update the service to roll tasks onto it",
+        "The service is deleted and recreated automatically",
+        "The image already in the registry is overwritten with the new build",
       ],
       answer: 1,
       explain:
-        "Fargate is a serverless compute engine: you state CPU and memory and launch, with no cluster of EC2 instances to size or manage. EC2 capacity trades that for control over the exact hardware.",
+        "A task definition is versioned. Registering a change creates a new revision (web:3, web:4). The service is a separate resource, so you update it to the new revision and it rolls tasks over onto it.",
     },
     {
-      q: "Under load, how does an ECS service add capacity, and how low can it go?",
+      q: "Your container's code needs to read from an AWS service, and you want no long-lived access keys stored in the image or its environment. What does the task definition give you?",
       opts: [
-        "It scales to zero when idle, like a function",
-        "Service Auto Scaling changes the task count between a minimum and maximum you set",
-        "It resizes a single task to use more CPU",
-        "It creates new clusters automatically",
+        "A taskRoleArn: an IAM role the running task assumes, so the code calls AWS with no stored keys",
+        "A hard-coded key pair baked into the image",
+        "A public IP that AWS trusts automatically",
+        "The registry login token, reused as an API key",
+      ],
+      answer: 0,
+      explain:
+        "taskRoleArn is an IAM role the running task assumes. Your code calls AWS through that role, so there are no stored keys to leak or rotate.",
+    },
+    {
+      q: "You would rather not run, size, or patch any servers for your ECS tasks. Which capacity option fits, and what do you give up?",
+      opts: [
+        "EC2 capacity, which removes all server management for you",
+        "AWS Fargate: serverless compute where you state CPU and memory and launch, with no instances to provision, patch, or scale",
+        "Neither, ECS always requires you to manage instances",
+        "Fargate, but only if you also run a cluster of EC2 instances alongside it",
       ],
       answer: 1,
       explain:
-        "Service Auto Scaling adds and removes tasks between the min and max you configure, driven by CloudWatch metrics through Application Auto Scaling. It does not scale to zero on request volume, so you keep a floor of tasks running.",
+        "Fargate is a serverless compute engine: you package the app, state its CPU and memory, and launch, with no cluster of virtual machines to size or scale. EC2 capacity trades that convenience for control over the exact hardware.",
     },
     {
-      q: "How do external requests reach the tasks of an ECS service?",
+      q: "You need a particular GPU instance type and tight control over the exact hardware your tasks run on. Which capacity option, and how much of the task definition changes?",
       opts: [
-        "Each task gets its own public domain automatically",
-        "Through an attached Elastic Load Balancing load balancer and target group",
-        "Only from inside the cluster",
-        "Through the container registry",
+        "Fargate, and the task definition must be rewritten completely",
+        "EC2 capacity: you manage instance type, count, and patching, while the image, ports, and environment in the blueprint stay the same",
+        "EC2 capacity, but the container image format must change for EC2",
+        "Fargate, because GPUs are only available on Fargate",
       ],
       answer: 1,
       explain:
-        "You attach a load balancer (usually an Application Load Balancer) to the service. ECS registers tasks in a target group and the load balancer routes to healthy tasks based on its health check.",
+        "EC2 capacity is for special instance types like GPUs and tight hardware control, at the cost of managing instances and patching. Moving between Fargate and EC2 is mostly the requiresCompatibilities value and how CPU and memory are set; the image, ports, and environment are identical.",
+    },
+    {
+      q: "Traffic to your ECS service climbs through the day and falls at night. How does the service respond, and how low can it go?",
+      opts: [
+        "It scales to zero tasks when idle, like a function",
+        "Service Auto Scaling adjusts the task count between the minimum and maximum you set, and does not scale to zero on request volume",
+        "It resizes a single task to use more CPU as load rises",
+        "It creates additional clusters as load rises",
+      ],
+      answer: 1,
+      explain:
+        "Application Auto Scaling adds and removes tasks between the min and max you configure, driven by CloudWatch metrics. It does not scale to zero on request volume, so you keep a floor of tasks always serving.",
+    },
+    {
+      q: "Load spikes for a minute, then drops. You notice ECS does not immediately tear the extra tasks back down. Why is that by design?",
+      opts: [
+        "Tasks can never be removed once they have started",
+        "A cooldown paces scaling so it does not thrash by adding and removing tasks too quickly",
+        "The service waits for a new cluster to form first",
+        "CloudWatch only reports metrics once a day",
+      ],
+      answer: 1,
+      explain:
+        "ECS publishes CPU and memory metrics to CloudWatch every minute, and Application Auto Scaling reacts through its policies. A cooldown paces scaling so brief swings do not cause it to thrash.",
+    },
+    {
+      q: "Your ECS service is running healthy tasks, but external users still cannot reach it. What do you set up so requests arrive?",
+      opts: [
+        "Nothing, each task is public on the internet by default",
+        "Attach an Elastic Load Balancing load balancer; ECS registers tasks in a target group and the load balancer routes to healthy ones",
+        "Publish the tasks to the container registry",
+        "Give each task its own domain name automatically",
+      ],
+      answer: 1,
+      explain:
+        "You attach a load balancer, usually an Application Load Balancer, to the service. ECS registers each task in a target group, and the load balancer spreads requests across tasks that pass its health check.",
+    },
+    {
+      q: "You start a rolling update to web:4, but the new tasks fail their health check. What happens to users on the service?",
+      opts: [
+        "The service goes down until you fix web:4",
+        "The rollout stalls with the healthy web:3 tasks still serving, rather than taking the service down",
+        "All traffic is sent to the unhealthy web:4 tasks anyway",
+        "The cluster is deleted and recreated",
+      ],
+      answer: 1,
+      explain:
+        "In a rolling update, minimumHealthyPercent keeps enough tasks serving throughout, and the load balancer only routes to tasks that pass the health check. If new tasks fail, the rollout stalls instead of taking the service down. ECS also supports blue/green via AWS CodeDeploy.",
     },
   ],
 };
@@ -603,7 +687,7 @@ const AZURE: LessonContent = {
       kicker: "Chapter 6",
       title: "Check yourself",
       intro:
-        "Five questions on the model you just built. Answer to reveal the explanation.",
+        "Twelve questions on the model you just built. Answer to reveal the explanation.",
     },
   ],
   image: {
@@ -877,52 +961,136 @@ const AZURE: LessonContent = {
         "An image is a read-only, layered package of your app and its libraries. It shares the host kernel, so it is far smaller than a VM image and starts in seconds. A running instance of it is a container, and in Container Apps that runs as a replica.",
     },
     {
-      q: "What is the extra layer Container Apps has that ECS does not?",
+      q: "A teammate claims a container image carries its own operating system, like a VM image, so it must be slow to start. Why is that wrong?",
       opts: [
-        "The cluster",
-        "The revision, an immutable snapshot of a version",
-        "The registry",
-        "The load balancer",
+        "Container images are compressed, so they decompress instantly",
+        "A container image holds only the app and its libraries and shares the host kernel, so it stays small and starts in seconds",
+        "The image is rebuilt from scratch on every launch, which happens to be fast",
+        "Images always run on dedicated hardware, so startup is fixed",
       ],
       answer: 1,
       explain:
-        "A container app is deployed as immutable revisions. Each template change creates a new revision you can keep, split traffic to, or roll back to. ECS has no direct equal; it uses task definition revisions plus a service.",
+        "A VM image carries a whole guest operating system; a container image carries only your app and its libraries, and every container on a host shares the host kernel. That is why images are small and start in seconds, not minutes.",
     },
     {
-      q: "How does compute work in Azure Container Apps?",
+      q: "You push web:1.4.0 to ACR and deploy it. For production you want to be certain the exact image bytes can never change, even if someone later repushes that same tag. What do you do?",
       opts: [
-        "You provision and patch a fleet of virtual machines",
-        "It is serverless: Azure runs the servers, and you pick a workload profile",
-        "Each replica is a separate VM you manage",
+        "Reference the image by an immutable @digest instead of the moving tag",
+        "Push the image to a second repository as a backup",
+        "Rename the tag to latest",
+        "Delete the tag after the first deploy",
+      ],
+      answer: 0,
+      explain:
+        "A tag can be moved to point at new bytes. Pinning an immutable @digest in production means the reference always resolves to the exact same image, so a moving tag never changes what runs.",
+    },
+    {
+      q: "You want your container app to run at least one copy and at most ten under load. How do you express that in the template?",
+      opts: [
+        "A single fixed replica count baked into the container image",
+        "A minReplicas and maxReplicas range in template.scale, within which KEDA rules pick the actual number",
+        "A desiredCount on a separate service resource",
+        "One replica per pushed image tag in the registry",
+      ],
+      answer: 1,
+      explain:
+        "You set a replica range with minReplicas and maxReplicas in template.scale, not a fixed count. KEDA scale rules choose the actual number of replicas within that range.",
+    },
+    {
+      q: "You change the container image in your app's template to ship a new build. What happens, and how does it differ from changing the ingress target port?",
+      opts: [
+        "Both changes edit the running app in place with no new version",
+        "The template change creates a new immutable revision, while a configuration change like the ingress port does not create a revision",
+        "Both changes create a new revision",
+        "The template change deletes the container app and recreates it",
+      ],
+      answer: 1,
+      explain:
+        "A change to the template section (containers, scale) creates a new immutable revision. A change to the configuration section (ingress, secrets, registries) does not, so editing the ingress target port does not spin a new revision.",
+    },
+    {
+      q: "Your container's code needs to call an Azure service, and it must pull the image from a private ACR, all with no stored secrets. What does the app use?",
+      opts: [
+        "A managed identity, so the code calls Azure and pulls from ACR with no stored secrets",
+        "A hard-coded key pair baked into the image",
+        "A public IP that Azure trusts automatically",
+        "The registry password, reused as an API key",
+      ],
+      answer: 0,
+      explain:
+        "A managed identity lets the running app call Azure and pull from ACR without any stored secrets to leak or rotate.",
+    },
+    {
+      q: "You would rather not run, size, or patch any servers for your container app. What does Container Apps require of you?",
+      opts: [
+        "You must provision and patch a fleet of virtual machines",
+        "Nothing below the app: it is serverless, Azure runs the servers, and your choice is the workload profile",
         "You must bring your own Kubernetes cluster",
+        "You must run one virtual machine per replica",
       ],
       answer: 1,
       explain:
-        "Container Apps is serverless. Azure manages the underlying servers, OS upgrades, and failover. Your choice is the workload profile (Consumption or Dedicated), not individual machines.",
+        "Container Apps is serverless either way: Azure runs and patches the underlying servers. Your choice is the workload profile, from a scale-to-zero Consumption profile to Dedicated hardware, not individual machines.",
     },
     {
-      q: "Under load, how does a container app scale, and how low can it go?",
+      q: "You pick the Dedicated workload profile for a memory-heavy app. Do you now manage the underlying virtual machines?",
       opts: [
-        "It resizes a single replica to use more CPU",
-        "KEDA scale rules change the replica count, and HTTP apps can scale to zero",
+        "Yes, Dedicated means you provision and patch the virtual machines yourself",
+        "No: even Dedicated is managed capacity, so you choose a profile size and the platform handles OS upgrades, scaling, and failover",
+        "Yes, but only the OS patching is yours",
+        "No, because Dedicated apps run without any hardware at all",
+      ],
+      answer: 1,
+      explain:
+        "Unlike the ECS EC2 option, Container Apps never exposes a fleet of virtual machines. Even the Dedicated profile is managed capacity: you choose a profile size, and the platform handles OS upgrades, scaling operations, and failover inside the environment.",
+    },
+    {
+      q: "Traffic to your HTTP container app climbs through the day and falls to nothing at night. How does it respond, and how low can it go?",
+      opts: [
         "It keeps a fixed number of replicas always running",
-        "It creates new environments automatically",
+        "KEDA scale rules adjust the replica count, and with an HTTP rule and minReplicas of 0 an idle app scales to zero",
+        "It resizes a single replica to use more CPU as load rises",
+        "It creates additional environments as load rises",
       ],
       answer: 1,
       explain:
-        "KEDA scale rules add and remove replicas between minReplicas and maxReplicas. With an HTTP or event rule and a minimum of 0, an idle app scales to zero and stops billing usage. CPU- or memory-scaled apps cannot reach zero.",
+        "KEDA scale rules add and remove replicas between minReplicas and maxReplicas. With an HTTP or event-driven rule and a minimum of 0, an idle app drops to zero replicas and stops billing usage, and the next request wakes it.",
     },
     {
-      q: "How do external requests reach a container app?",
+      q: "You set minReplicas to 0, but your only scale rule triggers on CPU utilization. The app sits idle overnight. Does it reach zero replicas?",
       opts: [
-        "You attach a separate Azure Load Balancer and target group",
-        "Through built-in ingress, which gives the app an FQDN and TLS with no extra resource",
-        "Only from inside the environment",
-        "Through the container registry",
+        "Yes, any rule with minReplicas 0 scales to zero",
+        "No: apps that scale on CPU or memory load cannot scale to zero, unlike HTTP or event-driven rules",
+        "Yes, but only after 24 hours idle",
+        "No, because minReplicas of 0 is not allowed",
       ],
       answer: 1,
       explain:
-        "Enabling ingress gives the app a fully qualified domain name and managed TLS with no load balancer or public IP to create. External ingress faces the internet; internal ingress stays inside the environment.",
+        "Scale-to-zero needs an HTTP or event-driven rule with minReplicas 0. The one exception is apps that scale on CPU or memory load: those cannot reach zero, so they keep at least one replica running.",
+    },
+    {
+      q: "Your container app is running healthy replicas, but external users still cannot reach it. What do you set up so requests arrive from the internet?",
+      opts: [
+        "Attach a separate Azure Load Balancer and target group",
+        "Enable external ingress: the app gets an FQDN and managed TLS with no load balancer or public IP to create",
+        "Publish the replicas to the container registry",
+        "Nothing, every replica is public by default",
+      ],
+      answer: 1,
+      explain:
+        "Enabling ingress gives the app a fully qualified domain name and managed TLS with no load balancer or public IP to create. External ingress faces the internet; internal ingress is reachable only inside the environment.",
+    },
+    {
+      q: "In single revision mode you deploy web--v2, but it fails its startup and readiness probes. What happens to users?",
+      opts: [
+        "The app goes down until you fix v2",
+        "Traffic stays on web--v1, because the flip to v2 only happens once v2 provisions and passes its probes",
+        "All traffic is sent to the unhealthy v2 anyway",
+        "The environment is deleted and recreated",
+      ],
+      answer: 1,
+      explain:
+        "In single revision mode, v2 provisions and scales up beside v1 while v1 keeps 100% of traffic. Traffic flips only after v2 passes its startup and readiness probes; if it fails, traffic stays on v1. Multiple revision mode can instead split traffic by weight for canary and blue/green releases.",
     },
   ],
 };

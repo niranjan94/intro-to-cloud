@@ -246,7 +246,7 @@ const AWS: LessonContent = {
       kicker: "Chapter 6",
       title: "Check yourself",
       intro:
-        "Six questions on the model you just built. Answer to reveal the explanation.",
+        "Twelve questions on the model you just built. Answer to reveal the explanation.",
     },
   ],
   triggers: {
@@ -481,6 +481,54 @@ const AWS: LessonContent = {
   },
   quiz: [
     {
+      q: "Whatever the source, what does every trigger hand your Lambda handler?",
+      opts: [
+        "A service-specific object whose shape differs for each trigger type",
+        "The same two arguments: a JSON event describing what happened, plus a context object",
+        "A set of parameters populated for you by a declarative binding layer",
+        "Only the raw request body, with no surrounding metadata",
+      ],
+      answer: 1,
+      explain:
+        "Every trigger invokes the same handler signature: the event (a JSON document describing what happened) and the context (runtime metadata like the remaining time). You read the event and use the AWS SDK to affect anything else.",
+    },
+    {
+      q: "You wire a Lambda function to an SQS queue. How do the messages reach your code?",
+      opts: [
+        "SQS pushes each message to Lambda directly, one invocation per message",
+        "A Lambda-managed event source mapping polls the queue and invokes your function with a batch of messages",
+        "Your handler must open the queue and long-poll it with the SDK",
+        "The queue invokes the function synchronously and the producer waits for the result",
+      ],
+      answer: 1,
+      explain:
+        "For queues and streams (SQS, Kinesis, DynamoDB Streams) a Lambda-managed event source mapping polls the source for you and invokes the function with a batch of records. Direct triggers like API Gateway and S3 push one invocation per event instead.",
+    },
+    {
+      q: "An S3 object-created event invokes your function and the handler throws. A separate API Gateway request to another function also throws. How do the two errors differ?",
+      opts: [
+        "Both callers receive the error and must retry it themselves",
+        "The S3 (asynchronous) invocation is retried by Lambda automatically, while the API Gateway (synchronous) caller receives the error and handles it",
+        "Both invocations are retried automatically by Lambda",
+        "Neither is retried; both events are dropped",
+      ],
+      answer: 1,
+      explain:
+        "S3 invokes Lambda asynchronously: the event is queued, the caller returns immediately, and Lambda retries failures. API Gateway is synchronous (RequestResponse): the caller blocks until the function returns and handles any error itself.",
+    },
+    {
+      q: "Your Lambda function needs to write a row to a DynamoDB table after it processes an event. How does it do that?",
+      opts: [
+        "Declare an output binding in the function's configuration",
+        "Create an AWS SDK client inside the handler and call the table",
+        "Return the row; Lambda writes it from the return value automatically",
+        "It cannot; functions can only read from their trigger",
+      ],
+      answer: 1,
+      explain:
+        "Lambda has no declarative binding layer. The trigger delivers input, and anything the function writes elsewhere (a table, a queue, a bucket) is plain code using an AWS SDK client.",
+    },
+    {
       q: "In Lambda, what does a cold start actually refer to?",
       opts: [
         "The handler running slowly on its first call",
@@ -491,6 +539,18 @@ const AWS: LessonContent = {
       answer: 1,
       explain:
         "A cold start is the Init phase: starting extensions, bootstrapping the runtime, and running your static code to set up a fresh environment. A reused (warm) environment skips all of that.",
+    },
+    {
+      q: "Your function has been serving steady traffic for an hour on the same warm environment. Does each of those requests pay the cold-start penalty?",
+      opts: [
+        "Yes, every invocation re-runs the Init phase",
+        "No, only the request that creates a fresh environment pays Init; a warm environment is reused and skips straight to the handler",
+        "Yes, but only the first request of each minute",
+        "No, cold starts never happen once a function is deployed",
+      ],
+      answer: 1,
+      explain:
+        "Only the request that has to create a new environment pays the Init phase. Once warm, an environment is reused for many requests, each skipping to the handler. Cold starts happen on the first request and when Lambda adds environments to scale out.",
     },
     {
       q: "Your function receives 10 requests at the exact same moment. What does Lambda do?",
@@ -505,6 +565,18 @@ const AWS: LessonContent = {
         "Lambda provisions a separate execution environment for each concurrent request, scaling out until it hits the account concurrency limit (1,000 by default), then throttling the overflow.",
     },
     {
+      q: "A traffic burst pushes concurrent requests past your account concurrency limit. What happens to the requests over the limit?",
+      opts: [
+        "They run anyway; the limit is only advisory",
+        "Lambda throttles the overflow, retrying it for asynchronous and stream sources",
+        "They are queued indefinitely and always eventually run",
+        "The function is disabled until traffic drops",
+      ],
+      answer: 1,
+      explain:
+        "Lambda adds environments up to the concurrency limit, then throttles the overflow. Asynchronous and stream sources are retried. The default limit is 1,000 concurrent executions per Region, a soft limit you can raise.",
+    },
+    {
       q: "You set your function's memory to 1,769 MB. How much CPU does it get?",
       opts: [
         "It is unrelated to memory; you set CPU separately",
@@ -517,16 +589,16 @@ const AWS: LessonContent = {
         "Lambda allocates CPU in proportion to memory, and 1,769 MB is the point at which a function has the equivalent of one vCPU. Memory is the single lever for compute power.",
     },
     {
-      q: "How does a Lambda function write a message to another AWS service, such as an SQS queue?",
+      q: "You want to run a batch job that takes about 40 minutes inside a single Lambda invocation. Will it work?",
       opts: [
-        "By declaring an output binding in configuration",
-        "By creating an AWS SDK client in the handler and calling the service",
-        "Lambda writes it automatically from the return value",
-        "It cannot; functions can only read",
+        "Yes, Lambda has no time limit",
+        "No, a single invocation is capped at a 15-minute timeout, so it will be stopped first",
+        "Yes, if you raise the memory high enough",
+        "Only if you disable the payload limit",
       ],
       answer: 1,
       explain:
-        "Lambda has no declarative binding layer. The trigger delivers an input event, and anything the function does with the result (writing to a queue, a table, a bucket) is plain code using the AWS SDK.",
+        "A single invocation has a hard maximum timeout of 900 seconds (15 minutes); the default is 3 seconds. Lambda is built for short tasks, so a 40-minute job will not fit in one invocation.",
     },
     {
       q: "A brand-new account runs a Lambda function that gets zero traffic all month. What is the compute cost?",
@@ -541,16 +613,16 @@ const AWS: LessonContent = {
         "Serverless has no idle charge. You pay per request and for GB-seconds of actual run time, so a function that never runs costs nothing for compute.",
     },
     {
-      q: "Which invocation is asynchronous, with Lambda retrying failures for you?",
+      q: "Your handler builds a fresh AWS SDK client on every invocation. Where should you create it instead so warm invocations reuse it?",
       opts: [
-        "An API Gateway HTTP request",
-        "A direct synchronous Invoke call",
-        "An S3 object-created event",
-        "A function URL request",
+        "Nowhere; a new environment is created per invocation, so nothing can be reused",
+        "In the module's global scope, so it is built once during Init and reused by every warm invocation",
+        "Inside the handler, but wrapped in a try/catch",
+        "In a declarative binding, since Lambda has no global scope",
       ],
-      answer: 2,
+      answer: 1,
       explain:
-        "S3 invokes Lambda asynchronously: it queues the event, returns immediately, and Lambda retries on failure. API Gateway and function URLs are synchronous, so the caller waits and handles errors.",
+        "Static and global code runs once during the Init phase when an environment is created. A warm environment reuses that same process, so a client built in global scope is created once and reused across many invocations, while code inside the handler runs on every call.",
     },
   ],
 };
@@ -600,7 +672,7 @@ const AZURE: LessonContent = {
       kicker: "Chapter 6",
       title: "Check yourself",
       intro:
-        "Six questions on the model you just built. Answer to reveal the explanation.",
+        "Twelve questions on the model you just built. Answer to reveal the explanation.",
     },
   ],
   triggers: {
@@ -848,6 +920,30 @@ const AZURE: LessonContent = {
         "A function has exactly one trigger, which defines how it runs and passes in the triggering data. Bindings are separate: optional input and output connections you can add around that one trigger.",
     },
     {
+      q: "You wire an Azure function to an Azure Storage queue. How do the messages reach your code?",
+      opts: [
+        "Your code must open the queue and poll it with an SDK client",
+        "The platform reads the queue for you and invokes the function once per message",
+        "The queue invokes the function synchronously and the sender waits for the result",
+        "All waiting messages arrive in a single invocation as one array",
+      ],
+      answer: 1,
+      explain:
+        "A queue trigger delivers one message per invocation, and the platform reads the queue on your behalf. It is asynchronous, so nothing waits for the result.",
+    },
+    {
+      q: "A blob-triggered function throws while processing an upload. A separate HTTP-triggered function also throws. How do the two differ?",
+      opts: [
+        "Both callers receive the error and must retry it themselves",
+        "The blob (asynchronous) trigger is invoked by the platform, which retries on failure, while the HTTP (synchronous) caller holds the connection and receives the error",
+        "Both invocations are retried automatically by the platform",
+        "Neither is retried; both events are dropped",
+      ],
+      answer: 1,
+      explain:
+        "Only the HTTP trigger is synchronous: the client holds the connection until the function returns and gets the error. Blob, queue, timer, and change-feed triggers are asynchronous, so the platform invokes the function and retries failures per the trigger's rules.",
+    },
+    {
       q: "What is an output binding in Azure Functions?",
       opts: [
         "A second trigger for the function",
@@ -858,6 +954,18 @@ const AZURE: LessonContent = {
       answer: 1,
       explain:
         "An output binding declaratively connects a function to a service it writes to, so results leave via the return value or an output object instead of hand-written SDK calls. Lambda has no equivalent.",
+    },
+    {
+      q: "On the Consumption plan, what does an Azure Functions cold start consist of?",
+      opts: [
+        "The function code running slowly the first time it is called",
+        "Allocating an instance, starting the worker, and loading your code and bindings before the function runs",
+        "The time to upload your function app",
+        "A function that has exceeded its timeout",
+      ],
+      answer: 1,
+      explain:
+        "A cold start allocates an instance, starts the language worker, and loads your code and its bindings before the function runs. On the Consumption plan this happens whenever the app has scaled to zero, so the first request after idle feels it.",
     },
     {
       q: "On which plan can an Azure function app avoid cold starts by keeping instances warm?",
@@ -884,6 +992,18 @@ const AZURE: LessonContent = {
         "Scaling is event-driven: the host adds instances as the event backlog grows and removes them as it clears, down to zero. The plan sets the ceiling, up to 1,000 on Flex Consumption.",
     },
     {
+      q: "Your Flex Consumption app is already running its maximum number of instances and more events keep arriving. What happens to the extra work?",
+      opts: [
+        "It is rejected and lost",
+        "It waits for an instance to free up; the plan sets the scale-out ceiling",
+        "The app automatically switches to the Premium plan",
+        "Each existing instance runs it in parallel with no limit",
+      ],
+      answer: 1,
+      explain:
+        "Event-driven scaling adds instances as the backlog grows, up to the plan's ceiling (1,000 on Flex Consumption). Beyond that ceiling, new work waits for an instance to free up.",
+    },
+    {
       q: "On the Flex Consumption plan, how do you get more CPU for a function?",
       opts: [
         "Set a CPU count directly",
@@ -896,16 +1016,40 @@ const AZURE: LessonContent = {
         "You pick an instance memory size (512, 2,048, or 4,096 MB) and CPU comes with it: a quarter, one, and two cores respectively. There is no separate CPU dial.",
     },
     {
-      q: "Why does the same function code behave differently on Consumption versus Premium?",
+      q: "You need a function to run for about 20 minutes. Which plan allows it, given the default timeouts described?",
       opts: [
-        "The code is recompiled per plan",
-        "The hosting plan sets cold-start behavior, scale ceiling, timeout, and networking",
-        "Premium runs a different language",
-        "It does not; behavior is identical",
+        "The legacy Consumption plan, which defaults to 30 minutes",
+        "Flex Consumption or Premium, which default to a 30-minute timeout, but not the legacy Consumption plan, which maxes out at 10 minutes",
+        "Any plan; there is no timeout limit",
+        "No plan allows a function to run longer than 5 minutes",
       ],
       answer: 1,
       explain:
-        "In Azure the hosting plan is a real design choice: it determines whether instances stay warm, how far the app scales out, the maximum timeout, and whether you get virtual network integration.",
+        "Flex Consumption and Premium default to a 30-minute timeout and can be unbounded, so a 20-minute run fits. The legacy Consumption plan defaults to 5 minutes and caps at 10, so it cannot.",
+    },
+    {
+      q: "A function app on the Consumption plan gets no traffic all month, while another on the Premium plan also sits idle. What is the compute cost of each?",
+      opts: [
+        "Both cost nothing while idle",
+        "The Consumption app incurs no compute cost, but Premium bills for its prewarmed instances even when idle",
+        "Both bill a fixed monthly reservation",
+        "The Premium app is free; the Consumption app pays for a reserved instance",
+      ],
+      answer: 1,
+      explain:
+        "On the Consumption plan a function that never runs incurs no compute cost. Premium, by contrast, bills for prewarmed instances even when idle, which is what buys it no cold starts.",
+    },
+    {
+      q: "Your handler creates a fresh client on every invocation. Where should you initialize it instead so a warm instance reuses it?",
+      opts: [
+        "Nowhere; every invocation gets a brand-new process with no shared state",
+        "At module load, outside the handler, so it initializes once when the worker starts and is reused while the instance stays warm",
+        "Inside the handler, but only on the first line",
+        "In an output binding, since functions share no state",
+      ],
+      answer: 1,
+      explain:
+        "When an instance spins up, the platform loads your worker and code once. A warm instance reuses that process, so a client initialized at module load (outside the handler) is created once and reused across invocations, whereas code inside the handler runs on every call.",
     },
   ],
 };
