@@ -365,7 +365,7 @@ export function FirewallTrace({ model }: { model: FirewallModel }) {
             stroke={GUIDE}
             strokeWidth={2}
             strokeDasharray="5 8"
-            className="animate-net-dash"
+            className="motion-safe:animate-net-dash"
           />
           <line
             x1={ORIGIN_X}
@@ -375,7 +375,7 @@ export function FirewallTrace({ model }: { model: FirewallModel }) {
             stroke={GUIDE}
             strokeWidth={2}
             strokeDasharray="5 8"
-            className="animate-net-dash"
+            className="motion-safe:animate-net-dash"
           />
           <text
             x={ORIGIN_X}

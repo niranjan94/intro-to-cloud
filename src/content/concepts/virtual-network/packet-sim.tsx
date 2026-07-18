@@ -226,7 +226,7 @@ export function PacketSim({ scene }: { scene: PacketScene }) {
 
           <path
             ref={guideRef}
-            className="animate-net-dash"
+            className="motion-safe:animate-net-dash"
             fill="none"
             stroke={GUIDE}
             strokeWidth={2.5}

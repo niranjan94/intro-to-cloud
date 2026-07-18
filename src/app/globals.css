@@ -31,8 +31,8 @@
   --color-ink-strong: oklch(0.34 0.02 230);
   --color-body: oklch(0.44 0.015 230);
   --color-body-soft: oklch(0.48 0.015 230);
-  --color-ink-muted: oklch(0.55 0.015 230);
-  --color-faint: oklch(0.58 0.015 230);
+  --color-ink-muted: oklch(0.5 0.015 230);
+  --color-faint: oklch(0.51 0.015 230);
 
   /* Hairlines */
   --color-line: oklch(0.91 0.008 220);
@@ -148,7 +148,7 @@
   --secondary: oklch(0.965 0.006 220);
   --secondary-foreground: oklch(0.3 0.02 230);
   --muted: oklch(0.965 0.006 220);
-  --muted-foreground: oklch(0.55 0.015 230);
+  --muted-foreground: oklch(0.5 0.015 230);
   --accent: oklch(0.95 0.03 195); /* soft teal accent surface */
   --accent-foreground: oklch(0.3 0.02 230);
   --destructive: oklch(0.55 0.15 25);
@@ -174,6 +174,9 @@
   }
   a:hover {
     color: oklch(0.4 0.08 195);
+  }
+  button:not(:disabled) {
+    cursor: pointer;
   }
   *:focus-visible {
     outline: 2px solid var(--color-teal-ring);
