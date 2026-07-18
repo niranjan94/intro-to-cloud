@@ -12,6 +12,7 @@ import type {
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { NoSqlChapters } from "./chapters";
+import { SECURITY } from "./security";
 
 const concept = getConcept("nosql");
 
@@ -276,6 +277,7 @@ export function NoSqlLesson({ provider }: { provider: Provider }) {
       <NoSqlChapters
         provider={provider}
         responsibility={RESPONSIBILITY[provider]}
+        security={SECURITY[provider]}
         agent={AGENT[provider]}
       />
       <Glossary terms={TERMS} />

@@ -12,6 +12,7 @@ import type {
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { ServerlessChapters } from "./chapters";
+import { SECURITY } from "./security";
 
 const concept = getConcept("serverless");
 
@@ -279,6 +280,7 @@ export function ServerlessLesson({ provider }: { provider: Provider }) {
       <ServerlessChapters
         provider={provider}
         responsibility={RESPONSIBILITY[provider]}
+        security={SECURITY[provider]}
         agent={AGENT[provider]}
       />
       <Glossary terms={TERMS} />

@@ -12,6 +12,7 @@ import type {
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { ObjectStorageChapters } from "./chapters";
+import { SECURITY } from "./security";
 
 const concept = getConcept("object-storage");
 
@@ -261,6 +262,7 @@ export function ObjectStorageLesson({ provider }: { provider: Provider }) {
       <ObjectStorageChapters
         provider={provider}
         responsibility={RESPONSIBILITY[provider]}
+        security={SECURITY[provider]}
         agent={AGENT[provider]}
       />
       <Glossary terms={TERMS} />

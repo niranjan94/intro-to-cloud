@@ -12,6 +12,7 @@ import type {
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { ContainersChapters } from "./chapters";
+import { SECURITY } from "./security";
 
 const concept = getConcept("containers");
 
@@ -289,6 +290,7 @@ export function ContainersLesson({ provider }: { provider: Provider }) {
       <ContainersChapters
         provider={provider}
         responsibility={RESPONSIBILITY[provider]}
+        security={SECURITY[provider]}
         agent={AGENT[provider]}
       />
       <Glossary terms={TERMS} />

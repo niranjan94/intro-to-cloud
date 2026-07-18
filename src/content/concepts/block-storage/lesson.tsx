@@ -12,6 +12,7 @@ import type {
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { BlockStorageChapters } from "./chapters";
+import { SECURITY } from "./security";
 
 const concept = getConcept("block-storage");
 
@@ -282,6 +283,7 @@ export function BlockStorageLesson({ provider }: { provider: Provider }) {
       <BlockStorageChapters
         provider={provider}
         responsibility={RESPONSIBILITY[provider]}
+        security={SECURITY[provider]}
         agent={AGENT[provider]}
       />
       <Glossary terms={TERMS} />

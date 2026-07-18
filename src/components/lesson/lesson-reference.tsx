@@ -5,6 +5,7 @@ import {
   ArrowClockwiseIcon as ArrowClockwise,
   CheckIcon as Check,
   LockIcon as Lock,
+  ShieldCheckIcon as ShieldCheck,
 } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { PROVIDER_LABELS, type Provider } from "@/content/types";
@@ -24,6 +25,38 @@ export interface ResponsibilitySplit {
    * provider's own documentation.
    */
   immutable: string[];
+}
+
+/**
+ * One security practice for a service, taught rather than checkboxed: the what,
+ * the why it works, and the concrete risk it addresses. Grounded in the
+ * provider's own security documentation.
+ */
+export interface SecurityPractice {
+  /** The concrete risk this addresses, a short tag, e.g. "Public exposure". */
+  risk: string;
+  /** The practice in one imperative line: the WHAT you actually do. */
+  label: string;
+  /**
+   * The WHY: how the control works and what goes wrong without it, so the
+   * reader learns the mechanism, not just the rule. Two to three sentences.
+   */
+  why: string;
+}
+
+/**
+ * The security posture for a service plus a short, prioritized set of practices.
+ * The panel teaches each practice's mechanism, so this is not a compliance
+ * checklist: every entry explains why the control matters on the active lens.
+ */
+export interface SecurityChecklist {
+  /**
+   * One-line framing of the default posture: what the service secures for you
+   * out of the box, and where the sharp edges are that you own.
+   */
+  posture: string;
+  /** Four to six practices, most important first, grounded in provider docs. */
+  practices: SecurityPractice[];
 }
 
 /** One ready-to-paste prompt covering a distinct way to stand the service up. */
@@ -48,11 +81,12 @@ export interface AgentSetup {
 }
 
 /**
- * Chapter metadata for the two reference tabs every lesson appends to its
- * chapter strip: the shared responsibility split, then the hands-on agent
- * setup. Shape matches each concept's `ChapterMeta`, so it concatenates onto
- * `content.chapters` directly. `REFERENCE_CHAPTERS[0]` is the responsibility
- * tab and `[1]` is the setup tab; chapters.tsx renders the matching panel.
+ * Chapter metadata for the three reference tabs every lesson appends to its
+ * chapter strip: the shared responsibility split, the security practices, then
+ * the hands-on agent setup. Shape matches each concept's `ChapterMeta`, so it
+ * concatenates onto `content.chapters` directly. `REFERENCE_CHAPTERS[0]` is the
+ * responsibility tab, `[1]` is the security tab, and `[2]` is the setup tab;
+ * chapters.tsx renders the matching panel by index.
  */
 export const REFERENCE_CHAPTERS = [
   {
@@ -61,6 +95,13 @@ export const REFERENCE_CHAPTERS = [
     title: "Who owns what",
     intro:
       "Cloud runs on a shared responsibility model. The provider secures and operates the platform beneath the service; you own how you configure and use it. Here is where that line falls for this service on the active lens.",
+  },
+  {
+    navLabel: "secure it",
+    kicker: "Security",
+    title: "Lock it down, and why",
+    intro:
+      "Security is not a step you bolt on at the end; it is a set of choices baked into how you configure the service. Each practice below is paired with the mechanism behind it, so you learn why it holds, not just that it is recommended. Grounded in the provider's own security guidance for the active lens.",
   },
   {
     navLabel: "set it up",
@@ -191,6 +232,62 @@ export function SharedResponsibilityPanel({
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * The "Lock it down, and why" chapter body: the service's default security
+ * posture, then a short set of practices where each one teaches the mechanism
+ * behind it. Reads as instruction, not a checklist: a risk tag names what the
+ * practice defends against, the label is the concrete action, and the body
+ * explains why the control works on the active lens.
+ */
+export function SecurityPanel({
+  provider,
+  checklist,
+}: {
+  provider: Provider;
+  checklist: SecurityChecklist;
+}) {
+  return (
+    <div className="mt-[20px]">
+      <div className="rounded-[14px] border border-teal-line bg-teal-tint p-[16px]">
+        <div className="flex items-center gap-[8px] font-mono text-[11px] uppercase tracking-[0.08em] text-teal">
+          <ShieldCheck size={14} aria-hidden />
+          Default posture on {PROVIDER_LABELS[provider]}
+        </div>
+        <p className="mt-[8px] max-w-[64ch] text-pretty text-[14px] leading-[1.55] text-body">
+          {checklist.posture}
+        </p>
+      </div>
+
+      <ol className="mt-[16px] flex flex-col gap-[12px]">
+        {checklist.practices.map((p) => (
+          <li
+            key={p.label}
+            className="flex gap-[13px] rounded-[14px] border border-line bg-surface p-[16px]"
+          >
+            <ShieldCheck
+              size={18}
+              weight="fill"
+              aria-hidden
+              className="mt-[2px] flex-none text-[oklch(0.55_0.1_195)]"
+            />
+            <div>
+              <div className="font-mono text-[10.5px] font-bold uppercase tracking-[0.1em] text-[oklch(0.53_0.16_25)]">
+                {p.risk}
+              </div>
+              <p className="mt-[5px] text-[14.5px] font-semibold text-ink-strong">
+                {p.label}
+              </p>
+              <p className="mt-[5px] text-pretty text-[13.5px] leading-[1.6] text-body">
+                {p.why}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

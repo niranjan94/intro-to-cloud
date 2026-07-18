@@ -11,6 +11,8 @@ import {
   type AgentSetup,
   REFERENCE_CHAPTERS,
   type ResponsibilitySplit,
+  type SecurityChecklist,
+  SecurityPanel,
   SharedResponsibilityPanel,
 } from "@/components/lesson/lesson-reference";
 import type { Provider } from "@/content/types";
@@ -32,10 +34,12 @@ import { SizeExplorer } from "./size-explorer";
 export function VmChapters({
   provider,
   responsibility,
+  security,
   agent,
 }: {
   provider: Provider;
   responsibility: ResponsibilitySplit;
+  security: SecurityChecklist;
   agent: AgentSetup;
 }) {
   const content = CONTENT[provider];
@@ -57,8 +61,10 @@ export function VmChapters({
         <SharedResponsibilityPanel provider={provider} split={responsibility} />
       );
     if (current === content.chapters.length)
-      return <AgentPromptPanel cli={agent.cli} scenarios={agent.scenarios} />;
+      return <SecurityPanel provider={provider} checklist={security} />;
     if (current === content.chapters.length + 1)
+      return <AgentPromptPanel cli={agent.cli} scenarios={agent.scenarios} />;
+    if (current === content.chapters.length + 2)
       return <Quiz questions={content.quiz} />;
     switch (current) {
       case 0:

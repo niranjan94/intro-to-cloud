@@ -11,6 +11,7 @@ import type {
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { NetworkChapters } from "./chapters";
+import { SECURITY } from "./security";
 
 const concept = getConcept("virtual-network");
 
@@ -212,6 +213,7 @@ export function VirtualNetworkLesson({ provider }: { provider: Provider }) {
       <NetworkChapters
         provider={provider}
         responsibility={RESPONSIBILITY[provider]}
+        security={SECURITY[provider]}
         agent={AGENT[provider]}
       />
       <FurtherReading links={DOCS[provider]} />

@@ -12,6 +12,7 @@ import type {
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { RelationalChapters } from "./chapters";
+import { SECURITY } from "./security";
 
 const concept = getConcept("relational");
 
@@ -242,6 +243,7 @@ export function RelationalLesson({ provider }: { provider: Provider }) {
       <RelationalChapters
         provider={provider}
         responsibility={RESPONSIBILITY[provider]}
+        security={SECURITY[provider]}
         agent={AGENT[provider]}
       />
       <Glossary terms={TERMS} />

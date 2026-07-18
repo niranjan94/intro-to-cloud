@@ -12,6 +12,7 @@ import type {
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { DnsChapters } from "./chapters";
+import { SECURITY } from "./security";
 
 const concept = getConcept("dns");
 
@@ -266,6 +267,7 @@ export function DnsLesson({ provider }: { provider: Provider }) {
       <DnsChapters
         provider={provider}
         responsibility={RESPONSIBILITY[provider]}
+        security={SECURITY[provider]}
         agent={AGENT[provider]}
       />
       <Glossary terms={TERMS} />
