@@ -38,18 +38,27 @@ export function BlockStorageChapters({
   agent: AgentSetup;
 }) {
   const content = CONTENT[provider];
-  const chapters = [...content.chapters, ...REFERENCE_CHAPTERS];
+  // The quiz is the last entry of content.chapters, but it reads as the
+  // capstone, so the reference tabs (ownership, then set it up) slot in ahead
+  // of it: [...guided chapters, ownership, set it up, quiz].
+  const chapters = [
+    ...content.chapters.slice(0, -1),
+    ...REFERENCE_CHAPTERS,
+    content.chapters[content.chapters.length - 1],
+  ];
   const [current, setCurrent] = useState(0);
   const chapter = chapters[current];
   const last = chapters.length - 1;
 
   const body = () => {
-    if (current === content.chapters.length)
+    if (current === content.chapters.length - 1)
       return (
         <SharedResponsibilityPanel provider={provider} split={responsibility} />
       );
-    if (current === content.chapters.length + 1)
+    if (current === content.chapters.length)
       return <AgentPromptPanel cli={agent.cli} scenarios={agent.scenarios} />;
+    if (current === content.chapters.length + 1)
+      return <Quiz questions={content.quiz} />;
     switch (current) {
       case 0:
         return (
@@ -97,7 +106,7 @@ export function BlockStorageChapters({
           </>
         );
       default:
-        return <Quiz questions={content.quiz} />;
+        return null;
     }
   };
 
