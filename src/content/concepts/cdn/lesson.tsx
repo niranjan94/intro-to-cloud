@@ -138,6 +138,19 @@ const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
       "TLS termination at the edge and the underlying network",
       "Cache storage durability and eviction at each location",
     ],
+    mutable: [
+      "Origins and origin groups",
+      "Cache behaviors and default cache behavior",
+      "Alternate domain names (CNAME aliases)",
+      "Viewer TLS certificate and security policy",
+      "Price class and WAF web ACL association",
+      "Default root object, logging, and enabled state",
+    ],
+    immutable: [
+      "Auto-assigned distribution domain name",
+      "Distribution ID (physical resource identifier)",
+      "CallerReference value set at creation",
+    ],
   },
   azure: {
     youManage: [
@@ -155,19 +168,89 @@ const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
       "TLS offload at the PoP and managed certificate rotation",
       "Cache storage, object chunking, and eviction at each PoP",
     ],
+    mutable: [
+      "Endpoint enabled or disabled state",
+      "Origins, origin groups, and routes",
+      "Custom domains and their TLS certificates",
+      "WAF and security policy associations",
+      "Origin response timeout seconds",
+      "Tier upgrade Standard to Premium in place",
+    ],
+    immutable: [
+      "Tier downgrade Premium to Standard (recreate)",
+      "Profile name",
+      "Endpoint name",
+      "Auto-generated endpoint hostname",
+    ],
   },
 };
 
 const AGENT: Record<Provider, AgentSetup> = {
   aws: {
     cli: "aws",
-    prompt:
-      "Provision an Amazon CloudFront distribution using the aws CLI.\nFirst run `aws sts get-caller-identity` to confirm the active account and check that credentials are valid; CloudFront is global, so note that its ACM certificate must live in us-east-1.\nCreate a distribution named intro-to-cloud-cdn that points at a single origin I will specify, with a default cache behavior that redirects HTTP to HTTPS, allows GET and HEAD, and uses the managed CachingOptimized cache policy.\nBefore creating, deleting, or updating anything, print the full distribution config you intend to apply and wait for my confirmation.\nAfter it is deployed, print the distribution Id, ARN, and the domain name (the *.cloudfront.net endpoint).",
+    scenarios: [
+      {
+        label: "Bucket-backed distribution",
+        blurb:
+          "Stands up a plain CloudFront distribution in front of a single origin with the managed CachingOptimized policy. Reach for this first when you just want a global cache in front of a bucket or origin.",
+        prompt:
+          "Provision an Amazon CloudFront distribution using the aws CLI.\nFirst run `aws sts get-caller-identity` to confirm the active account and check that credentials are valid; CloudFront is global, so note that its ACM certificate must live in us-east-1.\nCreate a distribution named intro-to-cloud-cdn that points at a single origin I will specify, with a default cache behavior that redirects HTTP to HTTPS, allows GET and HEAD, and uses the managed CachingOptimized cache policy.\nBefore creating, deleting, or updating anything, print the full distribution config you intend to apply and wait for my confirmation.\nAfter it is deployed, print the distribution Id, ARN, and the domain name (the *.cloudfront.net endpoint).",
+      },
+      {
+        label: "Custom domain + managed TLS",
+        blurb:
+          "Fronts the distribution with your own domain and an ACM certificate so viewers hit a branded HTTPS URL. Reach for this when the default *.cloudfront.net name is not enough.",
+        prompt:
+          "Provision an Amazon CloudFront distribution with a custom domain and managed TLS using the aws CLI.\nFirst run `aws sts get-caller-identity` to confirm the active account and check that credentials are valid; CloudFront is global, so request the ACM certificate in us-east-1 with `aws acm request-certificate --validation-method DNS` for the domain I will specify and print the DNS validation records so I can add them.\nOnce the certificate is issued, create a distribution named intro-to-cloud-cdn-domain that points at a single origin I will specify, sets that domain as an alternate domain name (CNAME alias), attaches the ACM certificate ARN with a minimum protocol version of TLSv1.2_2021, and has a default cache behavior that redirects HTTP to HTTPS and uses the managed CachingOptimized cache policy; tag everything with project=intro-to-cloud for easy cleanup.\nBefore requesting the certificate or creating, deleting, or updating anything, print the full certificate request and distribution config you intend to apply and wait for my confirmation.\nAfter it is deployed, print the certificate ARN, the distribution Id, ARN, the *.cloudfront.net domain name, and the alternate domain name so I can point DNS at it.",
+      },
+      {
+        label: "Path-based cache behaviors",
+        blurb:
+          "Layers ordered cache behaviors on top of the default so different path patterns get different caching. Reach for this when static assets, APIs, and images each need their own policy.",
+        prompt:
+          "Provision an Amazon CloudFront distribution with custom cache behaviors per path pattern using the aws CLI.\nFirst run `aws sts get-caller-identity` to confirm the active account and check that credentials are valid; CloudFront is global, so note that any ACM certificate must live in us-east-1.\nCreate a distribution named intro-to-cloud-cdn-paths that points at the origins I will specify, with a default cache behavior using the managed CachingOptimized policy, plus ordered cache behaviors: `/static/*` with a long TTL using CachingOptimized, `/api/*` using the managed CachingDisabled policy and the AllViewer origin request policy, and `/images/*` using CachingOptimized with the managed compression settings; every behavior redirects HTTP to HTTPS and tag everything with project=intro-to-cloud for easy cleanup.\nBefore creating, deleting, or updating anything, print the full distribution config with the ordered cache behaviors you intend to apply and wait for my confirmation.\nAfter it is deployed, print the distribution Id, ARN, the domain name (the *.cloudfront.net endpoint), and the list of path patterns with their attached cache policies.",
+      },
+      {
+        label: "Load balancer origin",
+        blurb:
+          "Puts CloudFront in front of an Application Load Balancer or web app rather than a bucket, using a custom origin over HTTPS. Reach for this when you are caching a dynamic backend instead of static objects.",
+        prompt:
+          "Provision an Amazon CloudFront distribution whose origin is an Application Load Balancer using the aws CLI.\nFirst run `aws sts get-caller-identity` to confirm the active account and check that credentials are valid; CloudFront is global, so note that any ACM certificate must live in us-east-1.\nCreate a distribution named intro-to-cloud-cdn-alb that uses the ALB DNS name I will specify as a custom origin with an origin protocol policy of https-only and a minimum origin SSL protocol of TLSv1.2, with a default cache behavior that redirects HTTP to HTTPS, allows GET, HEAD, OPTIONS, PUT, POST, PATCH, and DELETE, uses the managed CachingDisabled cache policy, and forwards viewer headers with the managed AllViewer origin request policy; tag everything with project=intro-to-cloud for easy cleanup.\nBefore creating, deleting, or updating anything, print the full distribution config you intend to apply and wait for my confirmation.\nAfter it is deployed, print the distribution Id, ARN, the domain name (the *.cloudfront.net endpoint), and the origin domain it is pointing at.",
+      },
+    ],
   },
   azure: {
     cli: "az",
-    prompt:
-      "Provision an Azure Front Door Standard profile using the az CLI.\nFirst run `az account show` to confirm the active subscription and tenant, and set the target resource group and location before doing anything else.\nCreate a profile named intro-to-cloud-afd, then add an endpoint, an origin group with a health probe, one origin I will specify, and a route that enables caching and redirects HTTP to HTTPS.\nBefore creating, deleting, or updating any resource, echo the exact az commands and their parameters and wait for my confirmation.\nWhen it finishes, print the profile id, the endpoint hostname, and the resource group so I can verify the deployment.",
+    scenarios: [
+      {
+        label: "Cached endpoint + origin group",
+        blurb:
+          "Stands up a Front Door Standard profile with one endpoint, a health-probed origin group, and a caching route. Reach for this first when you want a global cache and load balancer in front of a single origin.",
+        prompt:
+          "Provision an Azure Front Door Standard profile using the az CLI.\nFirst run `az account show` to confirm the active subscription and tenant, and set the target resource group and location before doing anything else.\nCreate a profile named intro-to-cloud-afd, then add an endpoint, an origin group with a health probe, one origin I will specify, and a route that enables caching and redirects HTTP to HTTPS.\nBefore creating, deleting, or updating any resource, echo the exact az commands and their parameters and wait for my confirmation.\nWhen it finishes, print the profile id, the endpoint hostname, and the resource group so I can verify the deployment.",
+      },
+      {
+        label: "Custom domain + managed TLS",
+        blurb:
+          "Adds your own domain to the endpoint with an Azure-managed certificate so viewers hit a branded HTTPS URL. Reach for this when the default *.azurefd.net hostname is not enough.",
+        prompt:
+          "Provision an Azure Front Door Standard profile with a custom domain and managed TLS using the az CLI.\nFirst run `az account show` to confirm the active subscription and tenant, and set the target resource group and location before doing anything else.\nCreate a profile named intro-to-cloud-afd-domain with an endpoint, an origin group with a health probe, and one origin I will specify, then add a custom domain for the hostname I will specify with `az afd custom-domain create` using an Azure-managed certificate and minimum TLS version 1.2, print the DNS TXT and CNAME validation records so I can add them, and associate the validated custom domain with a caching route that redirects HTTP to HTTPS; tag every resource with project=intro-to-cloud for easy cleanup.\nBefore creating, deleting, or updating any resource, echo the exact az commands and their parameters and wait for my confirmation.\nWhen it finishes, print the profile id, the endpoint hostname, the custom domain validation state, and the resource group so I can verify the deployment.",
+      },
+      {
+        label: "Per-path rules engine",
+        blurb:
+          "Attaches a rule set so different path patterns get different caching and routing behavior. Reach for this when static assets, APIs, and images each need their own rules.",
+        prompt:
+          "Provision an Azure Front Door Standard profile with a rule set for per-path caching using the az CLI.\nFirst run `az account show` to confirm the active subscription and tenant, and set the target resource group and location before doing anything else.\nCreate a profile named intro-to-cloud-afd-rules with an endpoint, an origin group with a health probe, and the origins I will specify, then create a rule set with `az afd rule-set create` and add rules keyed on the request path: cache `/static/*` with a long duration, bypass cache for `/api/*`, and override cache duration for `/images/*`, and associate that rule set with a route that redirects HTTP to HTTPS; tag every resource with project=intro-to-cloud for easy cleanup.\nBefore creating, deleting, or updating any resource, echo the exact az commands and their parameters and wait for my confirmation.\nWhen it finishes, print the profile id, the endpoint hostname, the rule set name with its rules, and the resource group so I can verify the deployment.",
+      },
+      {
+        label: "Web app origin",
+        blurb:
+          "Points the origin group at an App Service or web app hostname over HTTPS instead of a storage account. Reach for this when Front Door is fronting a dynamic backend rather than static objects.",
+        prompt:
+          "Provision an Azure Front Door Standard profile whose origin is a web app using the az CLI.\nFirst run `az account show` to confirm the active subscription and tenant, and set the target resource group and location before doing anything else.\nCreate a profile named intro-to-cloud-afd-app with an endpoint and an origin group with a health probe, then add an origin pointing at the App Service hostname I will specify with `az afd origin create` using HTTPS on port 443, an origin host header matching that hostname, and health probes over HTTPS, and add a route that redirects HTTP to HTTPS, forwards the host header, and leaves caching disabled so dynamic responses pass through; tag every resource with project=intro-to-cloud for easy cleanup.\nBefore creating, deleting, or updating any resource, echo the exact az commands and their parameters and wait for my confirmation.\nWhen it finishes, print the profile id, the endpoint hostname, the origin hostname it is pointing at, and the resource group so I can verify the deployment.",
+      },
+    ],
   },
 };
 

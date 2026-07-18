@@ -89,6 +89,21 @@ const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
       "The physical hosts, network fabric, and data centers",
       "Encryption infrastructure and transparent at-rest crypto",
     ],
+    mutable: [
+      "Volume size, increase only via Elastic Volumes",
+      "Volume type across gp2, gp3, io1, io2, st1, sc1",
+      "Provisioned IOPS on gp3, io1, io2",
+      "Throughput on gp3 volumes",
+      "Multi-Attach enablement on io1 and io2",
+      "Auto-enable I/O flag and tags",
+    ],
+    immutable: [
+      "Availability Zone of the volume",
+      "Encryption state, encrypted versus unencrypted",
+      "KMS key used for encryption",
+      "Source snapshot the volume was created from",
+      "Decreasing volume size below current",
+    ],
   },
   azure: {
     youManage: [
@@ -106,19 +121,89 @@ const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
       "The physical hosts, network fabric, and data centers",
       "Server-side encryption at rest with 256-bit AES by default",
     ],
+    mutable: [
+      "Disk size in GiB, increase only",
+      "Disk SKU across Premium SSD, Standard SSD, Standard HDD",
+      "Performance tier on Premium SSD",
+      "Redundancy between LRS and ZRS on a regional disk",
+      "Network access policy and tags",
+    ],
+    immutable: [
+      "Disk name after creation",
+      "Logical sector size on Ultra and Premium SSD v2",
+      "Availability zone placement of a zonal disk",
+      "Region the disk resides in",
+      "Decreasing the disk size below current",
+    ],
   },
 };
 
 const AGENT: Record<Provider, AgentSetup> = {
   aws: {
     cli: "aws",
-    prompt:
-      "Provision an Amazon EBS volume using the aws CLI. First run `aws sts get-caller-identity` to confirm the active credentials and account, and check the configured region with `aws configure get region`, since EBS volumes are pinned to a single Availability Zone. Create one gp3 volume of 50 GiB in that zone with encryption enabled, tagged Name=intro-to-cloud-demo, using sensible default IOPS and throughput. Echo the full plan, including the volume type, size, zone, and encryption setting, and wait for my confirmation before running anything that creates or deletes resources. After it is created, print the volume ID, its ARN, the Availability Zone, and the encryption status.",
+    scenarios: [
+      {
+        label: "Encrypted gp3 volume",
+        blurb:
+          "The everyday starting point: one general-purpose gp3 volume with encryption on, ready to attach to an instance. Reach for this when you just need a durable disk with sensible defaults.",
+        prompt:
+          "Provision an Amazon EBS volume using the aws CLI. First run `aws sts get-caller-identity` to confirm the active credentials and account, and check the configured region with `aws configure get region`, since EBS volumes are pinned to a single Availability Zone. Create one gp3 volume of 50 GiB in that zone with encryption enabled, tagged Name=intro-to-cloud-demo, using sensible default IOPS and throughput. Echo the full plan, including the volume type, size, zone, and encryption setting, and wait for my confirmation before running anything that creates or deletes resources. After it is created, print the volume ID, its ARN, the Availability Zone, and the encryption status.",
+      },
+      {
+        label: "High-IOPS io2 volume",
+        blurb:
+          "A provisioned-IOPS io2 volume for a latency-sensitive workload such as a busy database. Reach for this when gp3's baseline is not enough and you need to buy dedicated IOPS.",
+        prompt:
+          "Provision a high-performance, encrypted Amazon EBS volume using the aws CLI. First run `aws sts get-caller-identity` to confirm the active credentials and account, and check the configured region with `aws configure get region`, since EBS volumes are pinned to a single Availability Zone. Create one io2 volume of 100 GiB in that zone with encryption enabled and 10000 provisioned IOPS, tagged Name=intro-to-cloud-highperf, using the default KMS key for EBS. Echo the full plan, including the volume type, size, provisioned IOPS, zone, and encryption setting, and wait for my confirmation before running anything that creates or deletes resources. After it is created, print the volume ID, its ARN, the provisioned IOPS, the Availability Zone, and the encryption status.",
+      },
+      {
+        label: "Snapshot and restore",
+        blurb:
+          "Take a point-in-time snapshot of an existing volume, then create a fresh volume from it. Reach for this to back up a disk or to clone one into a new copy for testing or recovery.",
+        prompt:
+          "Snapshot an Amazon EBS volume and restore it into a new volume using the aws CLI. First run `aws sts get-caller-identity` to confirm the active credentials and account, and check the configured region with `aws configure get region`. Ask me for the source volume ID, then take a snapshot of it with `aws ec2 create-snapshot`, tagged Name=intro-to-cloud-snapshot, and wait for the snapshot to reach the completed state. Once it is complete, create a new volume in the source volume's Availability Zone from that snapshot with `aws ec2 create-volume --snapshot-id`, tagged Name=intro-to-cloud-restore. Echo the full plan, including the source volume, the snapshot, and the target zone, and wait for my confirmation before running anything that creates or deletes resources. After both steps finish, print the snapshot ID, its state, and the restored volume ID with its Availability Zone.",
+      },
+      {
+        label: "Grow and expand volume",
+        blurb:
+          "Increase the size of a live volume with Elastic Volumes, then grow the filesystem so the guest OS sees the new space. Reach for this when a disk is running out of room and you want to expand it in place.",
+        prompt:
+          "Grow an existing Amazon EBS volume and expand its filesystem using the aws CLI. First run `aws sts get-caller-identity` to confirm the active credentials and account, and check the configured region with `aws configure get region`. Ask me for the volume ID and its current size, then use `aws ec2 modify-volume` to increase it to 100 GiB and poll `aws ec2 describe-volumes-modifications` until the modification reaches the optimizing or completed state. Echo the full plan, including the volume ID, the current and target sizes, and remind me that after the volume grows I must extend the partition and grow the filesystem on the guest OS (for example with `growpart` and then `resize2fs` or `xfs_growfs`), and wait for my confirmation before running anything that creates or deletes resources. After the modification finishes, print the volume ID, the new size, the modification state, and the exact filesystem commands to run on the instance.",
+      },
+    ],
   },
   azure: {
     cli: "az",
-    prompt:
-      "Provision an Azure managed disk using the az CLI. First run `az account show` to confirm the active subscription and tenant, and confirm the target region and resource group before doing anything. Create one Premium SSD v2 (or Premium_LRS if v2 is unavailable in the region) managed disk of 50 GiB named intro-to-cloud-demo in that resource group, relying on the default server-side encryption at rest. Echo the full plan, including the disk SKU, size, region, and resource group, and wait for my confirmation before running anything that creates or deletes resources. After it is created, print the disk resource ID, its name, the SKU, and the provisioned size.",
+    scenarios: [
+      {
+        label: "Premium SSD v2 disk",
+        blurb:
+          "The everyday starting point: one managed disk with default at-rest encryption, ready to attach to a VM. Reach for this when you just need a durable disk with sensible defaults.",
+        prompt:
+          "Provision an Azure managed disk using the az CLI. First run `az account show` to confirm the active subscription and tenant, and confirm the target region and resource group before doing anything. Create one Premium SSD v2 (or Premium_LRS if v2 is unavailable in the region) managed disk of 50 GiB named intro-to-cloud-demo in that resource group, relying on the default server-side encryption at rest. Echo the full plan, including the disk SKU, size, region, and resource group, and wait for my confirmation before running anything that creates or deletes resources. After it is created, print the disk resource ID, its name, the SKU, and the provisioned size.",
+      },
+      {
+        label: "High-IOPS Premium SSD v2",
+        blurb:
+          "A Premium SSD v2 disk with IOPS and throughput provisioned above its size-based baseline for a latency-sensitive workload such as a busy database. Reach for this when the default performance is not enough.",
+        prompt:
+          "Provision a high-performance Azure managed disk using the az CLI. First run `az account show` to confirm the active subscription and tenant, and confirm the target region and resource group before doing anything. Create one Premium SSD v2 (PremiumV2_LRS) managed disk of 100 GiB named intro-to-cloud-highperf in that resource group, with 10000 provisioned IOPS and 400 MBps provisioned throughput, in a zone the region supports, relying on the default server-side encryption at rest. Echo the full plan, including the disk SKU, size, provisioned IOPS, throughput, zone, region, and resource group, and wait for my confirmation before running anything that creates or deletes resources. After it is created, print the disk resource ID, its name, the SKU, the provisioned IOPS and throughput, and the provisioned size.",
+      },
+      {
+        label: "Snapshot and restore",
+        blurb:
+          "Take a point-in-time snapshot of an existing disk, then create a fresh disk from it. Reach for this to back up a disk or to clone one into a new copy for testing or recovery.",
+        prompt:
+          "Snapshot an Azure managed disk and restore it into a new disk using the az CLI. First run `az account show` to confirm the active subscription and tenant, and confirm the target region and resource group before doing anything. Ask me for the source disk name, then create a snapshot of it with `az snapshot create --source`, named intro-to-cloud-snapshot in that resource group, and wait for it to finish provisioning. Once the snapshot is ready, create a new managed disk from it with `az disk create --source`, named intro-to-cloud-restore in the same resource group. Echo the full plan, including the source disk, the snapshot, and the resource group, and wait for my confirmation before running anything that creates or deletes resources. After both steps finish, print the snapshot resource ID, its provisioning state, and the restored disk resource ID with its SKU and size.",
+      },
+      {
+        label: "Grow and expand disk",
+        blurb:
+          "Increase the size of a managed disk, then grow the filesystem so the guest OS sees the new space. Reach for this when a disk is running out of room and you want to expand it in place.",
+        prompt:
+          "Grow an existing Azure managed disk and expand its filesystem using the az CLI. First run `az account show` to confirm the active subscription and tenant, and confirm the target region and resource group before doing anything. Ask me for the disk name and its current size, then use `az disk update --size-gb` to increase it to 100 GiB, noting that a size increase may require the attached VM to be deallocated depending on the disk type. Echo the full plan, including the disk name, the current and target sizes, and remind me that after the disk grows I must extend the partition and grow the filesystem on the guest OS (for example with `growpart` and then `resize2fs` or `xfs_growfs` on Linux, or Disk Management on Windows), and wait for my confirmation before running anything that creates or deletes resources. After the update finishes, print the disk resource ID, the new size, the provisioning state, and the exact filesystem commands to run on the VM.",
+      },
+    ],
   },
 };
 

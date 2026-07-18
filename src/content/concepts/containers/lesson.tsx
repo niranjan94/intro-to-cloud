@@ -142,6 +142,22 @@ const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
       "Scaling and provisioning of the underlying compute",
       "Physical hosts, network fabric, and data center security",
     ],
+    mutable: [
+      "Desired task count",
+      "Task definition revision the service runs",
+      "Deployment configuration and circuit breaker",
+      "Subnets and security groups (network config)",
+      "Load balancer and target group configuration",
+      "Capacity provider strategy and platform version",
+    ],
+    immutable: [
+      "Service name",
+      "Cluster the service belongs to",
+      "Launch type (Fargate vs EC2)",
+      "Scheduling strategy (REPLICA or DAEMON)",
+      "A task definition revision's contents",
+      "Task definition awsvpc network mode",
+    ],
   },
   azure: {
     youManage: [
@@ -159,19 +175,89 @@ const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
       "Scaling infrastructure and managed TLS certificates",
       "Physical hosts, network fabric, and data center security",
     ],
+    mutable: [
+      "Ingress settings and traffic splitting rules",
+      "Secret values referenced by the app",
+      "Active revision mode (single or multiple)",
+      "Container image (via new revision)",
+      "CPU, memory and scale rules (via new revision)",
+      "Environment variables (via new revision)",
+    ],
+    immutable: [
+      "Container app name",
+      "Resource group and region",
+      "Associated Container Apps environment",
+      "An individual revision once created",
+    ],
   },
 };
 
 const AGENT: Record<Provider, AgentSetup> = {
   aws: {
     cli: "aws",
-    prompt:
-      "Provision a containerized service on Amazon ECS using the aws CLI on AWS Fargate. First run `aws sts get-caller-identity` and confirm the target account and region before doing anything else. Create an ECS cluster named intro-cloud-cluster, register a task definition that uses the awsvpc network mode with sensible defaults (256 CPU units, 512 MB memory, a public sample image, and port 80), and create a Fargate service named intro-cloud-service with a desired count of 1. Show me the full plan, including every resource you intend to create, and wait for my confirmation before running any command that creates or deletes resources. Prefer idempotent checks that reuse existing resources over recreating them. When finished, print the cluster ARN, the task definition ARN, and the service ARN.",
+    scenarios: [
+      {
+        label: "Basic Fargate service",
+        blurb:
+          "Stands up a single always-on task on serverless Fargate. Reach for this first when you just want one copy of a container running with no load balancer or scaling.",
+        prompt:
+          "Provision a containerized service on Amazon ECS using the aws CLI on AWS Fargate. First run `aws sts get-caller-identity` and confirm the target account and region before doing anything else. Create an ECS cluster named intro-cloud-cluster, register a task definition that uses the awsvpc network mode with sensible defaults (256 CPU units, 512 MB memory, a public sample image, and port 80), and create a Fargate service named intro-cloud-service with a desired count of 1. Show me the full plan, including every resource you intend to create, and wait for my confirmation before running any command that creates or deletes resources. Prefer idempotent checks that reuse existing resources over recreating them. When finished, print the cluster ARN, the task definition ARN, and the service ARN.",
+      },
+      {
+        label: "Load-balanced + autoscaling",
+        blurb:
+          "Puts an Application Load Balancer in front of the service and adds target-tracking autoscaling on CPU and request count. Reach for this when the service takes public traffic and load varies.",
+        prompt:
+          "Provision a load-balanced, autoscaling containerized service on Amazon ECS using the aws CLI on AWS Fargate. First run `aws sts get-caller-identity` and confirm the target account and region before doing anything else. Create an ECS cluster named intro-cloud-cluster, register an awsvpc task definition with sensible defaults (256 CPU units, 512 MB memory, a public sample image, and port 80), create an internet-facing Application Load Balancer named intro-cloud-alb with a target group of type ip and an HTTP listener on port 80, and create a Fargate service named intro-cloud-service that registers with that target group. Then register the service as a scalable target with Application Auto Scaling (`aws application-autoscaling register-scalable-target` on ecs:service:DesiredCount) and add two target-tracking policies via `aws application-autoscaling put-scaling-policy`: one on ECSServiceAverageCPUUtilization at 60 percent and one on ALBRequestCountPerTarget at 1000 requests, with a minimum of 2 and a maximum of 6 tasks. Tag every resource with project=intro-cloud for easy cleanup. Show me the full plan, including every resource you intend to create, and wait for my confirmation before running any command that creates or deletes resources. Prefer idempotent checks that reuse existing resources over recreating them. When finished, print the cluster ARN, the task definition ARN, the service ARN, the load balancer ARN, and the load balancer DNS name.",
+      },
+      {
+        label: "Scheduled cron task",
+        blurb:
+          "Runs a container on a schedule instead of keeping it always on, using an EventBridge Scheduler rule that launches a one-off Fargate task. Reach for this for nightly batch jobs and periodic maintenance.",
+        prompt:
+          "Provision a scheduled, one-off container task on Amazon ECS using the aws CLI on AWS Fargate. First run `aws sts get-caller-identity` and confirm the target account and region before doing anything else. Create an ECS cluster named intro-cloud-cluster if it does not already exist, register an awsvpc task definition named intro-cloud-job with sensible defaults (256 CPU units, 512 MB memory, and a public sample image that runs a short command and exits), and create an Amazon EventBridge Scheduler schedule named intro-cloud-schedule with a cron expression that runs once daily, targeting the ECS RunTask API to launch a single Fargate task from that task definition (including the awsvpc network configuration and the IAM role EventBridge Scheduler needs to call RunTask). Do not create a long-running service. Tag every resource with project=intro-cloud for easy cleanup. Show me the full plan, including every resource you intend to create, and wait for my confirmation before running any command that creates or deletes resources. Prefer idempotent checks that reuse existing resources over recreating them. When finished, print the cluster ARN, the task definition ARN, and the schedule ARN.",
+      },
+      {
+        label: "Config + secrets from env",
+        blurb:
+          "Injects plain config as environment variables and pulls sensitive values from Secrets Manager into the container at launch. Reach for this when the container is configured entirely through its environment.",
+        prompt:
+          "Provision a containerized service on Amazon ECS using the aws CLI on AWS Fargate that reads its configuration and secrets from the environment. First run `aws sts get-caller-identity` and confirm the target account and region before doing anything else. Create a secret in AWS Secrets Manager named intro-cloud/app-secret holding a sample value, create an ECS cluster named intro-cloud-cluster, and register an awsvpc task definition with sensible defaults (256 CPU units, 512 MB memory, a public sample image, and port 80) that sets a plain environment variable APP_ENV=demo through the environment field and injects the secret as an environment variable APP_SECRET through the secrets field referencing the Secrets Manager ARN, granting the execution role permission to read that secret. Then create a Fargate service named intro-cloud-service with a desired count of 1. Tag every resource with project=intro-cloud for easy cleanup. Show me the full plan, including every resource you intend to create, and wait for my confirmation before running any command that creates or deletes resources. Prefer idempotent checks that reuse existing resources over recreating them. When finished, print the cluster ARN, the task definition ARN, the service ARN, and the secret ARN.",
+      },
+    ],
   },
   azure: {
     cli: "az",
-    prompt:
-      "Provision a containerized service on Azure Container Apps using the az CLI. First run `az account show` and confirm the active subscription and location before doing anything else. Create a resource group named intro-cloud-rg, a Container Apps environment named intro-cloud-env, and a container app named intro-cloud-app using a public sample image with sensible defaults (0.25 vCPU, 0.5 GB memory, external ingress on port 80, and a scale range of 0 to 3 replicas). Echo the full plan, including every resource you intend to create, and wait for my confirmation before running any command that creates or deletes resources. Prefer idempotent checks that reuse existing resources over recreating them. When finished, print the container app resource id and its ingress FQDN.",
+    scenarios: [
+      {
+        label: "Basic container app",
+        blurb:
+          "Stands up a single container app with external ingress inside a fresh environment. Reach for this first when you just want one HTTP-reachable app running with sensible defaults.",
+        prompt:
+          "Provision a containerized service on Azure Container Apps using the az CLI. First run `az account show` and confirm the active subscription and location before doing anything else. Create a resource group named intro-cloud-rg, a Container Apps environment named intro-cloud-env, and a container app named intro-cloud-app using a public sample image with sensible defaults (0.25 vCPU, 0.5 GB memory, external ingress on port 80, and a scale range of 0 to 3 replicas). Echo the full plan, including every resource you intend to create, and wait for my confirmation before running any command that creates or deletes resources. Prefer idempotent checks that reuse existing resources over recreating them. When finished, print the container app resource id and its ingress FQDN.",
+      },
+      {
+        label: "Ingress + HTTP autoscaling",
+        blurb:
+          "Exposes the app through external ingress and adds a KEDA HTTP scale rule so replicas track concurrent requests. Reach for this when the app takes public traffic and load varies.",
+        prompt:
+          "Provision a public-facing, autoscaling containerized service on Azure Container Apps using the az CLI. First run `az account show` and confirm the active subscription and location before doing anything else. Create a resource group named intro-cloud-rg, a Container Apps environment named intro-cloud-env, and a container app named intro-cloud-app using a public sample image with sensible defaults (0.25 vCPU, 0.5 GB memory, and external ingress on port 80). Set the replica range with a minimum of 1 and a maximum of 10, and add an HTTP scale rule named http-rule that targets 50 concurrent requests per replica (`az containerapp create` with `--scale-rule-name`, `--scale-rule-type http`, and `--scale-rule-http-concurrency`, or the equivalent `az containerapp update`). Tag every resource with project=intro-cloud for easy cleanup. Echo the full plan, including every resource you intend to create, and wait for my confirmation before running any command that creates or deletes resources. Prefer idempotent checks that reuse existing resources over recreating them. When finished, print the container app resource id, its ingress FQDN, and the configured scale rule.",
+      },
+      {
+        label: "Scheduled cron job",
+        blurb:
+          "Runs a container on a cron schedule as a Container Apps job instead of a long-running app. Reach for this for nightly batch work and periodic maintenance tasks.",
+        prompt:
+          "Provision a scheduled, one-off container job on Azure Container Apps using the az CLI. First run `az account show` and confirm the active subscription and location before doing anything else. Create a resource group named intro-cloud-rg if it does not already exist, a Container Apps environment named intro-cloud-env, and a Container Apps job named intro-cloud-job (`az containerapp job create` with `--trigger-type Schedule`) using a public sample image that runs a short command and exits, with sensible defaults (0.25 vCPU, 0.5 GB memory) and a cron expression that runs once daily. Do not create a long-running container app. Tag every resource with project=intro-cloud for easy cleanup. Echo the full plan, including every resource you intend to create, and wait for my confirmation before running any command that creates or deletes resources. Prefer idempotent checks that reuse existing resources over recreating them. When finished, print the job resource id and its configured cron schedule.",
+      },
+      {
+        label: "Config + secrets from env",
+        blurb:
+          "Defines plain config as environment variables and stores sensitive values as container app secrets referenced by the environment. Reach for this when the container is configured entirely through its environment.",
+        prompt:
+          'Provision a containerized service on Azure Container Apps using the az CLI that reads its configuration and secrets from the environment. First run `az account show` and confirm the active subscription and location before doing anything else. Create a resource group named intro-cloud-rg, a Container Apps environment named intro-cloud-env, and a container app named intro-cloud-app using a public sample image with sensible defaults (0.25 vCPU, 0.5 GB memory, and external ingress on port 80). Define a secret named app-secret holding a sample value (`--secrets`), set a plain environment variable APP_ENV=demo, and set an environment variable APP_SECRET that references the secret using the secretref syntax (`--env-vars "APP_ENV=demo" "APP_SECRET=secretref:app-secret"`). Tag every resource with project=intro-cloud for easy cleanup. Echo the full plan, including every resource you intend to create, and wait for my confirmation before running any command that creates or deletes resources. Prefer idempotent checks that reuse existing resources over recreating them. When finished, print the container app resource id, its ingress FQDN, and the names of the configured secrets.',
+      },
+    ],
   },
 };
 

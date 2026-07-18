@@ -49,7 +49,7 @@ export function BlockStorageChapters({
         <SharedResponsibilityPanel provider={provider} split={responsibility} />
       );
     if (current === content.chapters.length + 1)
-      return <AgentPromptPanel cli={agent.cli} prompt={agent.prompt} />;
+      return <AgentPromptPanel cli={agent.cli} scenarios={agent.scenarios} />;
     switch (current) {
       case 0:
         return (

@@ -17,11 +17,13 @@ import { FirewallTrace } from "./firewall-trace";
 import { NestingFlip } from "./nesting-flip";
 import { NetworkMap } from "./network-map";
 import { PacketSim } from "./packet-sim";
+import { PeeringCheck } from "./peering-check";
 import { Quiz } from "./quiz";
 
 /**
  * The guided, chapter-by-chapter body of the Virtual Network lesson. Chapter
- * order is fixed (map, nesting, addresses, internet, firewall, quiz); every
+ * order is fixed (map, nesting, addresses, internet, firewall, peering, quiz);
+ * every
  * chapter's copy and interactive data comes from CONTENT[provider].
  */
 export function NetworkChapters({
@@ -45,7 +47,7 @@ export function NetworkChapters({
         <SharedResponsibilityPanel provider={provider} split={responsibility} />
       );
     if (current === content.chapters.length + 1)
-      return <AgentPromptPanel cli={agent.cli} prompt={agent.prompt} />;
+      return <AgentPromptPanel cli={agent.cli} scenarios={agent.scenarios} />;
     switch (current) {
       case 0:
         return (
@@ -80,6 +82,15 @@ export function NetworkChapters({
           <>
             <FirewallTrace model={content.firewall} />
             {content.firewall.callouts.map((c) => (
+              <Callout key={c.tag} {...c} />
+            ))}
+          </>
+        );
+      case 5:
+        return (
+          <>
+            <PeeringCheck config={content.peering} />
+            {content.peering.callouts.map((c) => (
               <Callout key={c.tag} {...c} />
             ))}
           </>

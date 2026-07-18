@@ -170,7 +170,31 @@ export interface FirewallModel {
   callouts: CalloutData[];
 }
 
-/* --------------------------- Chapter 5 · the quiz ------------------------- */
+/* ------------------------- Chapter 5 · peering ---------------------------- */
+
+export interface PeeringPreset {
+  /** Short label naming the case, e.g. "identical ranges". */
+  label: string;
+  /** CIDR for the first network. */
+  a: string;
+  /** CIDR for the second network. */
+  b: string;
+}
+
+export interface PeeringConfig {
+  /** Noun for one network on this lens, e.g. "VPC" or "VNet". */
+  netName: string;
+  /** Name of the peering resource, e.g. "VPC peering connection". */
+  linkLabel: string;
+  /** Label for the first network, e.g. "VPC A". */
+  aLabel: string;
+  /** Label for the second network, e.g. "VPC B". */
+  bLabel: string;
+  presets: PeeringPreset[];
+  callouts: CalloutData[];
+}
+
+/* --------------------------- Chapter 6 · the quiz ------------------------- */
 
 export interface QuizQ {
   q: string;
@@ -190,6 +214,7 @@ export interface NetworkContent {
   cidr: CidrConfig;
   scene: PacketScene;
   firewall: FirewallModel;
+  peering: PeeringConfig;
   quiz: QuizQ[];
 }
 
@@ -233,9 +258,16 @@ const AWS: NetworkContent = {
         "There are two firewalls and they sit in different places. Trace a web request on port 80 coming in, and its reply going back out.",
     },
     {
+      navLabel: "Peering",
+      kicker: "Chapter 5 · Peering",
+      title: "Wiring two VPCs together",
+      intro:
+        "Two separate VPCs can be joined so their instances reach each other over private IPs, with no internet in between. One hard rule governs whether that join is even allowed. Try to break it below.",
+    },
+    {
       navLabel: "Check yourself",
-      kicker: "Chapter 5 · Check yourself",
-      title: "Five questions",
+      kicker: "Chapter 6 · Check yourself",
+      title: "Six questions",
       intro:
         "Pick an answer to see whether it holds up. These are the exact spots people slip.",
     },
@@ -748,7 +780,47 @@ const AWS: NetworkContent = {
     ],
   },
 
+  peering: {
+    netName: "VPC",
+    linkLabel: "VPC peering connection",
+    aLabel: "VPC A",
+    bLabel: "VPC B",
+    presets: [
+      { label: "clean · no overlap", a: "10.0.0.0/16", b: "10.1.0.0/16" },
+      { label: "identical ranges", a: "10.0.0.0/16", b: "10.0.0.0/16" },
+      { label: "one inside the other", a: "10.0.0.0/16", b: "10.0.42.0/24" },
+      { label: "adjacent, still fine", a: "10.0.0.0/24", b: "10.0.1.0/24" },
+    ],
+    callouts: [
+      {
+        kind: "fix",
+        tag: "The one hard rule",
+        title: "Peered VPCs cannot have overlapping address ranges.",
+        body: "AWS refuses a peering connection between VPCs with matching or overlapping CIDR blocks (IPv4 or IPv6): the connection goes straight to failed. The reason is routing. If the same address lived in both VPCs, a route to it would be ambiguous. Plan non-overlapping ranges up front, because while a peering is active you can't add an overlapping CIDR to either VPC later either.",
+      },
+      {
+        kind: "note",
+        tag: "Non-transitive",
+        title: "Peering doesn't chain.",
+        body: "If VPC A is peered with B, and B with C, that does not give A a path to C. You only reach VPCs you are peered with directly; A cannot use B as a transit hop. For a hub topology you peer every spoke to the hub and add explicit routes, or reach for Transit Gateway instead.",
+      },
+      {
+        kind: "note",
+        tag: "How it comes up",
+        title: "One side requests, the other accepts, then both add routes.",
+        body: "You create the peering from one VPC and the owner of the other accepts it (an unaccepted request expires after 7 days). The connection alone carries nothing: each VPC's route table has to add a route to the other's range. It works across Regions and across accounts, and within a single Region a security group can even reference one in the peer VPC.",
+      },
+    ],
+  },
+
   quiz: [
+    {
+      q: "You want to peer two VPCs. VPC A is 10.0.0.0/16. Which range for VPC B lets the peering succeed?",
+      opts: ["10.0.0.0/16", "10.0.128.0/17", "10.1.0.0/16", "10.0.0.0/8"],
+      answer: 2,
+      explain:
+        "Peered VPCs can't have matching or overlapping CIDR blocks. 10.0.0.0/16 is identical to A, 10.0.128.0/17 sits inside A, and 10.0.0.0/8 contains A. Only 10.1.0.0/16 shares no addresses with A, so the connection is allowed.",
+    },
     {
       q: "You create a VPC as 10.0.0.0/16. Which subnet range is legal?",
       opts: ["192.168.1.0/24", "10.0.5.0/24", "8.8.8.0/24", "172.16.0.0/24"],
@@ -847,9 +919,16 @@ const AZURE: NetworkContent = {
         "Azure has a single firewall resource, the NSG, but it can sit on the subnet and on the NIC at the same time. When it does, traffic must pass both. Trace a web request on port 80 in, and its reply out.",
     },
     {
+      navLabel: "Peering",
+      kicker: "Chapter 5 · Peering",
+      title: "Wiring two VNets together",
+      intro:
+        "Two separate VNets can be joined so their VMs reach each other over private IPs, staying on Azure's backbone with no internet in between. One hard rule governs whether that join is even allowed. Try to break it below.",
+    },
+    {
       navLabel: "Check yourself",
-      kicker: "Chapter 5 · Check yourself",
-      title: "Five questions",
+      kicker: "Chapter 6 · Check yourself",
+      title: "Six questions",
       intro:
         "Pick an answer to see whether it holds up. These are the exact spots people slip.",
     },
@@ -1333,7 +1412,47 @@ const AZURE: NetworkContent = {
     ],
   },
 
+  peering: {
+    netName: "VNet",
+    linkLabel: "peering",
+    aLabel: "VNet A",
+    bLabel: "VNet B",
+    presets: [
+      { label: "clean · no overlap", a: "10.0.0.0/16", b: "10.1.0.0/16" },
+      { label: "identical ranges", a: "10.0.0.0/16", b: "10.0.0.0/16" },
+      { label: "one inside the other", a: "10.0.0.0/16", b: "10.0.42.0/24" },
+      { label: "adjacent, still fine", a: "10.0.0.0/24", b: "10.0.1.0/24" },
+    ],
+    callouts: [
+      {
+        kind: "fix",
+        tag: "The one hard rule",
+        title: "Peered VNets must have non-overlapping address spaces.",
+        body: "Azure won't enable peering if the two VNets' address spaces overlap: matching or overlapping ranges are rejected outright. The reason is routing. An address that lived in both VNets would be ambiguous. The constraint is ongoing, not just at creation: an address-space change that would introduce an overlap on an already-peered VNet fails too. Plan non-overlapping ranges from the start.",
+      },
+      {
+        kind: "note",
+        tag: "Two flavors, both private",
+        title: "Regional and global peering stay on the backbone.",
+        body: "Peering within one region is virtual network peering; across regions it is global virtual network peering. Either way the traffic stays on the Microsoft backbone, with no gateway, no public internet, and no encryption to configure. For the ranges you route, the two VNets start behaving as one flat network.",
+      },
+      {
+        kind: "note",
+        tag: "Set up both directions",
+        title: "A peering is a link each VNet establishes.",
+        body: "The portal creates the link in both directions in one step. With the CLI you run az network vnet peering create twice, once from each VNet with the names reversed, and pass --allow-vnet-access to actually permit VM-to-VM traffic. Peering is not transitive: a spoke peered to a hub can't reach another spoke through it without gateway transit or user-defined routes.",
+      },
+    ],
+  },
+
   quiz: [
+    {
+      q: "You want to peer two VNets. VNet A's address space is 10.0.0.0/16. Which address space for VNet B lets the peering succeed?",
+      opts: ["10.0.0.0/16", "10.0.64.0/18", "10.2.0.0/16", "10.0.0.0/12"],
+      answer: 2,
+      explain:
+        "Peered VNets must have non-overlapping address spaces. 10.0.0.0/16 is identical to A, 10.0.64.0/18 sits inside A, and 10.0.0.0/12 contains A. Only 10.2.0.0/16 avoids overlap entirely, so Azure allows the peering.",
+    },
     {
       q: "You create a VNet with address space 10.0.0.0/16. Which subnet range is legal?",
       opts: ["192.168.1.0/24", "10.0.5.0/24", "8.8.8.0/24", "172.16.0.0/24"],

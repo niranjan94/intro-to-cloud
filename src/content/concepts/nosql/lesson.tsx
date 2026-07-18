@@ -136,6 +136,21 @@ const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
       "Engine patching, scaling infrastructure, and host fleet",
       "Durability, availability, and the underlying hardware",
     ],
+    mutable: [
+      "Billing mode (provisioned or on-demand)",
+      "Provisioned read and write capacity",
+      "Global secondary indexes can be added or deleted",
+      "Point-in-time recovery, Streams, and TTL",
+      "Deletion protection, table class, and tags",
+      "Server-side encryption (SSE) settings",
+    ],
+    immutable: [
+      "Table name",
+      "Partition key and sort key schema",
+      "Local secondary indexes",
+      "Data type of a key attribute",
+      "Import source specification",
+    ],
   },
   azure: {
     youManage: [
@@ -152,19 +167,90 @@ const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
       "Engine patching, scaling infrastructure, and host fleet",
       "SLA-backed durability, availability, and the hardware",
     ],
+    mutable: [
+      "Default consistency level and policy",
+      "Geo-replication regions can be added or removed",
+      "Automatic failover and multi-region writes",
+      "Backup interval and retention (periodic mode)",
+      "Firewall, virtual network rules, and public access",
+      "Minimum TLS version and tags",
+    ],
+    immutable: [
+      "Account API kind (Core, MongoDB, and so on)",
+      "Capacity mode (provisioned or serverless)",
+      "Cosmos DB account name",
+      "Free tier enablement",
+      "Analytical store schema type",
+    ],
   },
 };
 
 const AGENT: Record<Provider, AgentSetup> = {
   aws: {
     cli: "aws",
-    prompt:
-      "Provision an Amazon DynamoDB table for me using the aws CLI.\nFirst run `aws sts get-caller-identity` and confirm the account and the target region before doing anything else.\nCreate a table named `app-items` with a partition key `pk` (string) and a sort key `sk` (string), using on-demand (PAY_PER_REQUEST) billing so I do not have to size capacity up front.\nEnable point-in-time recovery and server-side encryption with the AWS owned key default.\nBefore you run any command that creates or modifies resources, echo the full plan and the exact commands, and wait for my confirmation.\nWhen the table is active, print its ARN, name, and status.",
+    scenarios: [
+      {
+        label: "On-demand key-value table",
+        blurb:
+          "The simplest starting point: one table keyed by partition and sort key, billed per request. Reach for this when you just want a durable key-value store without sizing capacity.",
+        prompt:
+          "Provision an Amazon DynamoDB table for me using the aws CLI.\nFirst run `aws sts get-caller-identity` and confirm the account and the target region before doing anything else.\nCreate a table named `app-items` with a partition key `pk` (string) and a sort key `sk` (string), using on-demand (PAY_PER_REQUEST) billing so I do not have to size capacity up front.\nEnable point-in-time recovery and server-side encryption with the AWS owned key default.\nBefore you run any command that creates or modifies resources, echo the full plan and the exact commands, and wait for my confirmation.\nWhen the table is active, print its ARN, name, and status.",
+      },
+      {
+        label: "Table with a GSI",
+        blurb:
+          "Adds a global secondary index so you can query by an attribute that is not the primary key. Reach for this when one table has to serve two different lookup patterns.",
+        prompt:
+          "Provision an Amazon DynamoDB table with a global secondary index for me using the aws CLI.\nFirst run `aws sts get-caller-identity` and confirm the account and the target region before doing anything else.\nCreate a table named `app-orders` with a partition key `pk` (string) and a sort key `sk` (string), using on-demand (PAY_PER_REQUEST) billing, and define a global secondary index named `gsi1` with partition key `gsi1pk` (string) and sort key `gsi1sk` (string) projecting all attributes, so I can query by an alternate access pattern such as looking up orders by customer.\nEnable point-in-time recovery and server-side encryption with the AWS owned key default, and tag the table with `project=intro-to-cloud` for easy cleanup.\nBefore you run any command that creates or modifies resources, echo the full plan and the exact commands, and wait for my confirmation.\nWhen the table is active, print its ARN, name, status, and the name of the created index.",
+      },
+      {
+        label: "TTL plus autoscaling",
+        blurb:
+          "A provisioned table that expires stale items automatically and scales its own capacity up and down. Reach for this for session or event data with steady, self-cleaning traffic.",
+        prompt:
+          "Provision an Amazon DynamoDB table with TTL expiry and autoscaling for me using the aws CLI.\nFirst run `aws sts get-caller-identity` and confirm the account and the target region before doing anything else.\nCreate a table named `app-sessions` with a partition key `pk` (string) and a sort key `sk` (string), using provisioned billing so I can attach autoscaling, then register Application Auto Scaling target-tracking policies for the read and write capacity that scale between 5 and 100 units at 70 percent utilization.\nEnable time-to-live on an attribute named `expiresAt` so expired items are removed automatically, and enable point-in-time recovery and server-side encryption with the AWS owned key default.\nTag the table with `project=intro-to-cloud` for easy cleanup.\nBefore you run any command that creates or modifies resources, echo the full plan and the exact commands, and wait for my confirmation.\nWhen the table is active, print its ARN, name, status, the TTL attribute, and the registered scaling targets.",
+      },
+      {
+        label: "Multi-region global table",
+        blurb:
+          "Replicates the same table into several AWS Regions with active-active writes and low-latency local reads. Reach for this when users span continents and you need regional resilience.",
+        prompt:
+          "Provision an Amazon DynamoDB global table across multiple AWS Regions for me using the aws CLI.\nFirst run `aws sts get-caller-identity` and confirm the account and the primary region before doing anything else.\nCreate a table named `app-global` with a partition key `pk` (string) and a sort key `sk` (string), using on-demand (PAY_PER_REQUEST) billing, then convert it into a global table by adding replicas in two additional regions such as `us-east-1` and `eu-west-1` for active-active multi-region writes.\nEnable point-in-time recovery and server-side encryption with the AWS owned key default, and tag the table with `project=intro-to-cloud` for easy cleanup.\nBefore you run any command that creates or modifies resources, echo the full plan and the exact commands, and wait for my confirmation.\nWhen every replica is active, print the table ARN, name, and the list of replica regions and their statuses.",
+      },
+    ],
   },
   azure: {
     cli: "az",
-    prompt:
-      "Provision an Azure Cosmos DB account for me using the az CLI.\nFirst run `az account show` and confirm the active subscription and the target region before doing anything else.\nCreate a Core (NoSQL) API account with a sensible unique name, then add a database `appdb` and a container `items` with partition key path `/pk` using autoscale throughput at 1000 RU/s.\nUse the default Session consistency level unless I ask otherwise.\nBefore you run any command that creates or deletes resources, echo the full plan and the exact commands, and wait for my confirmation.\nWhen provisioning completes, print the account id, the document endpoint, and the container name.",
+    scenarios: [
+      {
+        label: "Autoscale NoSQL container",
+        blurb:
+          "The simplest starting point: one account, database, and container with autoscale throughput. Reach for this when you want a document store that sizes itself for variable load.",
+        prompt:
+          "Provision an Azure Cosmos DB account for me using the az CLI.\nFirst run `az account show` and confirm the active subscription and the target region before doing anything else.\nCreate a Core (NoSQL) API account with a sensible unique name, then add a database `appdb` and a container `items` with partition key path `/pk` using autoscale throughput at 1000 RU/s.\nUse the default Session consistency level unless I ask otherwise.\nBefore you run any command that creates or deletes resources, echo the full plan and the exact commands, and wait for my confirmation.\nWhen provisioning completes, print the account id, the document endpoint, and the container name.",
+      },
+      {
+        label: "Container with a composite index",
+        blurb:
+          "Tunes the indexing policy with a composite index so an alternate sorted query pattern runs efficiently. Reach for this when one container serves lookups on more than one property.",
+        prompt:
+          "Provision an Azure Cosmos DB container with a custom indexing policy for me using the az CLI.\nFirst run `az account show` and confirm the active subscription and the target region before doing anything else.\nCreate a Core (NoSQL) API account with a sensible unique name, then add a database `appdb` and a container `orders` with partition key path `/pk` using autoscale throughput at 1000 RU/s, and supply an indexing policy that adds a composite index on `/customerId` ascending and `/createdAt` descending so I can query and sort by an alternate access pattern.\nUse the default Session consistency level, and tag the account with `project=intro-to-cloud` for easy cleanup.\nBefore you run any command that creates or deletes resources, echo the full plan and the exact commands, and wait for my confirmation.\nWhen provisioning completes, print the account id, the document endpoint, the container name, and the composite index paths.",
+      },
+      {
+        label: "TTL plus autoscale",
+        blurb:
+          "A container that expires stale items automatically while autoscale throughput handles the load. Reach for this for session or event data that should clean itself up.",
+        prompt:
+          "Provision an Azure Cosmos DB container with time-to-live and autoscale throughput for me using the az CLI.\nFirst run `az account show` and confirm the active subscription and the target region before doing anything else.\nCreate a Core (NoSQL) API account with a sensible unique name, then add a database `appdb` and a container `sessions` with partition key path `/pk`, setting the default time-to-live to 3600 seconds so items expire automatically an hour after their last write, and provision autoscale throughput at 1000 RU/s so capacity tracks demand.\nUse the default Session consistency level, and tag the account with `project=intro-to-cloud` for easy cleanup.\nBefore you run any command that creates or deletes resources, echo the full plan and the exact commands, and wait for my confirmation.\nWhen provisioning completes, print the account id, the document endpoint, the container name, and the configured TTL.",
+      },
+      {
+        label: "Globally distributed account",
+        blurb:
+          "Replicates the account across several Azure regions with automatic failover and multi-region writes. Reach for this when users span continents and you need low-latency local reads.",
+        prompt:
+          "Provision a globally distributed Azure Cosmos DB account across multiple regions for me using the az CLI.\nFirst run `az account show` and confirm the active subscription and the primary region before doing anything else.\nCreate a Core (NoSQL) API account with a sensible unique name in a primary region such as `eastus`, add a second read-write region such as `westeurope`, and enable automatic failover and multi-region writes for active-active global distribution, then add a database `appdb` and a container `items` with partition key path `/pk` using autoscale throughput at 1000 RU/s.\nUse the default Session consistency level, and tag the account with `project=intro-to-cloud` for easy cleanup.\nBefore you run any command that creates or deletes resources, echo the full plan and the exact commands, and wait for my confirmation.\nWhen provisioning completes, print the account id, the document endpoint, the list of regions with their roles, and the container name.",
+      },
+    ],
   },
 };
 
