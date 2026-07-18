@@ -5,6 +5,10 @@ import {
 } from "@/components/lesson/further-reading";
 import { Glossary, type GlossaryTerm } from "@/components/lesson/glossary";
 import { LessonLayout } from "@/components/lesson/lesson-layout";
+import type {
+  AgentSetup,
+  ResponsibilitySplit,
+} from "@/components/lesson/lesson-reference";
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { DnsChapters } from "./chapters";
@@ -56,6 +60,56 @@ const DOCS: Record<Provider, DocLink[]> = {
       note: "Point a parent zone's NS records at all four Azure DNS name servers.",
     },
   ],
+};
+
+const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
+  aws: {
+    youManage: [
+      "The hosted zone and every record set it holds",
+      "Record values, types, TTLs, and routing policies",
+      "Delegating the domain by setting the registrar's NS records",
+      "Health checks and failover configuration for routed records",
+      "Access control through IAM policies on Route 53 actions",
+      "DNSSEC signing enablement and key-signing key management",
+    ],
+    providerManages: [
+      "The four authoritative name servers assigned to each zone",
+      "Global anycast network answering queries near the client",
+      "Query capacity, scaling, and DDoS resilience of the fleet",
+      "Availability and durability of the DNS service itself",
+      "Underlying servers, patching, and physical infrastructure",
+    ],
+  },
+  azure: {
+    youManage: [
+      "The DNS zone and every record set it holds",
+      "Record values, types, TTL on each set, and alias targets",
+      "Delegating the domain by pointing the parent NS records",
+      "Access control through Azure RBAC and Entra identities",
+      "Traffic Manager profiles when you need routing methods",
+      "DNSSEC signing enablement on the zone",
+    ],
+    providerManages: [
+      "The four authoritative name servers assigned to each zone",
+      "Global anycast network answering queries near the client",
+      "Query capacity, scaling, and DDoS resilience of the fleet",
+      "Availability and durability of the DNS service itself",
+      "Underlying servers, patching, and physical infrastructure",
+    ],
+  },
+};
+
+const AGENT: Record<Provider, AgentSetup> = {
+  aws: {
+    cli: "aws",
+    prompt:
+      "Provision a public DNS zone on Amazon Route 53 using the aws CLI.\nFirst run `aws sts get-caller-identity` to confirm which account and credentials are active, and note that Route 53 is a global service so no region is required.\nCreate a public hosted zone for a domain I will provide (default to example.com if I do not), with a clear caller reference, and plan to add a simple A record for www pointing at a placeholder address.\nBefore running any command that creates, modifies, or deletes resources, echo the exact commands and the resources they will affect, then wait for my confirmation.\nAfter applying, print the hosted zone ID, the domain name, and the four assigned name servers so I can delegate the domain at my registrar.",
+  },
+  azure: {
+    cli: "az",
+    prompt:
+      "Provision a public DNS zone on Azure DNS using the az CLI.\nFirst run `az account show` to confirm the active subscription and tenant, and confirm which resource group and location I want (create the resource group if it does not exist).\nCreate a public DNS zone for a domain I will provide (default to example.com if I do not) inside that resource group, and plan to add a simple A record set for www pointing at a placeholder address.\nBefore running any command that creates, modifies, or deletes resources, echo the exact commands and the resources they will affect, then wait for my confirmation.\nAfter applying, print the zone's resource ID, the domain name, and the four assigned name servers so I can delegate the domain at my registrar.",
+  },
 };
 
 const BLURB =
@@ -124,7 +178,11 @@ export function DnsLesson({ provider }: { provider: Provider }) {
         azure={{ service: "Azure DNS", code: "Microsoft.Network/dnsZones" }}
         elevator={ELEVATOR}
       />
-      <DnsChapters provider={provider} />
+      <DnsChapters
+        provider={provider}
+        responsibility={RESPONSIBILITY[provider]}
+        agent={AGENT[provider]}
+      />
       <Glossary terms={TERMS} />
       <FurtherReading links={DOCS[provider]} />
     </LessonLayout>

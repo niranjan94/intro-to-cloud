@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 import { CliBlock } from "@/components/lesson/cli-block";
+import {
+  AgentPromptPanel,
+  type AgentSetup,
+  REFERENCE_CHAPTERS,
+  type ResponsibilitySplit,
+  SharedResponsibilityPanel,
+} from "@/components/lesson/lesson-reference";
 import type { Provider } from "@/content/types";
 import { cn } from "@/lib/utils";
 import { Callout } from "./callout";
@@ -22,13 +29,28 @@ import { TriggerExplorer } from "./trigger-explorer";
  * how the hosting plan shapes cold starts, scale ceilings, timeouts, and sizing
  * on Azure where Lambda exposes a single tunable model.
  */
-export function ServerlessChapters({ provider }: { provider: Provider }) {
+export function ServerlessChapters({
+  provider,
+  responsibility,
+  agent,
+}: {
+  provider: Provider;
+  responsibility: ResponsibilitySplit;
+  agent: AgentSetup;
+}) {
   const content = CONTENT[provider];
+  const chapters = [...content.chapters, ...REFERENCE_CHAPTERS];
   const [current, setCurrent] = useState(0);
-  const chapter = content.chapters[current];
-  const last = content.chapters.length - 1;
+  const chapter = chapters[current];
+  const last = chapters.length - 1;
 
   const body = () => {
+    if (current === content.chapters.length)
+      return (
+        <SharedResponsibilityPanel provider={provider} split={responsibility} />
+      );
+    if (current === content.chapters.length + 1)
+      return <AgentPromptPanel cli={agent.cli} prompt={agent.prompt} />;
     switch (current) {
       case 0:
         return (
@@ -92,7 +114,7 @@ export function ServerlessChapters({ provider }: { provider: Provider }) {
         aria-label="Lesson chapters"
         className="flex gap-[2px] overflow-x-auto border-y border-line"
       >
-        {content.chapters.map((c, i) => (
+        {chapters.map((c, i) => (
           <button
             key={c.navLabel}
             type="button"

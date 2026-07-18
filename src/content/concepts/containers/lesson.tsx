@@ -5,6 +5,10 @@ import {
 } from "@/components/lesson/further-reading";
 import { Glossary, type GlossaryTerm } from "@/components/lesson/glossary";
 import { LessonLayout } from "@/components/lesson/lesson-layout";
+import type {
+  AgentSetup,
+  ResponsibilitySplit,
+} from "@/components/lesson/lesson-reference";
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { ContainersChapters } from "./chapters";
@@ -121,6 +125,56 @@ const TERMS: GlossaryTerm[] = [
   },
 ];
 
+const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
+  aws: {
+    youManage: [
+      "The container image and what runs inside it",
+      "The task definition: CPU, memory, ports, and environment",
+      "IAM task and execution roles for least privilege",
+      "Service desired count and Application Auto Scaling policies",
+      "Security groups, subnets, and load balancer target groups",
+      "Application logs, health checks, and secrets in Secrets Manager",
+    ],
+    providerManages: [
+      "The Fargate node OS, kernel, and runtime patching",
+      "The ECS control plane that schedules and places tasks",
+      "Health monitoring and replacement of failed tasks",
+      "Scaling and provisioning of the underlying compute",
+      "Physical hosts, network fabric, and data center security",
+    ],
+  },
+  azure: {
+    youManage: [
+      "The container image and what runs inside it",
+      "The container app template: CPU, memory, and environment",
+      "Managed identity and Azure RBAC role assignments",
+      "KEDA scale rules, replica limits, and scale to zero",
+      "Ingress configuration, revisions, and traffic splitting",
+      "Application logs, health probes, and app secrets",
+    ],
+    providerManages: [
+      "The node OS, kernel, and container runtime patching",
+      "The managed environment, KEDA, and Dapr infrastructure",
+      "Health monitoring and rescheduling of failed replicas",
+      "Scaling infrastructure and managed TLS certificates",
+      "Physical hosts, network fabric, and data center security",
+    ],
+  },
+};
+
+const AGENT: Record<Provider, AgentSetup> = {
+  aws: {
+    cli: "aws",
+    prompt:
+      "Provision a containerized service on Amazon ECS using the aws CLI on AWS Fargate. First run `aws sts get-caller-identity` and confirm the target account and region before doing anything else. Create an ECS cluster named intro-cloud-cluster, register a task definition that uses the awsvpc network mode with sensible defaults (256 CPU units, 512 MB memory, a public sample image, and port 80), and create a Fargate service named intro-cloud-service with a desired count of 1. Show me the full plan, including every resource you intend to create, and wait for my confirmation before running any command that creates or deletes resources. Prefer idempotent checks that reuse existing resources over recreating them. When finished, print the cluster ARN, the task definition ARN, and the service ARN.",
+  },
+  azure: {
+    cli: "az",
+    prompt:
+      "Provision a containerized service on Azure Container Apps using the az CLI. First run `az account show` and confirm the active subscription and location before doing anything else. Create a resource group named intro-cloud-rg, a Container Apps environment named intro-cloud-env, and a container app named intro-cloud-app using a public sample image with sensible defaults (0.25 vCPU, 0.5 GB memory, external ingress on port 80, and a scale range of 0 to 3 replicas). Echo the full plan, including every resource you intend to create, and wait for my confirmation before running any command that creates or deletes resources. Prefer idempotent checks that reuse existing resources over recreating them. When finished, print the container app resource id and its ingress FQDN.",
+  },
+};
+
 /**
  * The Containers lesson. The interactive body lives in ContainersChapters and is
  * driven per provider: ECS keeps the blueprint (task definition), the manager
@@ -146,7 +200,11 @@ export function ContainersLesson({ provider }: { provider: Provider }) {
         }}
         elevator={ELEVATOR}
       />
-      <ContainersChapters provider={provider} />
+      <ContainersChapters
+        provider={provider}
+        responsibility={RESPONSIBILITY[provider]}
+        agent={AGENT[provider]}
+      />
       <Glossary terms={TERMS} />
       <FurtherReading links={DOCS[provider]} />
     </LessonLayout>

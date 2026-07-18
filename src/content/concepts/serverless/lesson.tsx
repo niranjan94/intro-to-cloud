@@ -5,6 +5,10 @@ import {
 } from "@/components/lesson/further-reading";
 import { Glossary, type GlossaryTerm } from "@/components/lesson/glossary";
 import { LessonLayout } from "@/components/lesson/lesson-layout";
+import type {
+  AgentSetup,
+  ResponsibilitySplit,
+} from "@/components/lesson/lesson-reference";
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { ServerlessChapters } from "./chapters";
@@ -117,6 +121,56 @@ const TERMS: GlossaryTerm[] = [
   },
 ];
 
+const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
+  aws: {
+    youManage: [
+      "Function code, handler logic, and language runtime choice",
+      "Dependencies and the deployment package or container image",
+      "The execution role and IAM permissions the function assumes",
+      "Triggers, event source mappings, and environment variables",
+      "Memory allocation, timeout, and reserved or provisioned concurrency",
+      "Structured logging, tracing, and CloudWatch alarms",
+    ],
+    providerManages: [
+      "The underlying execution environment and its host OS",
+      "Runtime patching and the Firecracker microVM isolation layer",
+      "Automatic scaling out and back to zero with demand",
+      "Fleet capacity, availability, and event polling infrastructure",
+      "The physical hosts, hardware, and data-center security",
+    ],
+  },
+  azure: {
+    youManage: [
+      "Function code, handler logic, and language runtime choice",
+      "Dependencies and the deployment package or container image",
+      "The managed identity and Azure RBAC role assignments",
+      "Triggers, input and output bindings, and app settings",
+      "The hosting plan, instance size, and scale ceiling",
+      "Application Insights logging, tracing, and alert rules",
+    ],
+    providerManages: [
+      "The Functions host runtime and the worker instance OS",
+      "Runtime and language worker patching and updates",
+      "Event-driven scaling across instances with demand",
+      "Instance capacity, availability, and the scale controller",
+      "The physical hosts, hardware, and data-center security",
+    ],
+  },
+};
+
+const AGENT: Record<Provider, AgentSetup> = {
+  aws: {
+    cli: "aws",
+    prompt:
+      "Provision an AWS Lambda function using the aws CLI. First run `aws sts get-caller-identity` and confirm the target account and region before doing anything else. Create a minimal Node.js handler zipped into a deployment package, an IAM execution role that trusts lambda.amazonaws.com with the AWSLambdaBasicExecutionRole policy attached, and a function named intro-lambda-demo with sensible defaults (128 MB memory, a 10 second timeout). Show me the full plan and the exact commands before you run anything that creates or deletes resources, and wait for my confirmation. After the function is created, invoke it once to verify it responds. Finally, print the function ARN, name, and CloudWatch log group so I can find it.",
+  },
+  azure: {
+    cli: "az",
+    prompt:
+      "Provision an Azure Functions app using the az CLI. First run `az account show` and confirm the active subscription and the target region before doing anything else. Create a resource group named intro-func-rg, a storage account for the function app, and a Flex Consumption function app named intro-func-demo running a minimal Node.js HTTP-triggered function with sensible defaults. Show me the full plan and the exact commands before you run anything that creates or deletes resources, and wait for my confirmation. After the app is deployed, call its endpoint once to verify it responds. Finally, print the function app resource id, its default hostname, and the HTTP trigger URL so I can find it.",
+  },
+};
+
 /**
  * The Serverless Functions lesson. The interactive body lives in
  * ServerlessChapters and is driven per provider. AWS and Azure diverge in the
@@ -138,7 +192,11 @@ export function ServerlessLesson({ provider }: { provider: Provider }) {
         azure={{ service: "Azure Functions", code: "Microsoft.Web/sites" }}
         elevator={ELEVATOR}
       />
-      <ServerlessChapters provider={provider} />
+      <ServerlessChapters
+        provider={provider}
+        responsibility={RESPONSIBILITY[provider]}
+        agent={AGENT[provider]}
+      />
       <Glossary terms={TERMS} />
       <FurtherReading links={DOCS[provider]} />
     </LessonLayout>

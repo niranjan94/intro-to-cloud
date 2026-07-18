@@ -5,6 +5,10 @@ import {
 } from "@/components/lesson/further-reading";
 import { Glossary, type GlossaryTerm } from "@/components/lesson/glossary";
 import { LessonLayout } from "@/components/lesson/lesson-layout";
+import type {
+  AgentSetup,
+  ResponsibilitySplit,
+} from "@/components/lesson/lesson-reference";
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { RelationalChapters } from "./chapters";
@@ -46,6 +50,56 @@ const DOCS: Record<Provider, DocLink[]> = {
       note: "Backup types, point-in-time restore, and long-term retention.",
     },
   ],
+};
+
+const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
+  aws: {
+    youManage: [
+      "Schema design, indexes, and query performance",
+      "Database engine and version selection",
+      "Instance class, storage size, and Multi-AZ choice",
+      "Master credentials, users, and grants",
+      "VPC security groups and subnet placement",
+      "Backup retention window and snapshot policy",
+    ],
+    providerManages: [
+      "Guest OS and database engine patching",
+      "Automated backups and point-in-time recovery",
+      "Synchronous standby replication and automatic failover",
+      "Underlying compute, storage, and hardware",
+      "Physical host security and data center operations",
+    ],
+  },
+  azure: {
+    youManage: [
+      "Schema design, indexes, and query performance",
+      "Service tier, vCore or DTU, and compute size",
+      "Database logins, contained users, and Azure RBAC roles",
+      "Logical server firewall rules and private endpoints",
+      "Transparent data encryption key choice",
+      "Backup retention and long-term retention policy",
+    ],
+    providerManages: [
+      "OS and SQL engine patching and upgrades",
+      "Automated backups and point-in-time restore",
+      "Zone-redundant replication and automatic failover",
+      "Underlying compute, storage, and hardware",
+      "Physical host security and data center operations",
+    ],
+  },
+};
+
+const AGENT: Record<Provider, AgentSetup> = {
+  aws: {
+    cli: "aws",
+    prompt:
+      "Provision an Amazon RDS database instance using the aws CLI. First run `aws sts get-caller-identity` and confirm the target region so I know which account and region we are working in. Plan a single-AZ PostgreSQL DB instance named `intro-rds-db` on a small instance class (for example db.t3.micro) with 20 GB of gp3 storage, a generated master password stored somewhere I can retrieve, and backups retained for 7 days. Echo the full `aws rds create-db-instance` command and wait for my confirmation before creating, modifying, or deleting anything. After the instance becomes available, print its DB instance ARN, identifier, and connection endpoint.",
+  },
+  azure: {
+    cli: "az",
+    prompt:
+      "Provision an Azure SQL Database using the az CLI. First run `az account show` and confirm the active subscription and the location I want to deploy into. Plan a logical server named `intro-sql-srv` and a database named `intro-sql-db` on the General Purpose serverless tier with a small vCore setting and 7 day point-in-time restore, placed in a resource group you create called `intro-sql-rg`. Echo the `az sql server create` and `az sql db create` commands and wait for my confirmation before creating, modifying, or deleting anything. When it finishes, print the server fully qualified domain name, the database resource id, and the connection endpoint.",
+  },
 };
 
 const BLURB =
@@ -101,7 +155,11 @@ export function RelationalLesson({ provider }: { provider: Provider }) {
         }}
         elevator={ELEVATOR}
       />
-      <RelationalChapters provider={provider} />
+      <RelationalChapters
+        provider={provider}
+        responsibility={RESPONSIBILITY[provider]}
+        agent={AGENT[provider]}
+      />
       <Glossary terms={TERMS} />
       <FurtherReading links={DOCS[provider]} />
     </LessonLayout>

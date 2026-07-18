@@ -5,6 +5,10 @@ import {
 } from "@/components/lesson/further-reading";
 import { Glossary, type GlossaryTerm } from "@/components/lesson/glossary";
 import { LessonLayout } from "@/components/lesson/lesson-layout";
+import type {
+  AgentSetup,
+  ResponsibilitySplit,
+} from "@/components/lesson/lesson-reference";
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { ContentDeliveryChapters } from "./chapters";
@@ -117,6 +121,56 @@ const TERMS: GlossaryTerm[] = [
   },
 ];
 
+const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
+  aws: {
+    youManage: [
+      "The distribution, its origins, and ordered cache behaviors",
+      "Cache and origin request policies that shape the cache key",
+      "TTLs and Cache-Control, plus invalidations when content changes",
+      "The viewer TLS certificate, alternate domain names, and DNS",
+      "Origin access control and signed URLs or cookies for private content",
+      "Optional WAF rules and geo restrictions on the distribution",
+    ],
+    providerManages: [
+      "The global edge locations and regional edge caches",
+      "Anycast routing of viewers to the nearest healthy edge",
+      "Edge server hardware, capacity, and horizontal scaling",
+      "TLS termination at the edge and the underlying network",
+      "Cache storage durability and eviction at each location",
+    ],
+  },
+  azure: {
+    youManage: [
+      "The Front Door profile, endpoints, routes, and origin groups",
+      "Per-route caching toggles, query string handling, and compression",
+      "Cache-Control and purge requests when content changes",
+      "Custom domains, managed or bring-your-own TLS certificates, and DNS",
+      "WAF policies, rules engine logic, and Private Link to origins",
+      "Health probe settings and the traffic routing method to origins",
+    ],
+    providerManages: [
+      "The global network of points of presence and anycast IPs",
+      "Routing viewers to the closest available PoP by latency",
+      "Edge compute, capacity, and scaling across the Microsoft network",
+      "TLS offload at the PoP and managed certificate rotation",
+      "Cache storage, object chunking, and eviction at each PoP",
+    ],
+  },
+};
+
+const AGENT: Record<Provider, AgentSetup> = {
+  aws: {
+    cli: "aws",
+    prompt:
+      "Provision an Amazon CloudFront distribution using the aws CLI.\nFirst run `aws sts get-caller-identity` to confirm the active account and check that credentials are valid; CloudFront is global, so note that its ACM certificate must live in us-east-1.\nCreate a distribution named intro-to-cloud-cdn that points at a single origin I will specify, with a default cache behavior that redirects HTTP to HTTPS, allows GET and HEAD, and uses the managed CachingOptimized cache policy.\nBefore creating, deleting, or updating anything, print the full distribution config you intend to apply and wait for my confirmation.\nAfter it is deployed, print the distribution Id, ARN, and the domain name (the *.cloudfront.net endpoint).",
+  },
+  azure: {
+    cli: "az",
+    prompt:
+      "Provision an Azure Front Door Standard profile using the az CLI.\nFirst run `az account show` to confirm the active subscription and tenant, and set the target resource group and location before doing anything else.\nCreate a profile named intro-to-cloud-afd, then add an endpoint, an origin group with a health probe, one origin I will specify, and a route that enables caching and redirects HTTP to HTTPS.\nBefore creating, deleting, or updating any resource, echo the exact az commands and their parameters and wait for my confirmation.\nWhen it finishes, print the profile id, the endpoint hostname, and the resource group so I can verify the deployment.",
+  },
+};
+
 /**
  * The Content Delivery lesson. The interactive body lives in
  * ContentDeliveryChapters and is driven per provider. Amazon CloudFront is a CDN
@@ -139,7 +193,11 @@ export function ContentDeliveryLesson({ provider }: { provider: Provider }) {
         azure={{ service: "Azure Front Door", code: "Microsoft.Cdn · afd" }}
         elevator={ELEVATOR}
       />
-      <ContentDeliveryChapters provider={provider} />
+      <ContentDeliveryChapters
+        provider={provider}
+        responsibility={RESPONSIBILITY[provider]}
+        agent={AGENT[provider]}
+      />
       <Glossary terms={TERMS} />
       <FurtherReading links={DOCS[provider]} />
     </LessonLayout>

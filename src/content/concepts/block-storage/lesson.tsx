@@ -5,6 +5,10 @@ import {
 } from "@/components/lesson/further-reading";
 import { Glossary, type GlossaryTerm } from "@/components/lesson/glossary";
 import { LessonLayout } from "@/components/lesson/lesson-layout";
+import type {
+  AgentSetup,
+  ResponsibilitySplit,
+} from "@/components/lesson/lesson-reference";
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { BlockStorageChapters } from "./chapters";
@@ -66,6 +70,56 @@ const DOCS: Record<Provider, DocLink[]> = {
       note: "Attach one disk to several VMs for clustered applications.",
     },
   ],
+};
+
+const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
+  aws: {
+    youManage: [
+      "Choosing the volume type, size, and provisioned IOPS",
+      "Formatting and mounting the volume on the guest OS",
+      "The filesystem, partitions, and data written to it",
+      "Snapshot schedule and lifecycle policies for backups",
+      "The DeleteOnTermination flag and attachment to instances",
+      "KMS key selection for encryption at rest",
+    ],
+    providerManages: [
+      "The underlying SSD and HDD storage hardware",
+      "Replication of the volume within its Availability Zone",
+      "Durability and availability of the block device",
+      "The physical hosts, network fabric, and data centers",
+      "Encryption infrastructure and transparent at-rest crypto",
+    ],
+  },
+  azure: {
+    youManage: [
+      "Choosing the disk SKU, size, and provisioned IOPS",
+      "Formatting and mounting the disk on the guest OS",
+      "The filesystem, partitions, and data written to it",
+      "Snapshot schedule and lifecycle for backups",
+      "The Delete with VM setting and disk attachment",
+      "Disk encryption set and customer-managed key choices",
+    ],
+    providerManages: [
+      "The underlying SSD and HDD storage hardware",
+      "Three replica copies for locally redundant durability",
+      "Durability and availability of the managed disk",
+      "The physical hosts, network fabric, and data centers",
+      "Server-side encryption at rest with 256-bit AES by default",
+    ],
+  },
+};
+
+const AGENT: Record<Provider, AgentSetup> = {
+  aws: {
+    cli: "aws",
+    prompt:
+      "Provision an Amazon EBS volume using the aws CLI. First run `aws sts get-caller-identity` to confirm the active credentials and account, and check the configured region with `aws configure get region`, since EBS volumes are pinned to a single Availability Zone. Create one gp3 volume of 50 GiB in that zone with encryption enabled, tagged Name=intro-to-cloud-demo, using sensible default IOPS and throughput. Echo the full plan, including the volume type, size, zone, and encryption setting, and wait for my confirmation before running anything that creates or deletes resources. After it is created, print the volume ID, its ARN, the Availability Zone, and the encryption status.",
+  },
+  azure: {
+    cli: "az",
+    prompt:
+      "Provision an Azure managed disk using the az CLI. First run `az account show` to confirm the active subscription and tenant, and confirm the target region and resource group before doing anything. Create one Premium SSD v2 (or Premium_LRS if v2 is unavailable in the region) managed disk of 50 GiB named intro-to-cloud-demo in that resource group, relying on the default server-side encryption at rest. Echo the full plan, including the disk SKU, size, region, and resource group, and wait for my confirmation before running anything that creates or deletes resources. After it is created, print the disk resource ID, its name, the SKU, and the provisioned size.",
+  },
 };
 
 const BLURB =
@@ -140,7 +194,11 @@ export function BlockStorageLesson({ provider }: { provider: Provider }) {
         }}
         elevator={ELEVATOR}
       />
-      <BlockStorageChapters provider={provider} />
+      <BlockStorageChapters
+        provider={provider}
+        responsibility={RESPONSIBILITY[provider]}
+        agent={AGENT[provider]}
+      />
       <Glossary terms={TERMS} />
       <FurtherReading links={DOCS[provider]} />
     </LessonLayout>

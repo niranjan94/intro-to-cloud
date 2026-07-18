@@ -5,6 +5,10 @@ import {
 } from "@/components/lesson/further-reading";
 import { Glossary, type GlossaryTerm } from "@/components/lesson/glossary";
 import { LessonLayout } from "@/components/lesson/lesson-layout";
+import type {
+  AgentSetup,
+  ResponsibilitySplit,
+} from "@/components/lesson/lesson-reference";
 import { getConcept } from "@/content/registry";
 import type { Provider } from "@/content/types";
 import { ObjectStorageChapters } from "./chapters";
@@ -56,6 +60,56 @@ const DOCS: Record<Provider, DocLink[]> = {
       note: "Signed, time-limited access to a blob without an Azure identity.",
     },
   ],
+};
+
+const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
+  aws: {
+    youManage: [
+      "The objects you upload and how you organize keys",
+      "Bucket policies, IAM permissions, and object ACLs",
+      "Block Public Access settings and public exposure",
+      "Storage class per object and lifecycle rules",
+      "Encryption choices, whether SSE-S3, SSE-KMS, or your keys",
+      "Versioning, replication rules, and access logging",
+    ],
+    providerManages: [
+      "Eleven nines of durability across the region",
+      "Replication of objects across Availability Zones",
+      "The storage fleet, disks, and their replacement",
+      "Service availability and the HTTP API endpoint",
+      "Physical hosts, network fabric, and data center security",
+    ],
+  },
+  azure: {
+    youManage: [
+      "The blobs you upload and their container layout",
+      "Azure RBAC roles, and account keys or SAS tokens",
+      "The anonymous access toggle and public exposure",
+      "Access tier per blob and lifecycle policies",
+      "Encryption with Microsoft-managed or customer-managed keys",
+      "Redundancy choice such as LRS, ZRS, GRS, or GZRS",
+    ],
+    providerManages: [
+      "Durability and the copies your redundancy tier promises",
+      "Replication within and across regions as configured",
+      "The storage hardware, disks, and their replacement",
+      "Service availability and the blob service endpoint",
+      "Physical hosts, network fabric, and data center security",
+    ],
+  },
+};
+
+const AGENT: Record<Provider, AgentSetup> = {
+  aws: {
+    cli: "aws",
+    prompt:
+      "Provision an Amazon S3 bucket using the aws CLI. First run `aws sts get-caller-identity` to confirm which account and identity you are using, and check the target region with `aws configure get region`. Propose a globally unique bucket name such as intro-to-cloud-demo-<accountid> in that region, with Block Public Access fully enabled, default SSE-S3 encryption, and versioning turned on. Echo the full plan, including the exact create-bucket and configuration commands, and wait for my confirmation before running anything that creates or changes resources. After it applies, print the bucket name, its ARN, and its regional endpoint URL.",
+  },
+  azure: {
+    cli: "az",
+    prompt:
+      "Provision Azure Blob Storage using the az CLI. First run `az account show` to confirm the active subscription and tenant, and note the location you intend to deploy to. Propose a resource group and a storage account with a globally unique name such as introclouddemo<suffix> in that location, using Standard_LRS, TLS 1.2 minimum, and allow-blob-public-access disabled, then create a container named demo inside it. Echo the full plan with the exact az group, az storage account, and az storage container commands, and wait for my confirmation before running anything that creates or changes resources. After it applies, print the storage account name, its resource id, and the primary blob endpoint.",
+  },
 };
 
 const BLURB =
@@ -121,7 +175,11 @@ export function ObjectStorageLesson({ provider }: { provider: Provider }) {
         azure={{ service: "Azure Blob Storage", code: "Microsoft.Storage" }}
         elevator={ELEVATOR}
       />
-      <ObjectStorageChapters provider={provider} />
+      <ObjectStorageChapters
+        provider={provider}
+        responsibility={RESPONSIBILITY[provider]}
+        agent={AGENT[provider]}
+      />
       <Glossary terms={TERMS} />
       <FurtherReading links={DOCS[provider]} />
     </LessonLayout>
