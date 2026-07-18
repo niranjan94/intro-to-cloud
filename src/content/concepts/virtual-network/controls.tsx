@@ -1,3 +1,5 @@
+import { CheckIcon as Check, XIcon as X } from "@phosphor-icons/react/dist/ssr";
+
 import { cn } from "@/lib/utils";
 
 /** A labelled on/off switch used by the packet and firewall simulators. */
@@ -73,7 +75,7 @@ const VERDICT_STYLE: Record<
 /** A status panel that reports the outcome of a simulated flow. */
 export function Verdict({ state }: { state: VerdictState }) {
   const s = VERDICT_STYLE[state.kind];
-  const mark = state.kind === "pass" ? "✓ " : state.kind === "fail" ? "✕ " : "";
+  const Mark = state.kind === "pass" ? Check : state.kind === "fail" ? X : null;
   return (
     <div
       className={cn(
@@ -83,8 +85,13 @@ export function Verdict({ state }: { state: VerdictState }) {
     >
       <div className="flex items-center gap-[8px]">
         <span className={cn("h-[11px] w-[11px] rounded-full", s.dot)} />
-        <span className={cn("text-[15px] font-semibold", s.text)}>
-          {mark}
+        <span
+          className={cn(
+            "inline-flex items-center gap-[6px] text-[15px] font-semibold",
+            s.text,
+          )}
+        >
+          {Mark ? <Mark size={16} weight="bold" aria-hidden /> : null}
           {state.title}
         </span>
       </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckIcon as Check, XIcon as X } from "@phosphor-icons/react/dist/ssr";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { CidrConfig } from "./data";
@@ -248,11 +249,16 @@ export function CidrCarver({ config }: { config: CidrConfig }) {
           />
           <span
             className={cn(
-              "text-[15px] font-semibold",
+              "inline-flex items-center gap-[6px] text-[15px] font-semibold",
               pass ? "text-[oklch(0.44_0.1_150)]" : "text-[oklch(0.5_0.16_25)]",
             )}
           >
-            {pass ? "✓" : "✕"} {verdict.title}
+            {pass ? (
+              <Check size={15} weight="bold" aria-hidden />
+            ) : (
+              <X size={15} weight="bold" aria-hidden />
+            )}{" "}
+            {verdict.title}
           </span>
         </div>
         <p className="mt-[8px] text-[13.5px] leading-[1.6] text-body">

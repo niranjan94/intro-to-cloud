@@ -1,5 +1,12 @@
 "use client";
 
+import type { Icon } from "@phosphor-icons/react";
+import {
+  ArrowDownIcon as ArrowDown,
+  CheckIcon as Check,
+  MinusIcon as Minus,
+  XIcon as X,
+} from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { AccessDecisionContent, DecisionInput } from "./data";
@@ -8,11 +15,11 @@ import { TONE } from "./tones";
 /** Effect of one input on the decision, mapped to a semantic tone and glyph. */
 const EFFECT: Record<
   DecisionInput["effect"],
-  { tone: "allow" | "deny" | "meta"; icon: string }
+  { tone: "allow" | "deny" | "meta"; icon: Icon }
 > = {
-  allow: { tone: "allow", icon: "✓" },
-  deny: { tone: "deny", icon: "✕" },
-  neutral: { tone: "meta", icon: "–" },
+  allow: { tone: "allow", icon: Check },
+  deny: { tone: "deny", icon: X },
+  neutral: { tone: "meta", icon: Minus },
 };
 
 /** Chapter 4: run requests through the access layers and see which one decides. */
@@ -82,6 +89,7 @@ export function AccessDecision({
             {scenario.inputs.map((input) => {
               const e = EFFECT[input.effect];
               const et = TONE[e.tone];
+              const EffectIcon = e.icon;
               return (
                 <div
                   key={input.layer}
@@ -98,7 +106,7 @@ export function AccessDecision({
                         et.dot,
                       )}
                     >
-                      {e.icon}
+                      <EffectIcon size={13} weight="bold" aria-hidden />
                     </span>
                     <span className="font-mono text-[12px] text-ink-strong">
                       {input.layer}
@@ -119,7 +127,7 @@ export function AccessDecision({
 
           <div className="mt-[14px] flex flex-wrap items-center gap-[10px]">
             <span aria-hidden className="font-mono text-[16px] text-ink-muted">
-              ↓
+              <ArrowDown size={16} weight="bold" />
             </span>
             <span
               className={cn(

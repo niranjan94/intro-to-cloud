@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowsLeftRightIcon as ArrowsLeftRight } from "@phosphor-icons/react/dist/ssr";
 import { useProvider } from "@/components/provider-context";
 import { getConcept } from "@/content/registry";
 import {
@@ -68,7 +69,7 @@ export function LiveLensCard() {
           </div>
 
           <div className="flex flex-col items-center justify-center text-[oklch(0.6_0.08_195)]">
-            <span className="text-[22px]">⇄</span>
+            <ArrowsLeftRight size={22} weight="bold" aria-hidden />
           </div>
 
           {/* Other lens */}

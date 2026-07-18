@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  CaretLeftIcon as CaretLeft,
+  CaretRightIcon as CaretRight,
+} from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { SnapshotContent } from "./data";
@@ -50,8 +54,8 @@ export function SnapshotTimeline({ content }: { content: SnapshotContent }) {
                 {s.day}
               </button>
               {i < content.steps.length - 1 ? (
-                <span aria-hidden className="text-line">
-                  ›
+                <span className="text-line">
+                  <CaretRight size={13} weight="bold" aria-hidden />
                 </span>
               ) : null}
             </div>
@@ -109,21 +113,23 @@ export function SnapshotTimeline({ content }: { content: SnapshotContent }) {
           type="button"
           onClick={() => setCurrent((c) => Math.max(0, c - 1))}
           className={cn(
-            "rounded-button border border-line bg-surface px-[14px] py-[8px] font-mono text-[12.5px] text-ink-soft transition-colors hover:border-ink-muted",
+            "inline-flex items-center gap-[6px] rounded-button border border-line bg-surface px-[14px] py-[8px] font-mono text-[12.5px] text-ink-soft transition-colors hover:border-ink-muted",
             current === 0 && "invisible",
           )}
         >
-          ◂ Earlier
+          <CaretLeft size={14} weight="bold" aria-hidden />
+          Earlier
         </button>
         <button
           type="button"
           onClick={() => setCurrent((c) => Math.min(last, c + 1))}
           className={cn(
-            "rounded-button border border-teal-line bg-teal-tint px-[16px] py-[8px] font-mono text-[12.5px] text-teal-ink transition-colors hover:border-teal-ring",
+            "inline-flex items-center gap-[6px] rounded-button border border-teal-line bg-teal-tint px-[16px] py-[8px] font-mono text-[12.5px] text-teal-ink transition-colors hover:border-teal-ring",
             current === last && "invisible",
           )}
         >
-          Advance time ▸
+          Advance time
+          <CaretRight size={14} weight="bold" aria-hidden />
         </button>
       </div>
     </div>

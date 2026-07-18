@@ -1,3 +1,4 @@
+import { ArrowLeftIcon as ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import {
   type Concept,
@@ -65,8 +66,12 @@ export function LessonLayout({
       {children}
 
       <div className="mt-[44px] flex gap-[12px] border-t border-line pt-[24px]">
-        <Link href={`/${provider}`} className="text-[14px] text-teal-ink">
-          ← All concepts
+        <Link
+          href={`/${provider}`}
+          className="inline-flex items-center gap-[6px] text-[14px] text-teal-ink"
+        >
+          <ArrowLeft size={14} weight="bold" aria-hidden />
+          All concepts
         </Link>
       </div>
     </article>

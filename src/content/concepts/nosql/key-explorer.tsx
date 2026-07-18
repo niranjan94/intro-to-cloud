@@ -1,5 +1,6 @@
 "use client";
 
+import { SquareIcon as Square } from "@phosphor-icons/react/dist/ssr";
 import { useMemo, useState } from "react";
 import { CliBlock } from "@/components/lesson/cli-block";
 import { cn } from "@/lib/utils";
@@ -76,7 +77,7 @@ export function KeyExplorer({ content }: { content: ItemModelContent }) {
                         >
                           <span className="flex items-center gap-[7px] font-mono text-[12px] text-ink-strong">
                             <span aria-hidden className="text-ink-muted">
-                              ▢
+                              <Square size={13} />
                             </span>
                             {row.sortValue}
                           </span>

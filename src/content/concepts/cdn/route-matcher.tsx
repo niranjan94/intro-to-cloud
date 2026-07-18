@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowRightIcon as ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { RouteContent, RouteRule } from "./data";
@@ -118,8 +119,9 @@ export function RouteMatcher({ content }: { content: RouteContent }) {
           </p>
           {winner ? (
             <>
-              <h3 className="mt-[8px] text-[16px] font-semibold text-teal-ink">
-                → {winner.origin}
+              <h3 className="mt-[8px] inline-flex items-center gap-[6px] text-[16px] font-semibold text-teal-ink">
+                <ArrowRight size={16} weight="bold" aria-hidden />
+                {winner.origin}
               </h3>
               <p className="mt-[8px] text-[13.5px] leading-[1.6] text-body">
                 The <span className="font-mono">{winner.pattern}</span>{" "}

@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  CaretLeftIcon as CaretLeft,
+  CaretRightIcon as CaretRight,
+  CheckIcon as Check,
+} from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import {
   AgentPromptPanel,
@@ -162,19 +167,30 @@ export function NetworkChapters({
           type="button"
           onClick={() => setCurrent((c) => Math.max(0, c - 1))}
           className={cn(
-            "rounded-button border border-line bg-surface px-[14px] py-[8px] font-mono text-[12.5px] text-ink-soft transition-colors hover:border-ink-muted",
+            "inline-flex items-center gap-[6px] rounded-button border border-line bg-surface px-[14px] py-[8px] font-mono text-[12.5px] text-ink-soft transition-colors hover:border-ink-muted",
             current === 0 && "invisible",
           )}
         >
-          ◂ Back
+          <CaretLeft size={14} weight="bold" aria-hidden />
+          Back
         </button>
         <button
           type="button"
           onClick={() => setCurrent((c) => Math.min(last, c + 1))}
           disabled={current === last}
-          className="rounded-button bg-primary px-[16px] py-[8px] font-mono text-[12.5px] text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="inline-flex items-center gap-[6px] rounded-button bg-primary px-[16px] py-[8px] font-mono text-[12.5px] text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
         >
-          {current === last ? "Done ✓" : "Next ▸"}
+          {current === last ? (
+            <>
+              Done
+              <Check size={14} weight="bold" aria-hidden />
+            </>
+          ) : (
+            <>
+              Next
+              <CaretRight size={14} weight="bold" aria-hidden />
+            </>
+          )}
         </button>
       </div>
     </section>

@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowRightIcon as ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { CliBlock } from "@/components/lesson/cli-block";
 import { cn } from "@/lib/utils";
@@ -56,8 +57,11 @@ export function ImagePipeline({ content }: { content: ImageContent }) {
                 {s.label}
               </button>
               {i < content.stages.length - 1 ? (
-                <span aria-hidden className="text-line">
-                  →
+                <span
+                  aria-hidden
+                  className="inline-flex items-center text-line"
+                >
+                  <ArrowRight size={14} weight="bold" />
                 </span>
               ) : null}
             </div>

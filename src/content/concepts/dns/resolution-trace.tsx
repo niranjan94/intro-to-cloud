@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  ArrowCounterClockwiseIcon as ArrowCounterClockwise,
+  CaretLeftIcon as CaretLeft,
+  CaretRightIcon as CaretRight,
+  PauseIcon as Pause,
+  PlayIcon as Play,
+} from "@phosphor-icons/react/dist/ssr";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { type Cancelable, pop, roundedPathD, tween } from "./anim";
@@ -286,34 +293,45 @@ export function ResolutionTrace({ content }: { content: ResolutionContent }) {
             <button
               type="button"
               onClick={stop}
-              className="rounded-button border border-line bg-surface px-[14px] py-[8px] font-mono text-[12.5px] text-ink-soft transition-colors hover:border-ink-muted"
+              className="inline-flex items-center gap-[6px] rounded-button border border-line bg-surface px-[14px] py-[8px] font-mono text-[12.5px] text-ink-soft transition-colors hover:border-ink-muted"
             >
-              ❚❚ Pause
+              <Pause size={14} aria-hidden />
+              Pause
             </button>
           ) : (
             <button
               type="button"
               onClick={play}
-              className="rounded-button bg-primary px-[16px] py-[8px] font-mono text-[12.5px] text-primary-foreground transition-opacity hover:opacity-90"
+              className="inline-flex items-center gap-[6px] rounded-button bg-primary px-[16px] py-[8px] font-mono text-[12.5px] text-primary-foreground transition-opacity hover:opacity-90"
             >
-              {active >= last ? "↺ Replay" : "▶ Play trace"}
+              {active >= last ? (
+                <>
+                  <ArrowCounterClockwise size={14} weight="bold" aria-hidden />
+                  Replay
+                </>
+              ) : (
+                <>
+                  <Play size={14} weight="fill" aria-hidden />
+                  Play trace
+                </>
+              )}
             </button>
           )}
           <button
             type="button"
             onClick={() => go(active - 1)}
             disabled={active === 0}
-            className="rounded-button border border-line bg-surface px-[12px] py-[8px] font-mono text-[12.5px] text-ink-soft transition-colors hover:border-ink-muted disabled:opacity-40"
+            className="inline-flex items-center rounded-button border border-line bg-surface px-[12px] py-[8px] font-mono text-[12.5px] text-ink-soft transition-colors hover:border-ink-muted disabled:opacity-40"
           >
-            ◂
+            <CaretLeft size={14} weight="bold" aria-hidden />
           </button>
           <button
             type="button"
             onClick={() => go(active + 1)}
             disabled={active === last}
-            className="rounded-button border border-line bg-surface px-[12px] py-[8px] font-mono text-[12.5px] text-ink-soft transition-colors hover:border-ink-muted disabled:opacity-40"
+            className="inline-flex items-center rounded-button border border-line bg-surface px-[12px] py-[8px] font-mono text-[12.5px] text-ink-soft transition-colors hover:border-ink-muted disabled:opacity-40"
           >
-            ▸
+            <CaretRight size={14} weight="bold" aria-hidden />
           </button>
           <span className="ml-auto font-mono text-[11.5px] text-ink-muted">
             hop {active + 1} / {content.steps.length}

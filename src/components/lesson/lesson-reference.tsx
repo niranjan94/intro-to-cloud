@@ -1,5 +1,11 @@
 "use client";
 
+import type { Icon } from "@phosphor-icons/react";
+import {
+  ArrowClockwiseIcon as ArrowClockwise,
+  CheckIcon as Check,
+  LockIcon as Lock,
+} from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { PROVIDER_LABELS, type Provider } from "@/content/types";
 import { cn } from "@/lib/utils";
@@ -69,31 +75,31 @@ type ColumnTone = "you" | "provider" | "mutable" | "immutable";
 
 const COLUMN_TONES: Record<
   ColumnTone,
-  { box: string; label: string; dot: string; marker: string }
+  { box: string; label: string; dot: string; marker: Icon | null }
 > = {
   you: {
     box: "border-teal-line bg-teal-tint",
     label: "text-teal",
     dot: "bg-teal-ring",
-    marker: "",
+    marker: null,
   },
   provider: {
     box: "border-line bg-surface-muted",
     label: "text-ink-muted",
     dot: "bg-line",
-    marker: "",
+    marker: null,
   },
   mutable: {
     box: "border-line bg-surface",
     label: "text-[oklch(0.5_0.12_155)]",
     dot: "bg-[oklch(0.6_0.13_155)]",
-    marker: "↻",
+    marker: ArrowClockwise,
   },
   immutable: {
     box: "border-line bg-surface",
     label: "text-[oklch(0.52_0.11_65)]",
     dot: "bg-[oklch(0.64_0.12_65)]",
-    marker: "🔒",
+    marker: Lock,
   },
 };
 
@@ -107,6 +113,7 @@ function Column({
   items: string[];
 }) {
   const t = COLUMN_TONES[tone];
+  const Marker = t.marker;
   return (
     <div className={cn("rounded-[14px] border p-[16px]", t.box)}>
       <div
@@ -115,7 +122,7 @@ function Column({
           t.label,
         )}
       >
-        {t.marker ? <span aria-hidden>{t.marker}</span> : null}
+        {Marker ? <Marker size={13} aria-hidden /> : null}
         {title}
       </div>
       <ul className="mt-[12px] flex flex-col gap-[10px]">
@@ -266,7 +273,14 @@ export function AgentPromptPanel({ cli, scenarios }: AgentSetup) {
             onClick={copy}
             className="rounded-button border border-white/15 px-[10px] py-[5px] font-mono text-[11.5px] text-[oklch(0.85_0.02_195)] transition-colors hover:border-white/35"
           >
-            {copied ? "Copied ✓" : "Copy"}
+            {copied ? (
+              <span className="inline-flex items-center gap-[6px]">
+                Copied
+                <Check size={13} weight="bold" aria-hidden />
+              </span>
+            ) : (
+              "Copy"
+            )}
           </button>
         </div>
         <p className="whitespace-pre-wrap px-[18px] py-[16px] font-mono text-[13px] leading-[1.7] text-[oklch(0.88_0.02_195)]">

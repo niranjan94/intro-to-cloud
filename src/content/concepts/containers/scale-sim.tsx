@@ -1,5 +1,6 @@
 "use client";
 
+import { SquareIcon as Square } from "@phosphor-icons/react/dist/ssr";
 import { useId, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { ScaleContent } from "./data";
@@ -119,7 +120,11 @@ export function ScaleSim({ content }: { content: ScaleContent }) {
                     : "border-dashed border-line bg-surface-muted text-faint",
                 )}
               >
-                {filled ? "▣" : "·"}
+                {filled ? (
+                  <Square size={13} weight="fill" aria-hidden />
+                ) : (
+                  <Square size={13} aria-hidden />
+                )}
               </div>
             );
           })}

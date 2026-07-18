@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  ArrowRightIcon as ArrowRight,
+  CheckIcon as Check,
+} from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { CacheKeyContent, KeyPart } from "./data";
@@ -124,15 +128,18 @@ export function CacheKeyExplorer({ content }: { content: CacheKeyContent }) {
             />
             <span
               className={cn(
-                "text-[15px] font-semibold",
+                "inline-flex items-center gap-[6px] text-[15px] font-semibold",
                 collide
                   ? "text-[oklch(0.44_0.1_150)]"
                   : "text-[oklch(0.5_0.1_70)]",
               )}
             >
-              {collide
-                ? "✓ Same key · cache hit"
-                : "↦ Different key · cache miss"}
+              {collide ? (
+                <Check size={16} weight="bold" aria-hidden />
+              ) : (
+                <ArrowRight size={16} weight="bold" aria-hidden />
+              )}
+              {collide ? "Same key · cache hit" : "Different key · cache miss"}
             </span>
           </div>
           <p className="mt-[7px] text-[13px] leading-[1.6] text-body">

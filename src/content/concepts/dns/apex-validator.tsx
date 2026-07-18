@@ -1,5 +1,11 @@
 "use client";
 
+import type { Icon } from "@phosphor-icons/react";
+import {
+  CheckIcon as Check,
+  WarningIcon as Warning,
+  XIcon as X,
+} from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { ApexContent, Verdict } from "./data";
@@ -11,10 +17,10 @@ const VERDICT_TONE: Record<Verdict, "ok" | "warn" | "blocked"> = {
   blocked: "blocked",
 };
 
-const MARK: Record<Verdict, string> = {
-  ok: "✓",
-  warn: "!",
-  blocked: "✕",
+const MARK: Record<Verdict, Icon> = {
+  ok: Check,
+  warn: Warning,
+  blocked: X,
 };
 
 /** Chapter 3: choose an apex target and test each mechanism for legality. */
@@ -66,6 +72,7 @@ export function ApexValidator({ content }: { content: ApexContent }) {
       >
         {target.mechanisms.map((mech) => {
           const t = TONE[VERDICT_TONE[mech.verdict]];
+          const Mark = MARK[mech.verdict];
           return (
             <div
               key={mech.label}
@@ -81,7 +88,7 @@ export function ApexValidator({ content }: { content: ApexContent }) {
                     t.chip,
                   )}
                 >
-                  <span aria-hidden>{MARK[mech.verdict]}</span>
+                  <Mark size={13} weight="bold" aria-hidden />
                   {mech.outcome}
                 </span>
               </div>

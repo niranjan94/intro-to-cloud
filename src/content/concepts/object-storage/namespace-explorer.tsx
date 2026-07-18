@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  CaretRightIcon as CaretRight,
+  SquareIcon as Square,
+} from "@phosphor-icons/react/dist/ssr";
 import { useMemo, useState } from "react";
 import { CliBlock } from "@/components/lesson/cli-block";
 import { cn } from "@/lib/utils";
@@ -64,8 +68,8 @@ function ObjectRow({
       )}
     >
       <span className="flex items-center gap-[7px] font-mono text-[12px] text-ink-strong">
-        <span aria-hidden className="text-ink-muted">
-          ▢
+        <span className="text-ink-muted">
+          <Square size={14} aria-hidden />
         </span>
         {label}
       </span>
@@ -105,8 +109,8 @@ function TreeBranch({
               style={{ paddingLeft: depth * 16 }}
               className="flex items-center gap-[7px] px-[10px] py-[6px] font-mono text-[12px] text-ink-muted"
             >
-              <span aria-hidden className="text-[oklch(0.6_0.09_75)]">
-                ▸
+              <span className="text-[oklch(0.6_0.09_75)]">
+                <CaretRight size={14} weight="bold" aria-hidden />
               </span>
               {node.name}/
             </div>

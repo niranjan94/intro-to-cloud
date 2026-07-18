@@ -1,5 +1,11 @@
 "use client";
 
+import type { Icon } from "@phosphor-icons/react";
+import {
+  ArrowRightIcon as ArrowRight,
+  CheckIcon as Check,
+  XIcon as X,
+} from "@phosphor-icons/react/dist/ssr";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { type Cancelable, pop, roundedPathD, tween } from "./anim";
@@ -8,10 +14,10 @@ import { TONE_SVG } from "./tones";
 
 const GUIDE = "oklch(0.85 0.015 220)";
 const TRACE = "oklch(0.55 0.11 195)";
-const OUTCOME: Record<TraceOutcome, { color: string; mark: string }> = {
-  hit: { color: "oklch(0.58 0.12 150)", mark: "✓" },
-  miss: { color: "oklch(0.66 0.12 70)", mark: "↦" },
-  dynamic: { color: "oklch(0.62 0.17 25)", mark: "✕" },
+const OUTCOME: Record<TraceOutcome, { color: string; mark: Icon }> = {
+  hit: { color: "oklch(0.58 0.12 150)", mark: Check },
+  miss: { color: "oklch(0.66 0.12 70)", mark: ArrowRight },
+  dynamic: { color: "oklch(0.62 0.17 25)", mark: X },
 };
 
 const INK_MUTED = "oklch(0.55 0.015 230)";
@@ -84,7 +90,6 @@ export function CacheTrace({ content }: { content: TraceContent }) {
   const glowRef = useRef<SVGCircleElement>(null);
   const markRef = useRef<SVGGElement>(null);
   const markCircleRef = useRef<SVGCircleElement>(null);
-  const markTextRef = useRef<SVGTextElement>(null);
   const animRef = useRef<Cancelable | null>(null);
 
   useEffect(() => () => animRef.current?.cancel(), []);
@@ -162,10 +167,6 @@ export function CacheTrace({ content }: { content: TraceContent }) {
             `translate(${c.x} ${c.y})`,
           );
           markCircleRef.current?.setAttribute("stroke", style.color);
-          if (markTextRef.current) {
-            markTextRef.current.setAttribute("fill", style.color);
-            markTextRef.current.textContent = style.mark;
-          }
           pop(markRef.current);
         }
         setVerdict({
@@ -178,6 +179,9 @@ export function CacheTrace({ content }: { content: TraceContent }) {
   };
 
   const v = verdict.outcome ? OUTCOME[verdict.outcome] : null;
+  const VerdictMark = v?.mark;
+  const svgMarkStyle = v ?? OUTCOME.hit;
+  const SvgMark = svgMarkStyle.mark;
 
   return (
     <div className="mt-[16px] grid grid-cols-1 gap-[18px] min-[820px]:grid-cols-[1.15fr_0.85fr]">
@@ -276,16 +280,14 @@ export function CacheTrace({ content }: { content: TraceContent }) {
               stroke={OUTCOME.hit.color}
               strokeWidth={3}
             />
-            <text
-              ref={markTextRef}
-              textAnchor="middle"
-              y={5}
-              fontSize={16}
-              fontWeight={700}
-              fill={OUTCOME.hit.color}
-            >
-              ✓
-            </text>
+            <SvgMark
+              x={-9}
+              y={-9}
+              size={18}
+              weight="bold"
+              color={svgMarkStyle.color}
+              aria-hidden
+            />
           </g>
         </svg>
       </div>
@@ -332,10 +334,12 @@ export function CacheTrace({ content }: { content: TraceContent }) {
               style={{ background: v ? v.color : "oklch(0.55 0.015 230)" }}
             />
             <span
-              className="text-[15px] font-semibold"
+              className="inline-flex items-center gap-[6px] text-[15px] font-semibold"
               style={{ color: v ? v.color : "var(--color-ink-strong)" }}
             >
-              {v ? `${v.mark} ` : ""}
+              {VerdictMark ? (
+                <VerdictMark size={16} weight="bold" aria-hidden />
+              ) : null}
               {verdict.title}
             </span>
           </div>

@@ -1,3 +1,5 @@
+import { ArrowUpRightIcon as ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
+
 import { SectionHeading } from "@/components/lesson/section-heading";
 
 export interface DocLink {
@@ -32,7 +34,7 @@ export function FurtherReading({ links }: { links: DocLink[] }) {
                 aria-hidden="true"
                 className="text-ink-muted transition-colors group-hover:text-teal-ink"
               >
-                ↗
+                <ArrowUpRight size={14} weight="bold" />
               </span>
             </div>
             {link.note ? (

@@ -1,3 +1,5 @@
+import { ArrowsLeftRightIcon as ArrowsLeftRight } from "@phosphor-icons/react/dist/ssr";
+
 import {
   PROVIDER_BRAND,
   PROVIDER_LABELS,
@@ -75,7 +77,7 @@ export function EquivalencePanel({
       <div className="mt-[16px] grid grid-cols-1 items-center gap-[16px] min-[560px]:grid-cols-[1fr_auto_1fr]">
         <LensBox provider="aws" facts={aws} active={provider === "aws"} />
         <div className="flex flex-col items-center text-[oklch(0.55_0.08_195)]">
-          <span className="text-[26px]">⇄</span>
+          <ArrowsLeftRight size={24} weight="bold" aria-hidden />
         </div>
         <LensBox provider="azure" facts={azure} active={provider === "azure"} />
       </div>

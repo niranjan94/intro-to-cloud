@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  ArrowCounterClockwiseIcon as ArrowCounterClockwise,
+  ArrowRightIcon as ArrowRight,
+} from "@phosphor-icons/react/dist/ssr";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { type Cancelable, tween } from "./anim";
@@ -87,7 +91,7 @@ export function TtlSim({ content }: { content: TtlContent }) {
             <span className="text-[oklch(0.5_0.16_25)] line-through">
               {content.oldValue}
             </span>
-            <span aria-hidden>→</span>
+            <ArrowRight size={14} weight="bold" aria-hidden />
             <span className="text-[oklch(0.46_0.1_150)]">
               {content.newValue}
             </span>
@@ -150,9 +154,16 @@ export function TtlSim({ content }: { content: TtlContent }) {
             type="button"
             onClick={publish}
             disabled={phase === "running"}
-            className="rounded-button bg-primary px-[16px] py-[8px] font-mono text-[12.5px] text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="inline-flex items-center gap-[6px] rounded-button bg-primary px-[16px] py-[8px] font-mono text-[12.5px] text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
           >
-            {phase === "done" ? "↺ Publish again" : "Publish change"}
+            {phase === "done" ? (
+              <>
+                <ArrowCounterClockwise size={14} weight="bold" aria-hidden />
+                Publish again
+              </>
+            ) : (
+              "Publish change"
+            )}
           </button>
           {phase !== "idle" ? (
             <button

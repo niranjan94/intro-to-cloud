@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  CaretDownIcon as CaretDown,
+  CaretRightIcon as CaretRight,
+} from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { AnatomyContent } from "./data";
@@ -57,7 +61,11 @@ export function AnatomyExplorer({ content }: { content: AnatomyContent }) {
                       {f.concept}
                     </span>
                     <span className="shrink-0 font-mono text-[11px] text-ink-muted">
-                      {active ? "▾" : "▸"}
+                      {active ? (
+                        <CaretDown size={13} weight="bold" aria-hidden />
+                      ) : (
+                        <CaretRight size={13} weight="bold" aria-hidden />
+                      )}
                     </span>
                   </div>
                   {active ? (

@@ -1,21 +1,28 @@
 "use client";
 
+import type { Icon } from "@phosphor-icons/react";
+import {
+  ArrowDownIcon as ArrowDown,
+  CurrencyDollarIcon as CurrencyDollar,
+  GaugeIcon as Gauge,
+  LightningIcon as Lightning,
+  PowerIcon as Power,
+  WavesIcon as Waves,
+} from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { PickerContent, SignalWeight } from "./data";
 import { TONE, type Tone } from "./tones";
 
 /** Each workload signal maps to a semantic tone and a short glyph. */
-const WEIGHT: Record<
-  SignalWeight,
-  { tone: Tone; icon: string; label: string }
-> = {
-  latency: { tone: "top", icon: "◆", label: "Latency" },
-  iops: { tone: "ssd", icon: "▚", label: "IOPS" },
-  throughput: { tone: "hdd", icon: "≋", label: "Throughput" },
-  cost: { tone: "baseline", icon: "$", label: "Cost" },
-  boot: { tone: "machine", icon: "⏻", label: "Boot" },
-};
+const WEIGHT: Record<SignalWeight, { tone: Tone; icon: Icon; label: string }> =
+  {
+    latency: { tone: "top", icon: Lightning, label: "Latency" },
+    iops: { tone: "ssd", icon: Gauge, label: "IOPS" },
+    throughput: { tone: "hdd", icon: Waves, label: "Throughput" },
+    cost: { tone: "baseline", icon: CurrencyDollar, label: "Cost" },
+    boot: { tone: "machine", icon: Power, label: "Boot" },
+  };
 
 /** Chapter 5: read a workload's signals and see which type fits. */
 export function VolumePicker({ content }: { content: PickerContent }) {
@@ -80,6 +87,7 @@ export function VolumePicker({ content }: { content: PickerContent }) {
             {scenario.signals.map((signal) => {
               const w = WEIGHT[signal.weight];
               const wt = TONE[w.tone];
+              const Icon = w.icon;
               return (
                 <div
                   key={signal.label}
@@ -96,7 +104,7 @@ export function VolumePicker({ content }: { content: PickerContent }) {
                         wt.dot,
                       )}
                     >
-                      {w.icon}
+                      <Icon size={11} />
                     </span>
                     <span className="font-mono text-[12px] text-ink-strong">
                       {signal.label}
@@ -117,7 +125,7 @@ export function VolumePicker({ content }: { content: PickerContent }) {
 
           <div className="mt-[14px] flex flex-wrap items-center gap-[10px]">
             <span aria-hidden className="font-mono text-[16px] text-ink-muted">
-              ↓
+              <ArrowDown size={16} weight="bold" aria-hidden />
             </span>
             <span
               className={cn(

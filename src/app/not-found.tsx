@@ -1,3 +1,4 @@
+import { ArrowRightIcon as ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
 export default function NotFound() {
@@ -18,7 +19,7 @@ export default function NotFound() {
         className="mt-[8px] inline-flex items-center gap-[8px] rounded-[12px] bg-primary px-[22px] py-[14px] text-[15px] font-semibold text-primary-foreground shadow-[0_1px_2px_oklch(0.4_0.06_195_/_0.3)]"
       >
         Back to home
-        <span className="font-mono">→</span>
+        <ArrowRight size={16} weight="bold" aria-hidden />
       </Link>
     </main>
   );

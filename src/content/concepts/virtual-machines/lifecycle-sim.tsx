@@ -1,31 +1,49 @@
 "use client";
 
+import type { Icon, IconWeight } from "@phosphor-icons/react";
+import {
+  ArrowCounterClockwiseIcon as ArrowCounterClockwise,
+  CaretRightIcon as CaretRight,
+  CheckIcon as Check,
+  CircleIcon as Circle,
+  CurrencyDollarIcon as CurrencyDollar,
+  MinusIcon as Minus,
+  XIcon as X,
+} from "@phosphor-icons/react/dist/ssr";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { LifecycleContent, MeterKind } from "./data";
 import { TONE } from "./tones";
 
 /** Meter badge styling by semantic kind. */
-const METER: Record<MeterKind, { chip: string; icon: string }> = {
+const METER: Record<
+  MeterKind,
+  { chip: string; icon: Icon; weight: IconWeight }
+> = {
   charge: {
     chip: "border-[oklch(0.82_0.08_75)] bg-[oklch(0.97_0.035_80)] text-[oklch(0.5_0.1_70)]",
-    icon: "$",
+    icon: CurrencyDollar,
+    weight: "bold",
   },
   free: {
     chip: "border-[oklch(0.72_0.12_150)] bg-[oklch(0.96_0.04_150)] text-[oklch(0.44_0.1_150)]",
-    icon: "✓",
+    icon: Check,
+    weight: "bold",
   },
   kept: {
     chip: "border-[oklch(0.8_0.06_245)] bg-[oklch(0.97_0.025_245)] text-[oklch(0.48_0.08_255)]",
-    icon: "●",
+    icon: Circle,
+    weight: "fill",
   },
   lost: {
     chip: "border-[oklch(0.78_0.12_25)] bg-[oklch(0.96_0.04_25)] text-[oklch(0.5_0.16_25)]",
-    icon: "✕",
+    icon: X,
+    weight: "bold",
   },
   muted: {
     chip: "border-line bg-surface-muted text-ink-muted",
-    icon: "–",
+    icon: Minus,
+    weight: "bold",
   },
 };
 
@@ -67,7 +85,7 @@ export function LifecycleSim({ content }: { content: LifecycleContent }) {
               </span>
               {i < content.states.length - 1 ? (
                 <span aria-hidden className="text-line">
-                  ›
+                  <CaretRight size={13} weight="bold" />
                 </span>
               ) : null}
             </div>
@@ -109,9 +127,10 @@ export function LifecycleSim({ content }: { content: LifecycleContent }) {
           <button
             type="button"
             onClick={() => setCurrentId(content.initial)}
-            className="mt-[16px] rounded-button border border-line bg-surface px-[14px] py-[8px] font-mono text-[12px] text-ink-soft transition-colors hover:border-ink-muted"
+            className="mt-[16px] inline-flex items-center gap-[6px] rounded-button border border-line bg-surface px-[14px] py-[8px] font-mono text-[12px] text-ink-soft transition-colors hover:border-ink-muted"
           >
-            ↺ {content.resetLabel} a fresh machine
+            <ArrowCounterClockwise size={14} weight="bold" aria-hidden />
+            {content.resetLabel} a fresh machine
           </button>
         </div>
 
@@ -134,6 +153,7 @@ export function LifecycleSim({ content }: { content: LifecycleContent }) {
           <div className="mt-[16px] grid grid-cols-1 gap-[8px] min-[520px]:grid-cols-2">
             {state.meters.map((m) => {
               const mk = METER[m.kind];
+              const MeterIcon = mk.icon;
               return (
                 <div
                   key={m.label}
@@ -147,7 +167,7 @@ export function LifecycleSim({ content }: { content: LifecycleContent }) {
                       aria-hidden
                       className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-surface/70 font-mono text-[11px] font-bold"
                     >
-                      {mk.icon}
+                      <MeterIcon size={13} weight={mk.weight} />
                     </span>
                     <span className="font-mono text-[11.5px] text-ink-soft">
                       {m.label}
