@@ -5,6 +5,7 @@ import {
 import type {
   AgentSetup,
   ResponsibilitySplit,
+  SecurityChecklist,
 } from "@/components/lesson/lesson-reference";
 import { ProjectShell } from "@/components/lesson/project-shell";
 import { StackPanel } from "@/components/lesson/stack-panel";
@@ -114,6 +115,92 @@ const RESPONSIBILITY: Record<Provider, ResponsibilitySplit> = {
   },
 };
 
+const SECURITY: Record<Provider, SecurityChecklist> = {
+  aws: {
+    posture:
+      "The security group is deny-by-default inbound: a newly created group has no inbound rules, so nothing reaches the instance until you add allow rules, and it is stateful, so return traffic for allowed requests flows back automatically. Amazon Linux AMIs already require an SSH key pair and block password logins. The sharp edges are the metadata endpoint (reachable from any process on the box) and EBS volumes, which stay unencrypted unless you opt in.",
+    practices: [
+      {
+        risk: "Public exposure",
+        label:
+          "Restrict inbound SSH (port 22) to a known admin IP or CIDR, never 0.0.0.0/0.",
+        why: "A rule that allows port 22 from 0.0.0.0/0 puts sshd in front of the entire internet, where automated bots run continuous credential and brute-force attempts. Scoping the source to a single office or VPN address means packets from every other origin are dropped before they reach the daemon. AWS Security Hub explicitly fails a security group that allows unrestricted ingress to port 22.",
+      },
+      {
+        risk: "Credential theft (SSRF)",
+        label:
+          "Set the instance metadata service to IMDSv2-only (httpTokens required).",
+        why: "IMDSv2 requires a PUT to obtain a session token before any metadata GET, and it rejects PUT requests that carry an X-Forwarded-For header, so the call cannot come through a proxy hop. This blocks the classic SSRF path where a tricked web app fetches the metadata endpoint and leaks the instance role's credentials. Leaving IMDSv1 enabled lets a single unauthenticated GET return those same credentials.",
+      },
+      {
+        risk: "Long-lived credentials",
+        label:
+          "Attach a least-privilege IAM role through an instance profile instead of storing access keys on the box.",
+        why: "An instance profile delivers temporary, automatically rotated credentials through the metadata service, so there is no static access key on disk to steal, leak in a commit, or forget to rotate. Scoping the role's policy to only the API calls the workload needs limits what an attacker can reach if the instance is compromised. Long-lived keys copied onto a server stay valid until someone notices and manually revokes them.",
+      },
+      {
+        risk: "Data at rest",
+        label:
+          "Enable EBS encryption on the OS volume (turn on encryption by default for the Region).",
+        why: "EBS encryption uses AES-256 with a KMS key to protect the volume, its snapshots, and the traffic between the instance and the volume, transparently to the OS. Without it, a copied or exposed snapshot is readable in plaintext by anyone who obtains it. Encryption is not automatic: unless you enable encryption by default for the Region, a volume launched without the encrypted flag is unencrypted.",
+      },
+      {
+        risk: "Vulnerability exploitation",
+        label: "Keep the OS and nginx patched on a regular cadence.",
+        why: "A public web server is continuously probed for known vulnerabilities, and an unpatched package is an unauthenticated remote entry point no matter how tight the firewall is. AWS recommends Amazon Inspector to discover missing patches and unintended network exposure automatically. The longer a disclosed vulnerability sits unpatched on an internet-facing host, the wider the window for a working exploit.",
+      },
+      {
+        risk: "Attack surface",
+        label:
+          "Keep the security group to ports 80 and 443 plus restricted 22, and expose no other management ports.",
+        why: "Every open port is another service an attacker can reach and fingerprint, so the group should allow only the ports this build actually serves. AWS Security Hub flags unrestricted ingress to a long list of high-risk ports precisely because they widen exposure. For administrative access, Systems Manager Session Manager reaches the instance without opening any inbound port at all.",
+      },
+    ],
+  },
+  azure: {
+    posture:
+      "Inbound is deny-by-default: every NSG ends with a DenyAllInBound rule at priority 65500, and a VM with no NSG on its subnet or NIC receives no internet traffic at all. Managed OS disks are encrypted at rest out of the box with platform-managed keys. The sharp edges are the temp disk and disk caches that server-side encryption does not cover, the metadata identity endpoint reachable from any process on the box, and management ports if you open them to Any.",
+    practices: [
+      {
+        risk: "Public exposure",
+        label:
+          "In the NSG, restrict inbound SSH (22) to a known admin IP, never Any or 0.0.0.0/0.",
+        why: "An NSG rule that allows port 22 from Any exposes sshd to the whole internet, where brute-force and password-guessing bots run constantly. Narrowing the rule's source to a specific address means the DenyAllInBound default rule drops SSH attempts from every other origin. Microsoft Defender for Cloud flags any NSG inbound rule that allows access from any source IP.",
+      },
+      {
+        risk: "Password brute force",
+        label:
+          "Authenticate over SSH with a key pair and keep password authentication disabled.",
+        why: "SSH keys are long, machine-generated, and not human-chosen, so they resist the brute-force and credential-stuffing attacks that passwords fall to. When you create an Azure Linux VM with an SSH public key, Azure copies it to authorized_keys and disables the SSH server's password authentication by default. Re-enabling passwords on an internet-facing VM reopens the brute-force path that key-only auth closes.",
+      },
+      {
+        risk: "Long-lived credentials",
+        label:
+          "Give the VM a managed identity instead of storing secrets or connection strings on it.",
+        why: "A managed identity lets code on the VM request short-lived Microsoft Entra tokens from the local metadata endpoint, with Azure rotating the underlying credential, so no secret sits on disk to leak. The token request requires a Metadata: true header, which mitigates SSRF attempts to reach the endpoint through a tricked request. Static keys or connection strings placed on the box stay valid until manually rotated and are a prime target after any compromise.",
+      },
+      {
+        risk: "Data at rest",
+        label:
+          "Rely on default managed-disk encryption, and enable encryption at host to also cover the temp disk and caches.",
+        why: "Azure managed disks are encrypted at rest by default with platform-managed keys, so the OS disk is protected with no action from you. Server-side encryption does not, however, cover the temporary disk or the disk caches, where the OS can write swap, page memory, or spill crash dumps in plaintext. Enabling encryption at host extends encryption to that data end to end before it reaches storage.",
+      },
+      {
+        risk: "Vulnerability exploitation",
+        label:
+          "Patch the OS and nginx yourself on a schedule; Azure does not do it for you.",
+        why: "Azure does not push OS updates to your VM, so an unpatched internet-facing host accumulates known vulnerabilities that stay exploitable regardless of firewall rules. Azure Update Manager, or automatic VM guest patching, assesses and installs missing security and critical updates on a cadence you control. The longer a disclosed flaw sits unpatched on a public server, the wider the window for a working exploit.",
+      },
+      {
+        risk: "Attack surface",
+        label:
+          "Do not leave management ports open to the internet; use just-in-time access or Bastion for admin.",
+        why: "Every management port left open to Any is a standing target that attackers scan and probe around the clock. Just-in-time VM access keeps a deny rule on the NSG and inserts a temporary, higher-priority allow rule only when you request access, then removes it, so port 22 is closed by default. Azure Bastion goes further by brokering SSH over HTTPS, so the port is never exposed to the public internet.",
+      },
+    ],
+  },
+};
+
 const AGENT: Record<Provider, AgentSetup> = {
   aws: {
     cli: "aws",
@@ -181,6 +268,7 @@ export function WebServerLesson({ provider }: { provider: Provider }) {
       <WebServerChapters
         provider={provider}
         responsibility={RESPONSIBILITY[provider]}
+        security={SECURITY[provider]}
         agent={AGENT[provider]}
       />
       <FurtherReading links={DOCS[provider]} />

@@ -17,13 +17,13 @@ import { ProvisionScript } from "./provision-script";
 import { RequestFlow } from "./request-flow";
 
 /**
- * The Web Server on a VM project's chapters. The guided chapters (plan, request,
- * build, provision) are this build's own interactive components; the shared
- * reference tabs and the quiz are assembled and dispatched by
+ * The Load-Balanced Web App project's chapters. The guided chapters (plan,
+ * request, build, provision) are this build's own interactive components; the
+ * shared reference tabs and the quiz are assembled and dispatched by
  * {@link ProjectChapters}, so this file only wires each guided body to its data
  * slice from CONTENT[provider].
  */
-export function WebServerChapters({
+export function LoadBalancedChapters({
   provider,
   responsibility,
   security,

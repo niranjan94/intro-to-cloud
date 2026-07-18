@@ -24,6 +24,25 @@ export const projects: readonly Project[] = [
       azure: () => import("./projects/web-server-vm/azure"),
     },
   },
+  {
+    id: "load-balanced-web-app",
+    title: "Load-Balanced Web App",
+    short:
+      "Run a web app on private VMs, reached only through a Layer 7 load balancer.",
+    concepts: ["virtual-network", "virtual-machines", "load-balancing"],
+    stack: {
+      aws: ["Amazon VPC", "Application Load Balancer", "Amazon EC2"],
+      azure: [
+        "Azure Virtual Network",
+        "Azure Application Gateway",
+        "Azure Virtual Machine",
+      ],
+    },
+    components: {
+      aws: () => import("./projects/load-balanced-web-app/aws"),
+      azure: () => import("./projects/load-balanced-web-app/azure"),
+    },
+  },
 ];
 
 /** Look up a project by its id. */

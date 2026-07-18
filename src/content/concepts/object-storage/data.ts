@@ -1127,12 +1127,7 @@ const AZURE: LessonContent = {
     },
     {
       q: "You have data read only rarely, but when it is read it must return immediately with no rehydration. Which online tier fits?",
-      opts: [
-        "Hot",
-        "Cool",
-        "Cold",
-        "Archive",
-      ],
+      opts: ["Hot", "Cool", "Cold", "Archive"],
       answer: 2,
       explain:
         "Cold is online with immediate reads for rarely accessed data, so nothing needs rehydrating. Archive is offline and requires rehydration; Hot and Cool suit more frequent access.",

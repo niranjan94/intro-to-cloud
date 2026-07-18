@@ -81,15 +81,36 @@ export interface AgentSetup {
 }
 
 /**
- * Chapter metadata for the three reference tabs every lesson appends to its
- * chapter strip: the shared responsibility split, the security practices, then
- * the hands-on agent setup. Shape matches each concept's `ChapterMeta`, so it
- * concatenates onto `content.chapters` directly. `REFERENCE_CHAPTERS[0]` is the
- * responsibility tab, `[1]` is the security tab, and `[2]` is the setup tab;
- * chapters.tsx renders the matching panel by index.
+ * Framing for one chapter's header: the small nav-strip label plus the kicker,
+ * title, and intro shown above its body. Each project's `data.ts` defines the
+ * same shape locally for its guided chapters; kept here so the shared chapter
+ * shell and the reference chapters share one type.
  */
-export const REFERENCE_CHAPTERS = [
+export interface ChapterMeta {
+  navLabel: string;
+  kicker: string;
+  title: string;
+  intro: string;
+}
+
+/** Which shared reference panel a reference chapter renders. */
+export type ReferenceKind = "ownership" | "security" | "agent";
+
+/**
+ * The reference tabs every project appends to its chapter strip: the shared
+ * responsibility split, the security practices, then the hands-on agent setup.
+ * Each entry carries a `kind` so the panel is chosen by that stable
+ * discriminant, never by array position, and its `ChapterMeta` fields let it
+ * concatenate onto a project's `content.chapters` directly. Render with
+ * {@link ReferencePanel} and index the reference block by `kind`; do not map a
+ * fixed integer offset to a specific panel, or reordering or extending this
+ * array silently mis-wires every project (a trap the first project hit).
+ */
+export const REFERENCE_CHAPTERS: readonly (ChapterMeta & {
+  kind: ReferenceKind;
+})[] = [
   {
+    kind: "ownership",
     navLabel: "ownership",
     kicker: "Shared responsibility",
     title: "Who owns what",
@@ -97,6 +118,7 @@ export const REFERENCE_CHAPTERS = [
       "Cloud runs on a shared responsibility model. The provider secures and operates the platform beneath the service; you own how you configure and use it. Here is where that line falls for this service on the active lens.",
   },
   {
+    kind: "security",
     navLabel: "secure it",
     kicker: "Security",
     title: "Lock it down, and why",
@@ -104,6 +126,7 @@ export const REFERENCE_CHAPTERS = [
       "Security is not a step you bolt on at the end; it is a set of choices baked into how you configure the service. Each practice below is paired with the mechanism behind it, so you learn why it holds, not just that it is recommended. Grounded in the provider's own security guidance for the active lens.",
   },
   {
+    kind: "agent",
     navLabel: "set it up",
     kicker: "Hands on",
     title: "Set it up with an agent",
@@ -111,6 +134,49 @@ export const REFERENCE_CHAPTERS = [
       "Standing this up yourself is a handful of CLI commands. Pick the use case that fits, hand its prompt to a coding agent to provision it from your terminal, and read what it proposes before you let it run anything.",
   },
 ] as const;
+
+/** The data every reference panel needs, grounded per provider in `data.ts`. */
+export interface ReferenceData {
+  responsibility: ResponsibilitySplit;
+  security: SecurityChecklist;
+  agent: AgentSetup;
+}
+
+/**
+ * Renders the shared reference panel a reference chapter names, chosen by its
+ * `kind`. Centralizing the kind-to-panel mapping here means a project's chapter
+ * shell asks for "the panel for this reference chapter" without re-deriving
+ * which index means which panel, so adding a reference tab is a change in one
+ * place rather than a silent break in every project.
+ */
+export function ReferencePanel({
+  provider,
+  kind,
+  data,
+}: {
+  provider: Provider;
+  kind: ReferenceKind;
+  data: ReferenceData;
+}) {
+  switch (kind) {
+    case "ownership":
+      return (
+        <SharedResponsibilityPanel
+          provider={provider}
+          split={data.responsibility}
+        />
+      );
+    case "security":
+      return <SecurityPanel provider={provider} checklist={data.security} />;
+    case "agent":
+      return (
+        <AgentPromptPanel
+          cli={data.agent.cli}
+          scenarios={data.agent.scenarios}
+        />
+      );
+  }
+}
 
 type ColumnTone = "you" | "provider" | "mutable" | "immutable";
 
