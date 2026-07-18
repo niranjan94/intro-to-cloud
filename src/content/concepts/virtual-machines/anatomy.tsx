@@ -1,5 +1,6 @@
 "use client";
 
+import { LinkSimpleIcon as LinkSimple } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { CliBlock } from "@/components/lesson/cli-block";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,43 @@ function PartChip({
         {part.sub}
       </span>
     </button>
+  );
+}
+
+/**
+ * A part and the chips that ride on it. The network interface owns the public IP
+ * and the security group, so they render clipped onto it (not as its peers): the
+ * interface is what attaches to the instance and sits in the subnet.
+ */
+function PartCluster({
+  part,
+  selected,
+  onSelect,
+}: {
+  part: AnatomyPart;
+  selected: string | null;
+  onSelect: (key: string) => void;
+}) {
+  if (!part.attached?.length)
+    return <PartChip part={part} selected={selected} onSelect={onSelect} />;
+  return (
+    <div className="rounded-[12px] border-[1.5px] border-line bg-surface-muted p-[8px]">
+      <PartChip part={part} selected={selected} onSelect={onSelect} />
+      <span className="mt-[8px] flex items-center gap-[5px] font-mono text-[10.5px] font-semibold text-teal-ink">
+        <LinkSimple size={12} weight="bold" aria-hidden />
+        clip onto it
+      </span>
+      <div className="mt-[6px] flex flex-wrap gap-[8px]">
+        {part.attached.map((sub) => (
+          <PartChip
+            key={sub.key}
+            part={sub}
+            selected={selected}
+            onSelect={onSelect}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -91,9 +129,9 @@ export function Anatomy({ content }: { content: AnatomyContent }) {
                     <div className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-muted">
                       {group.label}
                     </div>
-                    <div className="mt-[6px] flex flex-wrap gap-[8px]">
+                    <div className="mt-[6px] flex flex-wrap items-start gap-[8px]">
                       {group.parts.map((part) => (
-                        <PartChip
+                        <PartCluster
                           key={part.key}
                           part={part}
                           selected={selected}

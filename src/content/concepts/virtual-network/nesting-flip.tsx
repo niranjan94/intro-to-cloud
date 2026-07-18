@@ -5,6 +5,7 @@ import {
   CaretLeftIcon as CaretLeft,
   CaretRightIcon as CaretRight,
   CheckIcon as Check,
+  LinkSimpleIcon as LinkSimple,
   XIcon as X,
 } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
@@ -22,6 +23,13 @@ function NestBox({ node }: { node: NestNode }) {
         node.dashed ? cn("border-dashed", t.border) : t.frame,
       )}
     >
+      {node.attachTo ? (
+        <span className="mb-[8px] inline-flex items-center gap-[5px] rounded-[6px] border border-teal-line bg-teal-tint px-[8px] py-[3px] font-mono text-[11px] font-semibold text-teal-ink">
+          <LinkSimple size={12} weight="bold" aria-hidden />
+          attaches to {node.attachTo}
+        </span>
+      ) : null}
+
       <div className="flex flex-wrap items-baseline gap-x-[8px] gap-y-[2px]">
         <span className={cn("font-mono text-[13px] font-semibold", t.text)}>
           {node.label}

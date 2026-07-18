@@ -26,6 +26,8 @@ export interface ChapterMeta {
  * A node in the orientation map. `container` nodes nest other nodes; `resource`
  * nodes are concrete things; `rule` nodes are firewalls that attach rather than
  * contain. `attached` items render as chips clipped onto the node's header.
+ * `attachTo` names a sibling resource this node plugs into (the ENI attaches to
+ * the instance): a connector is drawn instead of nesting one inside the other.
  */
 export interface MapNode {
   key: string;
@@ -35,6 +37,7 @@ export interface MapNode {
   kind: "container" | "resource" | "rule";
   children?: MapNode[];
   attached?: MapNode[];
+  attachTo?: string;
 }
 
 export interface Hotspot {
@@ -53,6 +56,8 @@ export interface NestNode {
   children?: NestNode[];
   /** Rule chips shown attached beside this node (with a connector). */
   attach?: { label: string; note?: string }[];
+  /** Names a sibling resource this node plugs into, drawn as a connector. */
+  attachTo?: string;
 }
 
 export interface FlipModel {
@@ -401,21 +406,20 @@ const AWS: NetworkContent = {
               sub: "a virtual server",
               tone: "resource",
               kind: "resource",
-              children: [
+            },
+            {
+              key: "eni",
+              label: "ENI",
+              sub: "10.0.2.31",
+              tone: "private",
+              kind: "resource",
+              attachTo: "the EC2 instance",
+              attached: [
                 {
-                  key: "eni",
-                  label: "ENI",
-                  sub: "10.0.2.31",
-                  tone: "private",
-                  kind: "resource",
-                  attached: [
-                    {
-                      key: "sg",
-                      label: "Security group",
-                      tone: "firewall",
-                      kind: "rule",
-                    },
-                  ],
+                  key: "sg",
+                  label: "Security group",
+                  tone: "firewall",
+                  kind: "rule",
                 },
               ],
             },
@@ -479,7 +483,7 @@ const AWS: NetworkContent = {
   },
 
   mapHint:
-    "The single most useful habit: for each piece, ask whether it is a container or a rule attached to something. Boxes contain. Firewalls (the dashed red border and the red badge) are just rules that attach: they don't contain anything.",
+    "The single most useful habit: for each piece, ask what it is. A box that contains (the VPC, the subnet), a resource that plugs into another (the ENI attaches to the instance), or a rule clipped onto something (the firewalls, the dashed red border and red badge). Only boxes contain; everything else attaches.",
 
   nesting: {
     right: {
@@ -499,16 +503,13 @@ const AWS: NetworkContent = {
                 label: "EC2 instance",
                 note: "the server",
                 tone: "resource",
-                children: [
-                  {
-                    label: "ENI · 10.0.2.31",
-                    note: "the card the server has",
-                    tone: "private",
-                    attach: [
-                      { label: "Security group", note: "rules, reusable" },
-                    ],
-                  },
-                ],
+              },
+              {
+                label: "ENI · 10.0.2.31",
+                note: "the server's network card, in the subnet",
+                tone: "private",
+                attachTo: "the EC2 instance",
+                attach: [{ label: "Security group", note: "rules, reusable" }],
               },
             ],
           },
@@ -550,7 +551,7 @@ const AWS: NetworkContent = {
         ],
       },
       footnote:
-        "Three things are wrong: the security group isn't a box, it doesn't belong to the subnet, and the EC2-inside-ENI order is inside-out.",
+        "Three things are wrong: the security group isn't a box, it doesn't belong to the subnet, and the instance and its network card aren't nested at all. The ENI sits in the subnet and attaches to the instance; neither is inside the other.",
     },
     callouts: [
       {
@@ -569,8 +570,8 @@ const AWS: NetworkContent = {
       {
         kind: "fix",
         tag: "The rule of thumb",
-        title: "Boxes contain. Rules attach.",
-        body: "VPC then subnet then EC2 then ENI is a real nesting of things (roughly is inside). A security group and a network ACL are not in that chain: they're rule sets clipped onto an ENI and a subnet respectively.",
+        title: "Boxes contain. Everything else attaches.",
+        body: "VPC then subnet is the real nesting: each is inside the last. The ENI is not one more box in that chain. It's the instance's network card, a resource that sits in the subnet and attaches to the instance, and it can even be moved to another instance. A security group and a network ACL aren't in the chain either: they're rule sets clipped onto the ENI and the subnet respectively.",
       },
     ],
   },

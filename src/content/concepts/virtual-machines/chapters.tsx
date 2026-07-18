@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { Anatomy } from "./anatomy";
 import { Callout } from "./callout";
 import { CONTENT } from "./data";
+import { KeyAccess } from "./key-access";
 import { LifecycleSim } from "./lifecycle-sim";
 import { PricingPicker } from "./pricing-picker";
 import { Quiz } from "./quiz";
@@ -27,9 +28,11 @@ import { SizeExplorer } from "./size-explorer";
 
 /**
  * The guided, chapter-by-chapter body of the Virtual Machines lesson. Chapter
- * order is fixed (anatomy, sizing, lifecycle, cost, quiz); every chapter's copy
- * and interactive data comes from CONTENT[provider]. AWS and Azure genuinely
- * diverge in the lifecycle chapter, where Azure adds a deallocate step.
+ * order is fixed (anatomy, sizing, lifecycle, access, cost, quiz); every
+ * chapter's copy and interactive data comes from CONTENT[provider]. AWS and
+ * Azure genuinely diverge in the lifecycle chapter, where Azure adds a
+ * deallocate step, and in access, where Azure provisions the key with cloud-init
+ * or waagent rather than the metadata service AWS uses.
  */
 export function VmChapters({
   provider,
@@ -81,6 +84,15 @@ export function VmChapters({
           </>
         );
       case 3:
+        return (
+          <>
+            <KeyAccess content={content.access} />
+            {content.access.callouts.map((c) => (
+              <Callout key={c.tag} {...c} />
+            ))}
+          </>
+        );
+      case 4:
         return <PricingPicker content={content.pricing} />;
       default:
         return null;

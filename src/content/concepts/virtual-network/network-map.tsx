@@ -1,5 +1,6 @@
 "use client";
 
+import { LinkSimpleIcon as LinkSimple } from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Hotspot, MapNode } from "./data";
@@ -11,12 +12,26 @@ interface PieceProps {
   onSelect: (key: string) => void;
 }
 
+/**
+ * A connector tag naming the sibling resource this node plugs into. It reads as
+ * attachment, not containment: the ENI sits in the subnet and attaches to the
+ * instance rather than living inside it.
+ */
+function AttachTag({ target }: { target: string }) {
+  return (
+    <span className="mb-[8px] inline-flex items-center gap-[5px] rounded-[6px] border border-teal-line bg-teal-tint px-[8px] py-[3px] font-mono text-[10.5px] font-semibold text-teal-ink">
+      <LinkSimple size={12} weight="bold" aria-hidden />
+      attaches to {target}
+    </span>
+  );
+}
+
 /** A clickable box for a leaf piece (a resource or an attached rule). */
 function Leaf({ node, selected, onSelect }: PieceProps) {
   const t = TONE[node.tone];
   const active = selected === node.key;
   const rule = node.kind === "rule";
-  return (
+  const button = (
     <button
       type="button"
       onClick={() => onSelect(node.key)}
@@ -41,6 +56,13 @@ function Leaf({ node, selected, onSelect }: PieceProps) {
       ) : null}
     </button>
   );
+  if (!node.attachTo) return button;
+  return (
+    <div className="flex flex-col items-start">
+      <AttachTag target={node.attachTo} />
+      {button}
+    </div>
+  );
 }
 
 /** A container piece: a clickable header, its attached rules, then children. */
@@ -53,6 +75,11 @@ function Piece({ node, selected, onSelect }: PieceProps) {
   const active = selected === node.key;
   return (
     <div className={cn("rounded-[14px] border-[1.5px] p-[12px]", t.frame)}>
+      {node.attachTo ? (
+        <div>
+          <AttachTag target={node.attachTo} />
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-center gap-[8px]">
         <button
           type="button"

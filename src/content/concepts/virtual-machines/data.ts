@@ -30,6 +30,12 @@ export interface AnatomyPart {
   label: string;
   sub: string;
   tone: Tone;
+  /**
+   * Parts that ride on this one rather than on the instance directly: the public
+   * IP and the security group sit on the network interface, so they render as
+   * chips clipped onto it instead of as its peers.
+   */
+  attached?: AnatomyPart[];
 }
 
 export interface AnatomyGroup {
@@ -149,7 +155,47 @@ export interface PricingContent {
   note: string;
 }
 
-/* ---------------------------- Chapter 4 · quiz ---------------------------- */
+/* --------------------------- Chapter 4 · access --------------------------- */
+
+/** A node in the key-access flow diagram, left to right. */
+export type PlaceId = "you" | "provider" | "metadata" | "guest";
+
+export interface AccessPlace {
+  id: PlaceId;
+  /** Short node title, e.g. "AWS control plane". */
+  label: string;
+  /** One-line role, e.g. "stores your public key". */
+  sub: string;
+}
+
+export interface AccessStep {
+  id: string;
+  /** Step-track chip label, e.g. "Create pair". */
+  label: string;
+  /** Which place acts this step; it is highlighted in the diagram. */
+  actor: PlaceId;
+  title: string;
+  detail: string;
+  /** A command, file path, or metadata request to show for the step. */
+  line: string;
+  lineKind: "cmd" | "file" | "http";
+  /** Where the public key sits after this step (the private key is always with you). */
+  publicKeyAt: PlaceId | null;
+  /** The final step: reveal the SSH handshake between you and the guest. */
+  connect?: boolean;
+}
+
+export interface AccessContent {
+  places: AccessPlace[];
+  steps: AccessStep[];
+  /** The line shown when the SSH handshake fires on the last step. */
+  handshake: string;
+  /** The closing note under the flow, e.g. the exact authorized_keys path. */
+  authorizedKeysNote: string;
+  callouts: CalloutData[];
+}
+
+/* ---------------------------- Chapter 5 · quiz ---------------------------- */
 
 export interface QuizQ {
   q: string;
@@ -166,6 +212,7 @@ export interface LessonContent {
   sizing: SizingContent;
   lifecycle: LifecycleContent;
   pricing: PricingContent;
+  access: AccessContent;
   quiz: QuizQ[];
 }
 
@@ -195,18 +242,25 @@ const AWS: LessonContent = {
         "A machine you rent by the second has states, and each state bills differently and keeps or drops different data. Drive the instance through its lifecycle and watch the meter and the disks.",
     },
     {
-      navLabel: "cost",
+      navLabel: "access",
       kicker: "Chapter 4",
+      title: "Getting in: the key pair",
+      intro:
+        "There is no default password. You reach the instance with an SSH key pair, and the interesting part is how your public key ends up inside the machine. Walk the key from the moment the pair is created to the moment you log in.",
+    },
+    {
+      navLabel: "cost",
+      kicker: "Chapter 5",
       title: "How the meter runs",
       intro:
         "The same instance can cost wildly different amounts depending on how you commit to it. Four purchasing models trade flexibility for a lower price.",
     },
     {
       navLabel: "check",
-      kicker: "Chapter 5",
+      kicker: "Chapter 6",
       title: "Check yourself",
       intro:
-        "Five questions on the model you just built. Answer to reveal the explanation.",
+        "Six questions on the model you just built. Answer to reveal the explanation.",
     },
   ],
   anatomy: {
@@ -250,18 +304,20 @@ const AWS: LessonContent = {
             label: "Elastic network interface",
             sub: "eni-0a1b",
             tone: "network",
-          },
-          {
-            key: "pubip",
-            label: "Public IPv4",
-            sub: "auto-assigned",
-            tone: "network",
-          },
-          {
-            key: "firewall",
-            label: "Security group",
-            sub: "sg-903004f8",
-            tone: "security",
+            attached: [
+              {
+                key: "pubip",
+                label: "Public IPv4",
+                sub: "auto-assigned",
+                tone: "network",
+              },
+              {
+                key: "firewall",
+                label: "Security group",
+                sub: "sg-903004f8",
+                tone: "security",
+              },
+            ],
           },
         ],
       },
@@ -504,6 +560,83 @@ const AWS: LessonContent = {
     ],
     note: "Bars show illustrative relative unit price, not a quote. Real discounts depend on term, instance, and Region.",
   },
+  access: {
+    places: [
+      { id: "you", label: "You", sub: "keep the private key" },
+      { id: "provider", label: "AWS", sub: "stores the public key" },
+      {
+        id: "metadata",
+        label: "Instance metadata",
+        sub: "serves the key at boot",
+      },
+      { id: "guest", label: "The instance", sub: "ec2-user's authorized_keys" },
+    ],
+    steps: [
+      {
+        id: "create",
+        label: "Create pair",
+        actor: "provider",
+        title: "Create the key pair",
+        detail:
+          "A key pair is asymmetric: two mathematically linked keys. AWS keeps the public key; you keep the private key. Either import your own public key, or let AWS generate the pair and download the private .pem once. AWS never stores the private key, so if you lose it there is no recovery.",
+        line: "aws ec2 create-key-pair --key-name my-key --query KeyMaterial --output text > my-key.pem",
+        lineKind: "cmd",
+        publicKeyAt: "provider",
+      },
+      {
+        id: "launch",
+        label: "Launch",
+        actor: "metadata",
+        title: "Launch, naming the key",
+        detail:
+          "At launch you pass --key-name my-key. EC2 publishes that public key on the Instance Metadata Service, a link-local address (169.254.169.254) reachable only from inside the instance itself, never from the internet.",
+        line: "http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key",
+        lineKind: "http",
+        publicKeyAt: "metadata",
+      },
+      {
+        id: "boot",
+        label: "First boot",
+        actor: "guest",
+        title: "First boot writes authorized_keys",
+        detail:
+          "On first boot cloud-init reads the public key from that metadata path and writes it into ~/.ssh/authorized_keys for the default user: ec2-user on Amazon Linux, ubuntu on Ubuntu. No password is set, and password and root login are disabled by default, so the key is the only way in.",
+        line: "/home/ec2-user/.ssh/authorized_keys",
+        lineKind: "file",
+        publicKeyAt: "guest",
+      },
+      {
+        id: "login",
+        label: "Log in",
+        actor: "you",
+        title: "Connect over SSH",
+        detail:
+          "You connect with the private key. The instance sends a challenge; your client signs it with the private key; the instance verifies the signature against the public key already in authorized_keys. The private key itself never crosses the network.",
+        line: "ssh -i my-key.pem ec2-user@<public-ip>",
+        lineKind: "cmd",
+        publicKeyAt: "guest",
+        connect: true,
+      },
+    ],
+    handshake:
+      "The instance verifies a signature made by your private key against the public key in authorized_keys. Prove you hold the private key and you are in. No password, no secret sent over the wire.",
+    authorizedKeysNote:
+      "cloud-init writes to /home/ec2-user/.ssh/authorized_keys on Amazon Linux (ubuntu on Ubuntu images). The exact metadata path is /latest/meta-data/public-keys/0/openssh-key.",
+    callouts: [
+      {
+        kind: "myth",
+        tag: "Common fear",
+        title: "AWS has a copy of my private key.",
+        body: "It does not. AWS only ever holds the public key. A key pair you let AWS generate hands you the private key exactly once at creation and is never stored, so losing it means no recovery. Anyone who cannot produce the private key cannot log in.",
+      },
+      {
+        kind: "note",
+        tag: "One-time bootstrap",
+        title: "The key is injected once, at first boot.",
+        body: "cloud-init writes authorized_keys on the first boot only; it is not re-fetched afterward. To add or rotate keys later you edit authorized_keys yourself, or use EC2 Instance Connect to push a short-lived key on demand.",
+      },
+    ],
+  },
   quiz: [
     {
       q: "You stop an EC2 instance overnight to save money. What are you still paying for?",
@@ -565,6 +698,18 @@ const AWS: LessonContent = {
       explain:
         "Spot Instances give the deepest discount in exchange for possible reclamation with a two-minute warning, which a restartable batch job can tolerate.",
     },
+    {
+      q: "When you launch a Linux instance with a key pair, how does your public key end up in ~/.ssh/authorized_keys?",
+      opts: [
+        "AWS SSHes in as root and appends it",
+        "cloud-init reads it from instance metadata on first boot and writes the file",
+        "You must paste it in manually after connecting",
+        "It is baked into every AMI in advance",
+      ],
+      answer: 1,
+      explain:
+        "EC2 publishes the public key on the Instance Metadata Service. On first boot cloud-init fetches it from /latest/meta-data/public-keys/0/openssh-key and writes it into the default user's authorized_keys. AWS never holds your private key.",
+    },
   ],
 };
 
@@ -594,18 +739,25 @@ const AZURE: LessonContent = {
         "A machine you rent by the second has states, and each state bills differently and keeps or drops different data. Azure has one trap here worth learning carefully: stopping is not the same as deallocating.",
     },
     {
-      navLabel: "cost",
+      navLabel: "access",
       kicker: "Chapter 4",
+      title: "Getting in: the SSH key",
+      intro:
+        "A Linux VM has no default password. You reach it with an SSH key pair, and the interesting part is how your public key ends up inside the machine. Walk the key from the moment the pair is created to the moment you log in.",
+    },
+    {
+      navLabel: "cost",
+      kicker: "Chapter 5",
       title: "How the meter runs",
       intro:
         "The same VM can cost wildly different amounts depending on how you commit to it. Four purchasing models trade flexibility for a lower price.",
     },
     {
       navLabel: "check",
-      kicker: "Chapter 5",
+      kicker: "Chapter 6",
       title: "Check yourself",
       intro:
-        "Five questions on the model you just built. Answer to reveal the explanation.",
+        "Six questions on the model you just built. Answer to reveal the explanation.",
     },
   ],
   anatomy: {
@@ -649,18 +801,20 @@ const AZURE: LessonContent = {
             label: "Network interface",
             sub: "web-01-nic",
             tone: "network",
-          },
-          {
-            key: "pubip",
-            label: "Public IP",
-            sub: "dynamic",
-            tone: "network",
-          },
-          {
-            key: "firewall",
-            label: "Network security group",
-            sub: "web-01-nsg",
-            tone: "security",
+            attached: [
+              {
+                key: "pubip",
+                label: "Public IP",
+                sub: "dynamic",
+                tone: "network",
+              },
+              {
+                key: "firewall",
+                label: "Network security group",
+                sub: "web-01-nsg",
+                tone: "security",
+              },
+            ],
           },
         ],
       },
@@ -914,6 +1068,83 @@ const AZURE: LessonContent = {
     ],
     note: "Bars show illustrative relative unit price, not a quote. Real discounts depend on term, size, and Region.",
   },
+  access: {
+    places: [
+      { id: "you", label: "You", sub: "keep the private key" },
+      { id: "provider", label: "Azure", sub: "stores the public key" },
+      {
+        id: "metadata",
+        label: "Provisioning data",
+        sub: "passed to the guest agent",
+      },
+      { id: "guest", label: "The VM", sub: "azureuser's authorized_keys" },
+    ],
+    steps: [
+      {
+        id: "create",
+        label: "Create pair",
+        actor: "provider",
+        title: "Create the key pair",
+        detail:
+          "A key pair is asymmetric: two mathematically linked keys. Azure keeps the public key; you keep the private key. Pass your own public key with --ssh-key-values, or --generate-ssh-keys creates the pair in ~/.ssh and hands Azure only the public half. Azure never stores the private key.",
+        line: "az vm create -g intro-cloud -n web-01 --image Ubuntu2204 --admin-username azureuser --generate-ssh-keys",
+        lineKind: "cmd",
+        publicKeyAt: "provider",
+      },
+      {
+        id: "deploy",
+        label: "Deploy",
+        actor: "metadata",
+        title: "Deploy delivers the key",
+        detail:
+          "The public key and the admin username travel in the VM's osProfile. Azure hands that provisioning data to the agent running inside the newly created VM. Unlike a password, the key is configuration the platform injects, not a secret you type.",
+        line: "osProfile.linuxConfiguration.ssh.publicKeys[0].keyData",
+        lineKind: "file",
+        publicKeyAt: "metadata",
+      },
+      {
+        id: "boot",
+        label: "First boot",
+        actor: "guest",
+        title: "First boot writes authorized_keys",
+        detail:
+          "On first boot the provisioning agent writes the public key into ~/.ssh/authorized_keys for your admin user. On current Marketplace images that agent is cloud-init; on older images it is the Azure Linux Agent (waagent). Either way, only the public key lands here.",
+        line: "/home/azureuser/.ssh/authorized_keys",
+        lineKind: "file",
+        publicKeyAt: "guest",
+      },
+      {
+        id: "login",
+        label: "Log in",
+        actor: "you",
+        title: "Connect over SSH",
+        detail:
+          "You connect with the private key. The VM sends a challenge; your client signs it with the private key; the VM verifies the signature against the public key already in authorized_keys. The private key itself never crosses the network.",
+        line: "ssh -i ~/.ssh/id_rsa azureuser@<public-ip>",
+        lineKind: "cmd",
+        publicKeyAt: "guest",
+        connect: true,
+      },
+    ],
+    handshake:
+      "The VM verifies a signature made by your private key against the public key in authorized_keys. Prove you hold the private key and you are in. No password, no secret sent over the wire.",
+    authorizedKeysNote:
+      "The provisioning agent writes to /home/azureuser/.ssh/authorized_keys, where azureuser is the --admin-username you chose. Windows VMs use a username and password instead of a key.",
+    callouts: [
+      {
+        kind: "myth",
+        tag: "Common fear",
+        title: "Azure has a copy of my private key.",
+        body: "It does not. Azure only ever holds the public key. With --generate-ssh-keys the pair is created locally in ~/.ssh and only the public half is uploaded. Anyone who cannot produce the private key cannot log in.",
+      },
+      {
+        kind: "note",
+        tag: "cloud-init or waagent",
+        title: "One agent provisions the key, not two.",
+        body: "Modern endorsed Linux images are provisioned by cloud-init, which writes authorized_keys on first boot. Older images use the Azure Linux Agent (waagent) instead. On cloud-init images waagent is still installed, but only to handle VM extensions, not provisioning.",
+      },
+    ],
+  },
   quiz: [
     {
       q: "You shut your VM down from inside the operating system to save money. What happens to the bill?",
@@ -974,6 +1205,18 @@ const AZURE: LessonContent = {
       answer: 2,
       explain:
         "Spot VMs give the deepest discount in exchange for possible eviction when Azure needs the capacity, which a restartable batch job can tolerate.",
+    },
+    {
+      q: "You create a Linux VM with an SSH key. Who writes your public key into the VM's ~/.ssh/authorized_keys?",
+      opts: [
+        "You do, by pasting it after logging in with a password",
+        "A provisioning agent (cloud-init, or waagent on older images) on first boot",
+        "Azure keeps it in the cloud and checks it on every login",
+        "The public key is emailed to you to install yourself",
+      ],
+      answer: 1,
+      explain:
+        "The public key travels in the VM's osProfile. On first boot the provisioning agent (cloud-init on modern images, otherwise waagent) writes it into the admin user's authorized_keys. Azure only ever holds the public key.",
     },
   ],
 };

@@ -28,6 +28,11 @@ const DOCS: Record<Provider, DocLink[]> = {
       href: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html",
       note: "Launch and connect to your first instance.",
     },
+    {
+      label: "Amazon EC2 key pairs and Linux instances",
+      href: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html",
+      note: "EC2 stores the public key and places it in authorized_keys at first boot; you keep the private key.",
+    },
   ],
   azure: [
     {
@@ -39,6 +44,11 @@ const DOCS: Record<Provider, DocLink[]> = {
       label: "Quickstart: Create a Linux VM in the portal",
       href: "https://learn.microsoft.com/en-us/azure/virtual-machines/linux/quick-create-portal",
       note: "Deploy an Ubuntu VM from the Azure portal.",
+    },
+    {
+      label: "Detailed steps: create and manage SSH keys",
+      href: "https://learn.microsoft.com/en-us/azure/virtual-machines/linux/create-ssh-keys-detailed",
+      note: "Azure copies your public key onto the VM; the private key stays on your machine.",
     },
   ],
 };
@@ -72,6 +82,21 @@ const TERMS: GlossaryTerm[] = [
   {
     term: "Stop / Deallocate",
     definition: "Power off. In Azure only deallocate stops the compute bill.",
+  },
+  {
+    term: "Public / private key",
+    definition:
+      "The two halves of an SSH key pair. The public half goes on the machine; the private half stays with you.",
+  },
+  {
+    term: "authorized_keys",
+    definition:
+      "The file (~/.ssh/authorized_keys) listing the public keys allowed to log in as a user.",
+  },
+  {
+    term: "cloud-init",
+    definition:
+      "The first-boot agent that writes your public key into the machine. Azure may use waagent instead.",
   },
 ];
 
