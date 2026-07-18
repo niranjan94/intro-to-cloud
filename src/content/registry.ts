@@ -66,6 +66,20 @@ export const concepts: readonly Concept[] = [
     },
   },
   {
+    id: "load-balancing",
+    title: "Load Balancing",
+    stage: "Reaching users",
+    short: "Spread traffic across many servers behind one address.",
+    services: {
+      aws: "Elastic Load Balancing",
+      azure: "Load Balancer + App Gateway",
+    },
+    components: {
+      aws: () => import("./concepts/load-balancing/aws"),
+      azure: () => import("./concepts/load-balancing/azure"),
+    },
+  },
+  {
     id: "cdn",
     title: "Content Delivery",
     stage: "Reaching users",
