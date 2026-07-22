@@ -1,4 +1,5 @@
 import { ConceptOverview } from "@/components/concept-overview";
+import { InvestigationsOverview } from "@/components/investigations-overview";
 import { LiveLensCard } from "@/components/live-lens-card";
 import { ProjectsOverview } from "@/components/projects-overview";
 import { StartLensButton } from "@/components/start-lens-button";
@@ -36,6 +37,7 @@ export default function Home() {
 
       <ConceptOverview />
       <ProjectsOverview />
+      <InvestigationsOverview />
     </main>
   );
 }
