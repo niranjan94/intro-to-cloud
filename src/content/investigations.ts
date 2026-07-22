@@ -32,8 +32,32 @@ export interface InvestigationMeta {
   data: () => Promise<{ default: Investigation }>;
 }
 
+/**
+ * The queue metadata without the lazy `data` loader. A loader is a function and
+ * therefore not serializable, so this is the shape a Server Component passes to
+ * a client card across the RSC boundary. Use {@link toQueueItem} to drop it.
+ */
+export type InvestigationQueueItem = Omit<InvestigationMeta, "data">;
+
+/** Strip the (non-serializable) loader so metadata can cross to a Client Component. */
+export function toQueueItem(meta: InvestigationMeta): InvestigationQueueItem {
+  const { data: _data, ...item } = meta;
+  return item;
+}
+
 export const investigations: readonly InvestigationMeta[] = [
-  // Entries are registered as each Investigation's data module is authored.
+  {
+    id: "aws-root-login",
+    title: "Root account sign-in",
+    short:
+      "A root console login lands on the desk. Authorized change, or takeover?",
+    sourcePlatform: "aws",
+    difficulty: "guided",
+    severity: "critical",
+    eventType: "Root Account Login",
+    mitre: "Valid Accounts (T1078)",
+    data: () => import("./investigations/aws-root-login/data"),
+  },
 ];
 
 /** Look up an Investigation's metadata by id. */

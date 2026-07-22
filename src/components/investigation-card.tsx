@@ -11,7 +11,7 @@ import {
   SeverityBadge,
 } from "@/components/investigation/badges";
 import type { InvestigationResult } from "@/components/investigation/types";
-import type { InvestigationMeta } from "@/content/investigations";
+import type { InvestigationQueueItem } from "@/content/investigations";
 import { getInvestigationResult } from "@/lib/investigations";
 
 /**
@@ -23,7 +23,7 @@ import { getInvestigationResult } from "@/lib/investigations";
 export function InvestigationCard({
   investigation,
 }: {
-  investigation: InvestigationMeta;
+  investigation: InvestigationQueueItem;
 }) {
   const [result, setResult] = useState<InvestigationResult | null>(null);
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { InvestigationCard } from "@/components/investigation-card";
-import { investigations } from "@/content/investigations";
+import { investigations, toQueueItem } from "@/content/investigations";
 
 /**
  * The Investigations teaser on the landing page: a short pitch and the alert
@@ -31,7 +31,7 @@ export function InvestigationsOverview() {
         {investigations.map((investigation) => (
           <InvestigationCard
             key={investigation.id}
-            investigation={investigation}
+            investigation={toQueueItem(investigation)}
           />
         ))}
       </div>

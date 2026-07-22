@@ -1,6 +1,9 @@
 import { SOURCE_PLATFORM_LABELS } from "@/components/investigation/types";
 import { InvestigationCard } from "@/components/investigation-card";
-import { investigationsByPlatform } from "@/content/investigations";
+import {
+  investigationsByPlatform,
+  toQueueItem,
+} from "@/content/investigations";
 
 /**
  * The Investigations queue: the full catalog of triage exercises, grouped by the
@@ -39,7 +42,7 @@ export default function InvestigationsQueue() {
               {group.items.map((investigation) => (
                 <InvestigationCard
                   key={investigation.id}
-                  investigation={investigation}
+                  investigation={toQueueItem(investigation)}
                 />
               ))}
             </div>
