@@ -1,5 +1,3 @@
-import type { ComponentType } from "react";
-
 /**
  * The Investigation domain model. Investigations are an assessed, data-driven
  * content type (ADR-0004): every one runs the identical five-phase flow
@@ -99,12 +97,16 @@ export type EvidenceBlock =
 
 /**
  * The Evidence payload. Most alerts are a list of typed blocks the engine
- * renders directly; the `component` escape hatch (ADR-0004) is for evidence
- * whose shape is genuinely bespoke, such as a rendered phishing email.
+ * renders directly; the `componentKey` escape hatch (ADR-0004) is for evidence
+ * whose shape is genuinely bespoke, such as a rendered phishing email. The key
+ * resolves to a lazily-loaded component in the client-side registry in
+ * `phases/evidence.tsx`. It is a string (not a loader function) so an
+ * Investigation stays fully serializable and can cross the server/client
+ * boundary as a prop.
  */
 export type EvidenceModel =
   | { blocks: EvidenceBlock[] }
-  | { component: () => Promise<{ default: ComponentType }> };
+  | { componentKey: string };
 
 /** A complete, self-contained Investigation. */
 export interface Investigation {
