@@ -1,5 +1,6 @@
 "use client";
 
+import { CompassIcon as Compass } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -26,9 +27,41 @@ export function InvestigationNavList({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  const orientationHref = "/investigations/orientation";
+  const orientationActive = pathname === orientationHref;
 
   return (
     <nav aria-label="Investigations">
+      <Link
+        href={orientationHref}
+        onClick={onNavigate}
+        aria-current={orientationActive ? "page" : undefined}
+        className={cn(
+          "relative mb-[22px] flex items-center gap-[9px] rounded-[10px] py-[9px] pl-[14px] pr-[10px] transition-colors",
+          orientationActive
+            ? "bg-teal-soft"
+            : "hover:bg-[oklch(0.96_0.012_195)]",
+        )}
+      >
+        {orientationActive ? (
+          <span
+            aria-hidden
+            className="absolute bottom-[8px] left-[4px] top-[8px] w-[3px] rounded-[2px] bg-teal-ring"
+          />
+        ) : null}
+        <Compass
+          size={17}
+          weight="bold"
+          aria-hidden
+          className="shrink-0 text-teal"
+        />
+        <span className="flex min-w-0 flex-col">
+          <span className="text-[13.5px] font-medium text-ink-strong">
+            Orientation
+          </span>
+          <span className="text-[11.5px] text-ink-muted">Start here</span>
+        </span>
+      </Link>
       <div className="px-[10px] pb-[4px] font-mono text-[11px] tracking-[0.1em] text-faint">
         ALERT QUEUE
       </div>

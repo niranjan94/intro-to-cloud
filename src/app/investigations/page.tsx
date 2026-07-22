@@ -1,3 +1,8 @@
+import {
+  ArrowRightIcon as ArrowRight,
+  CompassIcon as Compass,
+} from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
 import { SOURCE_PLATFORM_LABELS } from "@/components/investigation/types";
 import { InvestigationCard } from "@/components/investigation-card";
 import {
@@ -27,6 +32,31 @@ export default function InvestigationsQueue() {
         training simulations, so all names, addresses, and indicators are
         fictional.
       </p>
+
+      <Link
+        href="/investigations/orientation"
+        className="mt-[28px] flex items-center gap-[14px] rounded-[16px] border border-line bg-teal-tint px-[20px] py-[16px] transition-colors hover:border-teal-ring max-[760px]:px-[16px]"
+      >
+        <span className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-[12px] bg-surface">
+          <Compass size={20} weight="bold" aria-hidden className="text-teal" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[15px] font-semibold text-ink-strong">
+            New to this? Start with Orientation
+          </span>
+          <span className="mt-[2px] block text-[13.5px] leading-[1.5] text-body">
+            A short, ungraded primer on the SOC analyst&rsquo;s job, the
+            vocabulary, and how to work an alert. Read it once before your first
+            case.
+          </span>
+        </span>
+        <ArrowRight
+          size={18}
+          weight="bold"
+          aria-hidden
+          className="shrink-0 text-teal-ink"
+        />
+      </Link>
 
       {groups.length === 0 ? (
         <p className="mt-[34px] text-[15px] text-ink-muted">
