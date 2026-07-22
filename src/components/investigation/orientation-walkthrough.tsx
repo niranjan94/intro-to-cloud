@@ -72,7 +72,7 @@ export function OrientationWalkthrough({
 
       <div
         key={current}
-        className="mt-[26px] motion-safe:animate-[fadeUp_0.35s_ease_both]"
+        className="mt-[26px] max-w-[760px] motion-safe:animate-[fadeUp_0.35s_ease_both]"
       >
         <p className="font-mono text-[12px] uppercase tracking-[0.08em] text-teal">
           {section.kicker}
@@ -80,7 +80,7 @@ export function OrientationWalkthrough({
         <h2 className="mt-[6px] text-[26px] font-extrabold tracking-[-0.02em] text-ink max-[520px]:text-[22px]">
           {section.title}
         </h2>
-        <p className="mt-[10px] max-w-[62ch] text-pretty text-[15px] leading-[1.6] text-body">
+        <p className="mt-[10px] text-pretty text-[15px] leading-[1.6] text-body">
           {section.intro}
         </p>
         {section.body}

@@ -10,7 +10,8 @@ how they differ from lessons:
   (AWS, Azure, Entra ID, Linux) — an axis independent of the two-value `Provider` type. The
   `Provider` union is left untouched: Entra ID and Linux are legitimate alert sources but are
   not cloud Providers in the teaching sense, and triage is not a "lens" on a Concept. The
-  Provider switcher is inert inside this section.
+  Provider switcher is hidden inside this section, since a lens control there would imply it
+  applies to the alert queue.
 
 - **Data-driven, not bespoke components (contra ADR-0003).** Every Investigation runs the
   identical five-phase flow and differs only in data (the alert, the checklist and its decoys,

@@ -43,6 +43,39 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
   );
 }
 
+/**
+ * Saturated fills for the compact severity dot. Brighter than the badge text
+ * colours so an 8px circle still reads at a glance; same hue families so the two
+ * representations stay recognizably the same scale.
+ */
+const SEVERITY_DOT: Record<Severity, string> = {
+  critical: "bg-[oklch(0.58_0.2_25)]",
+  high: "bg-[oklch(0.64_0.17_50)]",
+  medium: "bg-[oklch(0.75_0.14_85)]",
+  low: "bg-[oklch(0.62_0.12_235)]",
+  info: "bg-[oklch(0.75_0.02_230)]",
+};
+
+/**
+ * A minimal severity indicator for dense rows (the sidebar) where a full text
+ * badge would cost too much width. Carries an accessible label so the severity
+ * is not conveyed by colour alone.
+ */
+export function SeverityDot({ severity }: { severity: Severity }) {
+  return (
+    <span
+      className="inline-flex shrink-0 items-center"
+      title={`${SEVERITY_LABELS[severity]} severity`}
+    >
+      <span
+        aria-hidden
+        className={cn("h-[8px] w-[8px] rounded-full", SEVERITY_DOT[severity])}
+      />
+      <span className="sr-only">{SEVERITY_LABELS[severity]} severity</span>
+    </span>
+  );
+}
+
 const DIFFICULTY_STYLE: Record<Difficulty, string> = {
   guided: "border-teal-line bg-teal-tint text-teal-ink",
   standard: "border-line bg-surface-muted text-faint",

@@ -82,6 +82,29 @@ export const investigations: readonly InvestigationMeta[] = [
     data: () => import("./investigations/aws-iam-new-user/data"),
   },
   {
+    id: "aws-inspector-cve-noise",
+    title: "A critical CVE on a quiet host",
+    short:
+      "Inspector flags a 9.8 CVE on a production instance. Emergency, or the daily noise?",
+    sourcePlatform: "aws",
+    difficulty: "standard",
+    severity: "critical",
+    eventType: "Package Vulnerability Detected",
+    data: () => import("./investigations/aws-inspector-cve-noise/data"),
+  },
+  {
+    id: "aws-inspector-cve-exploitable",
+    title: "The same CVE, now reachable",
+    short:
+      "Another 9.8 from Inspector, same score as the last. This time look at where it lives.",
+    sourcePlatform: "aws",
+    difficulty: "challenge",
+    severity: "critical",
+    eventType: "Package Vulnerability Detected",
+    mitre: "Exploit Public-Facing Application (T1190)",
+    data: () => import("./investigations/aws-inspector-cve-exploitable/data"),
+  },
+  {
     id: "azure-rbac-owner",
     title: "Owner granted at subscription scope",
     short:
@@ -104,6 +127,18 @@ export const investigations: readonly InvestigationMeta[] = [
     eventType: "Storage Account Public Access Enabled",
     mitre: "Exfiltration Over Web Service (T1567)",
     data: () => import("./investigations/azure-storage-public/data"),
+  },
+  {
+    id: "entra-impossible-travel",
+    title: "Impossible travel that isn't",
+    short:
+      "A user signs in from two cities minutes apart. Stolen session, or something duller?",
+    sourcePlatform: "entra",
+    difficulty: "standard",
+    severity: "medium",
+    eventType: "Atypical Travel Detected",
+    mitre: "Valid Accounts: Cloud Accounts (T1078.004)",
+    data: () => import("./investigations/entra-impossible-travel/data"),
   },
   {
     id: "entra-inbox-forwarding",

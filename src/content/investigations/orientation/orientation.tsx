@@ -110,7 +110,7 @@ function TierList({
 /** A supporting paragraph within a section body. */
 function P({ children }: { children: ReactNode }) {
   return (
-    <p className="mt-[14px] max-w-[64ch] text-pretty text-[14.5px] leading-[1.7] text-body">
+    <p className="mt-[14px] text-pretty text-[14.5px] leading-[1.7] text-body">
       {children}
     </p>
   );
@@ -324,6 +324,27 @@ const sections: readonly OrientationSection[] = [
           ))}
         </div>
         <P>
+          Underneath those phases, three questions do most of the analytical
+          work. Hold them in mind as you read every alert; they are how you turn
+          a wall of evidence into a call.
+        </P>
+        <TermGrid
+          terms={[
+            {
+              term: "Is this normal here?",
+              def: "Most triage is comparison. A root login is alarming for an account that never uses root and routine for one that always does. Judge the event against what is usual for this user, host, or region, not against nothing.",
+            },
+            {
+              term: "What would an attacker be doing?",
+              def: "Read the evidence as a story, not a single line. One event is rarely damning; a sequence that fits a known technique is. Ask what an intruder would want here, and whether the events line up with it.",
+            },
+            {
+              term: "Does anything corroborate it?",
+              def: "One weak signal is a maybe. Two independent ones pointing the same way, an unusual location and an unusual action at the same time, make a case. Look for the second thing before you commit.",
+            },
+          ]}
+        />
+        <P>
           The exercises grade the whole chain, not just the final call. It is
           possible to reach the right verdict and still score poorly because the
           reasoning behind it was thin. That is on purpose: in a real SOC, an
@@ -346,8 +367,9 @@ const sections: readonly OrientationSection[] = [
               Escalate
             </div>
             <p className="mt-[5px] text-[13px] leading-[1.55] text-body">
-              This is real, or real enough to warrant a deeper look. It goes to
-              Tier 2 with your reasoning and the indicators you pulled.
+              This is real, real enough to warrant a deeper look, or something
+              you cannot confidently rule out. It goes to Tier 2 with your
+              reasoning and the indicators you pulled.
             </p>
           </div>
           <div className="rounded-[12px] border border-line bg-surface p-[16px]">
@@ -368,9 +390,48 @@ const sections: readonly OrientationSection[] = [
           exists to make your call defensible: you escalate because of a signal
           you named and an indicator you pulled, not a hunch.
         </P>
+      </>
+    ),
+  },
+  {
+    navLabel: "When unsure",
+    kicker: "The safety net",
+    title: "When you are not sure, escalate",
+    intro:
+      "You are Tier 1, and Tier 1 is not expected to be certain. The tiers above you exist precisely so an alert you cannot resolve does not stop with you. Knowing when to hand one up is part of the job, not an admission that you failed at it.",
+    body: (
+      <>
+        <P>
+          Some alerts will not resolve cleanly. The evidence is thin, or it
+          points both ways, or it touches a system you have never seen. That is
+          normal, and it does not mean you worked the alert badly. It means the
+          alert needs more time, more access, or more experience than a triage
+          pass is meant to give.
+        </P>
+        <P>
+          When that happens, escalate. A Tier 2 or Tier 3 analyst can pull logs
+          you cannot reach, correlate across more systems, and has likely seen
+          the pattern before. Handing them a clear "I cannot rule this out, and
+          here is exactly what I see" is good work. It is far better than
+          forcing a confident-looking verdict you do not actually hold.
+        </P>
+        <Callout
+          kind="fix"
+          tag="The rule that keeps you safe"
+          title="Uncertainty is a reason to escalate, never a reason to close."
+          body="A close means you are confident nothing happened. If you are not confident, you have not earned a close. When you genuinely cannot tell whether something is a signal, hand it up to L2 or L3 rather than waving it through. The close you were unsure about is the one that comes back."
+        />
+        <P>
+          These exercises are solo, so there is no live Tier 2 to ping
+          mid-alert; you make the final call yourself. Carry the same rule
+          anyway. When the evidence leaves you genuinely torn and you cannot
+          rule out a threat, lean toward Escalate. That is the instinct a real
+          SOC wants you to build, and it is the safer error to make.
+        </P>
         <div className="mt-[24px] rounded-[14px] border border-line bg-surface-muted p-[18px]">
           <p className="text-[15px] font-semibold text-ink-strong">
-            You have the vocabulary and the method. Time to work a real one.
+            You have the vocabulary, the method, and a safety net. Time to work
+            a real one.
           </p>
           <p className="mt-[6px] text-[13.5px] leading-[1.6] text-body">
             Head to the alert queue and start with a Guided alert, which reveals

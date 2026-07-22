@@ -1,6 +1,6 @@
 import Link from "next/link";
+import { HeaderLens } from "@/components/header-lens";
 import { HeaderNav } from "@/components/header-nav";
-import { ProviderSwitcher } from "@/components/provider-switcher";
 
 /**
  * Global top bar: a small "two lenses" mark + INTRO/CLOUD wordmark on the left,
@@ -32,12 +32,7 @@ export function AppHeader() {
           <HeaderNav />
         </div>
 
-        <div className="flex items-center gap-[14px]">
-          <span className="hidden text-[12px] font-medium text-ink-muted min-[900px]:inline">
-            Viewing through
-          </span>
-          <ProviderSwitcher />
-        </div>
+        <HeaderLens />
       </div>
     </header>
   );

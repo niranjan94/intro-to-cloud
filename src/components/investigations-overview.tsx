@@ -1,12 +1,17 @@
+import {
+  ArrowRightIcon as ArrowRight,
+  CompassIcon as Compass,
+} from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
-import { InvestigationCard } from "@/components/investigation-card";
-import { investigations, toQueueItem } from "@/content/investigations";
+import { investigations } from "@/content/investigations";
 
 /**
- * The Investigations teaser on the landing page: a short pitch and the alert
- * cards, linking into the full queue. Provider-independent (Investigations sit
- * outside the lens, ADR-0004), so unlike {@link ProjectsOverview} it does not
- * re-label when the top-bar switcher changes.
+ * The Investigations teaser on the landing page: a short pitch, the Orientation
+ * primer, and a link into the full queue. The alerts themselves are not listed
+ * here; the queue at /investigations is their home, and it stays scannable as
+ * the catalog grows. Provider-independent (Investigations sit outside the lens,
+ * ADR-0004), so unlike {@link ProjectsOverview} it does not re-label when the
+ * top-bar switcher changes.
  */
 export function InvestigationsOverview() {
   if (investigations.length === 0) return null;
@@ -27,14 +32,29 @@ export function InvestigationsOverview() {
         evidence and your judgment.
       </p>
 
-      <div className="mt-[20px] grid gap-[14px] [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
-        {investigations.map((investigation) => (
-          <InvestigationCard
-            key={investigation.id}
-            investigation={toQueueItem(investigation)}
-          />
-        ))}
-      </div>
+      <Link
+        href="/investigations/orientation"
+        className="mt-[20px] flex items-center gap-[14px] rounded-[16px] border border-line bg-teal-tint px-[20px] py-[16px] transition-colors hover:border-teal-ring max-[760px]:px-[16px]"
+      >
+        <span className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-[12px] bg-surface">
+          <Compass size={20} weight="bold" aria-hidden className="text-teal" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[15px] font-semibold text-ink-strong">
+            New to security? Start with Orientation
+          </span>
+          <span className="mt-[2px] block text-[13.5px] leading-[1.5] text-body">
+            A short, ungraded primer on what a SOC analyst does, the vocabulary,
+            and how to work an alert. Read it once before your first case.
+          </span>
+        </span>
+        <ArrowRight
+          size={18}
+          weight="bold"
+          aria-hidden
+          className="shrink-0 text-teal-ink"
+        />
+      </Link>
     </section>
   );
 }

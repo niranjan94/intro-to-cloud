@@ -4,7 +4,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { SOURCE_PLATFORM_LABELS } from "@/components/investigation/types";
-import { InvestigationCard } from "@/components/investigation-card";
+import { InvestigationRow } from "@/components/investigation-row";
 import {
   investigationsByPlatform,
   toQueueItem,
@@ -64,13 +64,16 @@ export default function InvestigationsQueue() {
         </p>
       ) : (
         groups.map((group) => (
-          <section key={group.platform} className="mt-[34px]">
-            <h2 className="text-[13px] font-semibold uppercase tracking-[0.06em] text-ink-muted">
+          <section key={group.platform} className="mt-[30px]">
+            <h2 className="mb-[10px] flex items-baseline gap-[8px] text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-muted">
               {SOURCE_PLATFORM_LABELS[group.platform]}
+              <span className="font-mono text-[11px] font-normal tracking-normal text-faint">
+                {group.items.length}
+              </span>
             </h2>
-            <div className="mt-[14px] grid gap-[14px] [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
+            <div className="overflow-hidden rounded-[14px] border border-line bg-surface">
               {group.items.map((investigation) => (
-                <InvestigationCard
+                <InvestigationRow
                   key={investigation.id}
                   investigation={toQueueItem(investigation)}
                 />
