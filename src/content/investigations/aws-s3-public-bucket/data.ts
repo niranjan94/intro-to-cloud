@@ -20,84 +20,146 @@ const investigation: Investigation = {
   mitre: "Transfer Data to Cloud Account (T1537)",
   detectionSource: "CloudTrail / Config / S3 Access Logs",
   evidence: {
-    blocks: [
-      {
-        kind: "summary",
-        time: "2026-05-02 23:41:18 UTC",
-        source: "CloudTrail · PutBucketPolicy",
-        message:
-          'The bucket meridian-customer-exports had Block Public Access removed and a bucket policy attached granting s3:GetObject to Principal "*". Server access logs show anonymous GET requests from external addresses beginning three minutes later.',
+    signal: {
+      title: "S3 bucket policy opened to the public",
+      source: "CloudTrail / Config / S3 Access Logs",
+      time: "2026-05-02 23:41:18 UTC",
+      description:
+        'The bucket meridian-customer-exports had Block Public Access removed and a bucket policy attached granting s3:GetObject to Principal "*". Server access logs record anonymous GET requests from external addresses beginning three minutes later.',
+      triage: {
+        source: "fallback",
+        disposition: "investigating",
+        confidence: 0,
+        note: "Not model-assessed. The pipeline applied the catalog severity and routed this to an analyst for a call.",
       },
-      {
-        kind: "kv",
-        title: "Change events",
-        rows: [
-          { label: "Bucket", value: "meridian-customer-exports" },
-          { label: "Events", value: "PutPublicAccessBlock, PutBucketPolicy" },
-          { label: "Actor", value: "IAM user svc-reporting (access key)" },
-          { label: "Access key id", value: "AKIA5MERIDIANEXPORTS" },
-          { label: "Source IP", value: "192.0.2.88" },
-          {
-            label: "Geolocation",
-            value: "Da Nang, VN (never seen for this principal)",
-          },
-          { label: "AWS region", value: "us-east-1" },
-          {
-            label: "User agent",
-            value: "aws-cli/2.15.30 Python/3.11",
-          },
-        ],
-      },
-      {
-        kind: "code",
-        title: "Raw CloudTrail (excerpt)",
-        body: `{
-  "eventName": "PutPublicAccessBlock",
-  "requestParameters": {
-    "bucketName": "meridian-customer-exports",
-    "PublicAccessBlockConfiguration": {
-      "BlockPublicAcls": false,
-      "BlockPublicPolicy": false,
-      "RestrictPublicBuckets": false
-    }
+      sections: [
+        {
+          heading: "Evidence",
+          rows: [
+            { label: "Bucket", value: "meridian-customer-exports", wide: true },
+            { label: "Events", value: "PutPublicAccessBlock, PutBucketPolicy" },
+            {
+              label: "Policy grant",
+              value: 'Principal "*" on s3:GetObject',
+            },
+            {
+              label: "Block Public Access",
+              value: "Removed (acls, policy, restrict all false)",
+              wide: true,
+            },
+            { label: "Actor", value: "IAM user svc-reporting (access key)" },
+            { label: "Access key id", value: "AKIA5MERIDIANEXPORTS" },
+            { label: "Source IP", value: "192.0.2.88" },
+            {
+              label: "Geolocation",
+              value: "Da Nang, VN (never seen for this principal)",
+              wide: true,
+            },
+            {
+              label: "User agent",
+              value: "aws-cli/2.15.30 Python/3.11",
+              wide: true,
+            },
+          ],
+        },
+        {
+          heading: "Post-change access log",
+          rows: [
+            {
+              label: "23:44:02",
+              value:
+                "anonymous GET exports/2026-04-q1.csv (200) from 203.0.113.201",
+              wide: true,
+            },
+            {
+              label: "23:44:51",
+              value:
+                "anonymous GET exports/pii-index.json (200) from 198.51.100.240",
+              wide: true,
+            },
+          ],
+        },
+        {
+          heading: "Threat intel",
+          chips: ["Transfer Data to Cloud Account (T1537)"],
+          rows: [],
+        },
+        {
+          heading: "Context",
+          rows: [
+            {
+              label: "Bucket purpose",
+              value:
+                "Holds nightly customer data exports; meant to stay fully private",
+              wide: true,
+            },
+            {
+              label: "Admin baseline",
+              value:
+                "Admins operate through SSO roles from 198.51.100.0/24, never long-lived IAM keys",
+              wide: true,
+            },
+            {
+              label: "Change ticket",
+              value: "None references opening this bucket",
+              wide: true,
+            },
+          ],
+        },
+        {
+          heading: "Details",
+          rows: [
+            { label: "Alert ID", value: "AWS-S3-001" },
+            { label: "Category", value: "Data exposure" },
+            {
+              label: "Detection source",
+              value: "CloudTrail / Config / S3 Access Logs",
+              wide: true,
+            },
+            { label: "Account", value: "400123456789" },
+            { label: "Region", value: "us-east-1" },
+            { label: "Encryption at rest", value: "SSE-S3" },
+            { label: "Versioning", value: "Enabled" },
+            { label: "Event time", value: "2026-05-02 23:41:18 UTC" },
+          ],
+        },
+      ],
+      raw: `{
+  "class_name": "Detection Finding",
+  "severity": "Critical",
+  "actor": { "user": { "type": "IAMUser", "name": "svc-reporting" } },
+  "src_endpoint": { "ip": "192.0.2.88" },
+  "finding_info": {
+    "title": "S3 bucket policy opened to the public",
+    "attacks": [{ "technique": { "uid": "T1537", "name": "Transfer Data to Cloud Account" } }]
   },
-  "sourceIPAddress": "192.0.2.88",
-  "userIdentity": {
-    "type": "IAMUser",
-    "userName": "svc-reporting",
-    "accessKeyId": "AKIA5MERIDIANEXPORTS"
+  "resources": [
+    { "uid": "meridian-customer-exports", "type": "AWS::S3::Bucket" }
+  ],
+  "cloud": { "provider": "aws", "region": "us-east-1", "account": { "uid": "400123456789" } },
+  "unmapped": {
+    "raw_event": {
+      "eventName": "PutPublicAccessBlock",
+      "requestParameters": {
+        "bucketName": "meridian-customer-exports",
+        "PublicAccessBlockConfiguration": { "BlockPublicAcls": false, "BlockPublicPolicy": false, "RestrictPublicBuckets": false }
+      },
+      "userIdentity": { "type": "IAMUser", "userName": "svc-reporting", "accessKeyId": "AKIA5MERIDIANEXPORTS" }
+    },
+    "follow_up_event": {
+      "eventName": "PutBucketPolicy",
+      "requestParameters": {
+        "bucketName": "meridian-customer-exports",
+        "bucketPolicy": { "Statement": [{ "Effect": "Allow", "Principal": "*", "Action": "s3:GetObject", "Resource": "arn:aws:s3:::meridian-customer-exports/*" }] }
+      }
+    },
+    "access_log": [
+      "23:44:02 203.0.113.201 REST.GET.OBJECT exports/2026-04-q1.csv 200 anonymous",
+      "23:44:51 198.51.100.240 REST.GET.OBJECT exports/pii-index.json 200 anonymous"
+    ]
   }
-}
---
-{
-  "eventName": "PutBucketPolicy",
-  "requestParameters": {
-    "bucketName": "meridian-customer-exports",
-    "bucketPolicy": {
-      "Statement": [{
-        "Effect": "Allow",
-        "Principal": "*",
-        "Action": "s3:GetObject",
-        "Resource": "arn:aws:s3:::meridian-customer-exports/*"
-      }]
-    }
-  },
-  "sourceIPAddress": "192.0.2.88"
 }`,
-      },
-      {
-        kind: "code",
-        title: "S3 server access log (excerpt)",
-        body: `23:44:02 meridian-customer-exports 203.0.113.201 - REST.GET.OBJECT exports/2026-04-q1.csv "GET /exports/2026-04-q1.csv" 200 - anonymous
-23:44:07 meridian-customer-exports 203.0.113.201 - REST.GET.OBJECT exports/2026-04-q1.csv "GET /exports/2026-04-q1.csv" 200 - anonymous
-23:44:51 meridian-customer-exports 198.51.100.240 - REST.GET.OBJECT exports/pii-index.json "GET /exports/pii-index.json" 200 - anonymous`,
-      },
-      {
-        kind: "note",
-        title: "Context",
-        body: "meridian-customer-exports holds nightly customer data exports and is meant to stay fully private. Meridian admins operate through SSO roles from the office egress range 198.51.100.0/24, never through long-lived IAM access keys. No change ticket references opening this bucket.",
-      },
-    ],
+    },
   },
   aspects: [
     {

@@ -20,59 +20,103 @@ const investigation: Investigation = {
   mitre: "Valid Accounts (T1078)",
   detectionSource: "CloudTrail",
   evidence: {
-    blocks: [
-      {
-        kind: "summary",
-        time: "2026-03-14 02:14:07 UTC",
-        source: "CloudTrail · ConsoleLogin",
-        message:
-          "Root account console sign-in in the Meridian production account (id 400123456789). The session created a new access key ninety seconds later.",
+    signal: {
+      title: "Root account console sign-in",
+      source: "CloudTrail",
+      time: "2026-03-14 02:14:07 UTC",
+      description:
+        "AWS CloudTrail recorded a console sign-in using the account root user in the Meridian production account (id 400123456789). A CreateAccessKey call followed on the same session ninety seconds later.",
+      triage: {
+        source: "fallback",
+        disposition: "investigating",
+        confidence: 0,
+        note: "Not model-assessed. The pipeline applied the catalog severity and routed this to an analyst for a call.",
       },
-      {
-        kind: "kv",
-        title: "Sign-in event",
-        rows: [
-          { label: "Event", value: "ConsoleLogin" },
-          { label: "Identity type", value: "Root" },
-          { label: "MFA used", value: "No" },
-          { label: "Source IP", value: "203.0.113.47" },
-          {
-            label: "Geolocation",
-            value: "Skopje, MK (never seen for this account)",
-          },
-          { label: "AWS region", value: "us-east-1" },
-          {
-            label: "User agent",
-            value: "python-requests/2.31.0",
-          },
-        ],
-      },
-      {
-        kind: "code",
-        title: "Raw CloudTrail (excerpt)",
-        body: `{
-  "eventName": "ConsoleLogin",
-  "userIdentity": { "type": "Root", "accountId": "400123456789" },
-  "sourceIPAddress": "203.0.113.47",
-  "additionalEventData": { "MFAUsed": "No" },
-  "responseElements": { "ConsoleLogin": "Success" }
-}
---
-{
-  "eventName": "CreateAccessKey",
-  "eventTime": "2026-03-14T02:15:39Z",
-  "userIdentity": { "type": "Root" },
-  "responseElements": {
-    "accessKey": { "accessKeyId": "AKIAV7QMEXAMPLE3ROOT", "status": "Active" }
+      sections: [
+        {
+          heading: "Evidence",
+          rows: [
+            { label: "Event", value: "ConsoleLogin" },
+            { label: "Identity type", value: "Root" },
+            { label: "MFA used", value: "No" },
+            { label: "Channel", value: "AWS Management Console" },
+            { label: "Source IP", value: "203.0.113.47" },
+            {
+              label: "Geolocation",
+              value: "Skopje, MK (never seen for this account)",
+              wide: true,
+            },
+            {
+              label: "User agent",
+              value: "python-requests/2.31.0",
+              wide: true,
+            },
+            {
+              label: "Session follow-up",
+              value: "CreateAccessKey created AKIAV7QMEXAMPLE3ROOT (Active)",
+              wide: true,
+            },
+          ],
+        },
+        {
+          heading: "Threat intel",
+          chips: ["Valid Accounts (T1078)"],
+          rows: [],
+        },
+        {
+          heading: "Context",
+          rows: [
+            {
+              label: "Root usage policy",
+              value:
+                "Hardware MFA required; used only from office egress 198.51.100.0/24",
+              wide: true,
+            },
+            {
+              label: "Change ticket",
+              value: "None references root access tonight",
+              wide: true,
+            },
+          ],
+        },
+        {
+          heading: "Details",
+          rows: [
+            { label: "Alert ID", value: "AWS-IAM-001" },
+            { label: "Category", value: "Identity" },
+            { label: "Detection source", value: "CloudTrail" },
+            { label: "Account", value: "400123456789" },
+            { label: "Region", value: "us-east-1" },
+            { label: "Support plan", value: "Business" },
+            { label: "Event time", value: "2026-03-14 02:14:07 UTC" },
+          ],
+        },
+      ],
+      raw: `{
+  "class_name": "Detection Finding",
+  "severity": "Critical",
+  "actor": { "user": { "type": "Root", "account_uid": "400123456789" } },
+  "src_endpoint": { "ip": "203.0.113.47" },
+  "finding_info": {
+    "title": "Root account console sign-in",
+    "attacks": [{ "technique": { "uid": "T1078", "name": "Valid Accounts" } }]
+  },
+  "cloud": { "provider": "aws", "region": "us-east-1", "account": { "uid": "400123456789" } },
+  "unmapped": {
+    "raw_event": {
+      "eventName": "ConsoleLogin",
+      "additionalEventData": { "MFAUsed": "No" },
+      "responseElements": { "ConsoleLogin": "Success" },
+      "userAgent": "python-requests/2.31.0"
+    },
+    "follow_up_event": {
+      "eventName": "CreateAccessKey",
+      "eventTime": "2026-03-14T02:15:39Z",
+      "responseElements": { "accessKey": { "accessKeyId": "AKIAV7QMEXAMPLE3ROOT", "status": "Active" } }
+    }
   }
 }`,
-      },
-      {
-        kind: "note",
-        title: "Context",
-        body: "Meridian's policy locks root away with hardware MFA and uses it only for the handful of tasks that require it, always from the office egress range 198.51.100.0/24. No change ticket references root access tonight.",
-      },
-    ],
+    },
   },
   aspects: [
     {

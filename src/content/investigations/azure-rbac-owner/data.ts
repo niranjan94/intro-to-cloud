@@ -21,69 +21,120 @@ const investigation: Investigation = {
   mitre: "Cloud Accounts (T1078.004)",
   detectionSource: "Activity Log",
   evidence: {
-    blocks: [
-      {
-        kind: "summary",
-        time: "2026-04-02 23:47:12 UTC",
-        source: "Activity Log · Microsoft.Authorization/roleAssignments/write",
-        message:
-          "A permanent Owner role assignment was created at the scope of the meridian-prod subscription (id 7f3a1c9e-4b22-4e18-9a67-1d0e5c8b2a41). The principal receiving it is an external guest account, and the assignment was made by a service principal.",
+    signal: {
+      title: "Owner role assigned at subscription scope",
+      source: "Azure Activity Log",
+      time: "2026-04-02 23:47:12 UTC",
+      description:
+        "The Azure Activity Log recorded a roleAssignments/write creating a permanent Owner assignment at the scope of the meridian-prod subscription (id 7f3a1c9e-4b22-4e18-9a67-1d0e5c8b2a41). The principal receiving it is an external guest account, and the assignment was made by a service principal.",
+      triage: {
+        source: "fallback",
+        disposition: "investigating",
+        confidence: 0,
+        note: "Not model-assessed. The pipeline applied the catalog severity and routed this to an analyst for a call.",
       },
-      {
-        kind: "kv",
-        title: "Role assignment",
-        rows: [
-          { label: "Operation", value: "roleAssignments/write" },
-          { label: "Role", value: "Owner" },
-          {
-            label: "Scope",
-            value: "/subscriptions/7f3a1c9e-4b22-4e18-9a67-1d0e5c8b2a41",
-          },
-          {
-            label: "Assignment type",
-            value: "Permanent (not a PIM eligible activation)",
-          },
-          {
-            label: "Grantee",
-            value:
-              "brett.h_freemail.example#EXT#@meridian.onmicrosoft.com (Guest)",
-          },
-          {
-            label: "Actor",
-            value: "sp-terraform-legacy (service principal, dormant 8 months)",
-          },
-          { label: "Source IP", value: "192.0.2.161" },
-          {
-            label: "Geolocation",
-            value: "Lagos, NG (never seen for this tenant)",
-          },
-          { label: "Status", value: "Succeeded" },
-          { label: "Channel", value: "Azure Portal" },
-        ],
-      },
-      {
-        kind: "code",
-        title: "Raw Activity Log (excerpt)",
-        body: `{
-  "operationName": "Microsoft.Authorization/roleAssignments/write",
-  "resultType": "Success",
-  "callerIpAddress": "192.0.2.161",
-  "claims": { "appid": "sp-terraform-legacy" },
-  "properties": {
-    "roleDefinitionId": "8e3af657-a8ff-443c-a75c-2fe8c4bcb635",
-    "roleName": "Owner",
-    "principalId": "c41d8f2b-77a6-4b90-9c3e-5a2f6e0d1b88",
-    "principalType": "Guest",
-    "scope": "/subscriptions/7f3a1c9e-4b22-4e18-9a67-1d0e5c8b2a41"
+      sections: [
+        {
+          heading: "Evidence",
+          rows: [
+            { label: "Operation", value: "roleAssignments/write" },
+            { label: "Role", value: "Owner" },
+            {
+              label: "Scope",
+              value: "/subscriptions/7f3a1c9e-4b22-4e18-9a67-1d0e5c8b2a41",
+              wide: true,
+            },
+            {
+              label: "Assignment type",
+              value: "Permanent (not a PIM eligible activation)",
+              wide: true,
+            },
+            {
+              label: "Grantee",
+              value:
+                "brett.h_freemail.example#EXT#@meridian.onmicrosoft.com (Guest)",
+              wide: true,
+            },
+            {
+              label: "Actor",
+              value:
+                "sp-terraform-legacy (service principal, dormant 8 months)",
+              wide: true,
+            },
+            { label: "Source IP", value: "192.0.2.161" },
+            {
+              label: "Geolocation",
+              value: "Lagos, NG (never seen for this tenant)",
+              wide: true,
+            },
+            { label: "Status", value: "Succeeded" },
+            { label: "Channel", value: "Azure Portal" },
+          ],
+        },
+        {
+          heading: "Threat intel",
+          chips: ["Cloud Accounts (T1078.004)"],
+          rows: [],
+        },
+        {
+          heading: "Context",
+          rows: [
+            {
+              label: "Privileged-access policy",
+              value:
+                "Standing privileged roles are granted only through PIM as time-bound, approval-gated activations from 198.51.100.0/24; permanent Owner is prohibited",
+              wide: true,
+            },
+            {
+              label: "Change ticket",
+              value: "None references this grant",
+              wide: true,
+            },
+            {
+              label: "Role definition",
+              value:
+                "8e3af657-a8ff-443c-a75c-2fe8c4bcb635 is the built-in Owner role",
+              wide: true,
+            },
+          ],
+        },
+        {
+          heading: "Details",
+          rows: [
+            { label: "Alert ID", value: "AZ-RBAC-001" },
+            { label: "Category", value: "Identity" },
+            { label: "Detection source", value: "Activity Log" },
+            { label: "Subscription", value: "meridian-prod" },
+            { label: "Event time", value: "2026-04-02 23:47:12 UTC" },
+          ],
+        },
+      ],
+      raw: `{
+  "class_name": "Detection Finding",
+  "severity": "Critical",
+  "actor": { "app": { "name": "sp-terraform-legacy" } },
+  "src_endpoint": { "ip": "192.0.2.161" },
+  "finding_info": {
+    "title": "Privileged RBAC role assigned",
+    "attacks": [{ "technique": { "uid": "T1078.004", "name": "Cloud Accounts" } }]
+  },
+  "cloud": { "provider": "azure", "account": { "uid": "7f3a1c9e-4b22-4e18-9a67-1d0e5c8b2a41" } },
+  "unmapped": {
+    "raw_event": {
+      "operationName": "Microsoft.Authorization/roleAssignments/write",
+      "resultType": "Success",
+      "callerIpAddress": "192.0.2.161",
+      "claims": { "appid": "sp-terraform-legacy" },
+      "properties": {
+        "roleName": "Owner",
+        "roleDefinitionId": "8e3af657-a8ff-443c-a75c-2fe8c4bcb635",
+        "principalType": "Guest",
+        "scope": "/subscriptions/7f3a1c9e-4b22-4e18-9a67-1d0e5c8b2a41"
+      }
+    }
   }
 }`,
-      },
-      {
-        kind: "note",
-        title: "Context",
-        body: "Meridian grants standing privileged roles only through PIM as time-bound, approval-gated eligible activations, always from the office egress range 198.51.100.0/24. Permanent Owner assignments are prohibited by policy, and no change ticket references this grant. The role definition id 8e3af657-a8ff-443c-a75c-2fe8c4bcb635 is the built-in Owner role.",
-      },
-    ],
+    },
   },
   aspects: [
     {

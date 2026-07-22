@@ -19,67 +19,112 @@ const investigation: Investigation = {
   mitre: "Create Account (T1136)",
   detectionSource: "CloudTrail",
   evidence: {
-    blocks: [
-      {
-        kind: "summary",
-        time: "2026-05-02 03:41:55 UTC",
-        source: "CloudTrail · CreateUser",
-        message:
-          "A new IAM user, svc-reporting, was created in the Meridian production account (id 400123456789) by an assumed automation role, then given a scoped policy and one access key.",
+    signal: {
+      title: "New IAM user created by an automation role",
+      source: "CloudTrail",
+      time: "2026-05-02 03:41:55 UTC",
+      description:
+        "AWS CloudTrail recorded a CreateUser call in the Meridian production account (id 400123456789). A new IAM user was created by an assumed role, then given a scoped policy and one programmatic access key.",
+      triage: {
+        source: "fallback",
+        disposition: "investigating",
+        confidence: 0,
+        note: "Not model-assessed. The pipeline applied the catalog severity and routed this to an analyst for a call.",
       },
-      {
-        kind: "kv",
-        title: "Provisioning event",
-        rows: [
-          { label: "Event", value: "CreateUser" },
-          { label: "New user", value: "svc-reporting" },
-          {
-            label: "Created by",
-            value: "assumed-role/terraform-ci/pipeline-run-8842",
-          },
-          { label: "Source IP", value: "198.51.100.20 (Meridian CI egress)" },
-          { label: "AWS region", value: "us-east-1" },
-          {
-            label: "Permissions boundary",
-            value: "arn:aws:iam::400123456789:policy/boundary-service-accounts",
-          },
-          {
-            label: "Attached policy",
-            value: "read-only, s3://meridian-analytics/reporting/*",
-          },
-          { label: "Console access", value: "None (programmatic only)" },
-        ],
-      },
-      {
-        kind: "code",
-        title: "Raw CloudTrail (excerpt)",
-        body: `{
-  "eventName": "CreateUser",
-  "userIdentity": {
-    "type": "AssumedRole",
-    "arn": "arn:aws:sts::400123456789:assumed-role/terraform-ci/pipeline-run-8842"
+      sections: [
+        {
+          heading: "Evidence",
+          rows: [
+            { label: "Event", value: "CreateUser" },
+            { label: "New user", value: "svc-reporting" },
+            {
+              label: "Created by",
+              value: "assumed-role/terraform-ci/pipeline-run-8842",
+              wide: true,
+            },
+            { label: "Source IP", value: "198.51.100.20 (Meridian CI egress)" },
+            { label: "Access key issued", value: "Yes (programmatic)" },
+            { label: "Console access", value: "None" },
+            {
+              label: "Permissions boundary",
+              value:
+                "arn:aws:iam::400123456789:policy/boundary-service-accounts",
+              wide: true,
+            },
+            {
+              label: "Attached policy",
+              value: "read-only, s3://meridian-analytics/reporting/*",
+              wide: true,
+            },
+          ],
+        },
+        {
+          heading: "Threat intel",
+          chips: ["Create Account (T1136)"],
+          rows: [],
+        },
+        {
+          heading: "Context",
+          rows: [
+            {
+              label: "Change ticket",
+              value:
+                "CHG-4471 (approved): onboard a quarterly reporting service",
+              wide: true,
+            },
+            {
+              label: "Provisioning path",
+              value:
+                "Service accounts are created by the Terraform pipeline assuming terraform-ci from CI egress 198.51.100.0/24, always with the service-account permissions boundary",
+              wide: true,
+            },
+          ],
+        },
+        {
+          heading: "Details",
+          rows: [
+            { label: "Alert ID", value: "AWS-IAM-005" },
+            { label: "Category", value: "Identity" },
+            { label: "Detection source", value: "CloudTrail" },
+            { label: "Account", value: "400123456789" },
+            { label: "Region", value: "us-east-1" },
+            { label: "IAM users in account", value: "200+" },
+            { label: "Event time", value: "2026-05-02 03:41:55 UTC" },
+          ],
+        },
+      ],
+      raw: `{
+  "class_name": "Detection Finding",
+  "severity": "Medium",
+  "actor": { "user": { "type": "AssumedRole", "name": "terraform-ci" } },
+  "src_endpoint": { "ip": "198.51.100.20" },
+  "finding_info": {
+    "title": "New IAM user created",
+    "attacks": [{ "technique": { "uid": "T1136", "name": "Create Account" } }]
   },
-  "sourceIPAddress": "198.51.100.20",
-  "requestParameters": {
-    "userName": "svc-reporting",
-    "permissionsBoundary": "arn:aws:iam::400123456789:policy/boundary-service-accounts"
-  }
-}
---
-{
-  "eventName": "AttachUserPolicy",
-  "requestParameters": {
-    "userName": "svc-reporting",
-    "policyArn": "arn:aws:iam::400123456789:policy/reporting-read-only"
+  "cloud": { "provider": "aws", "region": "us-east-1", "account": { "uid": "400123456789" } },
+  "unmapped": {
+    "raw_event": {
+      "eventName": "CreateUser",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::400123456789:assumed-role/terraform-ci/pipeline-run-8842"
+      },
+      "requestParameters": {
+        "userName": "svc-reporting",
+        "permissionsBoundary": "arn:aws:iam::400123456789:policy/boundary-service-accounts"
+      }
+    },
+    "follow_up_event": {
+      "eventName": "AttachUserPolicy",
+      "requestParameters": {
+        "userName": "svc-reporting",
+        "policyArn": "arn:aws:iam::400123456789:policy/reporting-read-only"
+      }
+    }
   }
 }`,
-      },
-      {
-        kind: "note",
-        title: "Context",
-        body: "Change ticket CHG-4471 (approved) covers onboarding a quarterly reporting service. Meridian provisions every service account through the Platform team's Terraform pipeline, which assumes terraform-ci from the CI egress range 198.51.100.0/24 and always attaches the service-account permissions boundary.",
-      },
-    ],
+    },
   },
   aspects: [
     {

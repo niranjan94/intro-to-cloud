@@ -23,75 +23,105 @@ const investigation: Investigation = {
   mitre: "Valid Accounts: Cloud Accounts (T1078.004)",
   detectionSource: "Entra Sign-in Logs",
   evidence: {
-    blocks: [
-      {
-        kind: "summary",
-        time: "2026-06-18 21:47:03 UTC",
-        source: "Entra Sign-in Logs · Risk Detection",
-        message:
-          "Entra ID Protection raised an Atypical Travel risk for j.okafor@meridian.example: two successful sign-ins about 25 minutes apart from locations roughly 950 km apart, a distance that cannot be travelled in the time between them.",
+    signal: {
+      title: "Atypical travel risk on a user sign-in",
+      source: "Entra Sign-in Logs",
+      time: "2026-06-18 21:47:03 UTC",
+      description:
+        "Entra ID Protection raised an Atypical Travel risk for j.okafor@meridian.example: two successful sign-ins about 25 minutes apart from locations roughly 950 km apart, a distance that cannot be travelled in the time between them.",
+      triage: {
+        source: "llm",
+        disposition: "suspicious",
+        confidence: 55,
+        note: "The model flagged the travel pattern but could not attribute the second location on its own. Confirm or overturn its call.",
       },
-      {
-        kind: "kv",
-        title: "The two sign-ins",
-        rows: [
-          { label: "User", value: "j.okafor@meridian.example" },
-          { label: "Risk detection", value: "Atypical travel (Medium)" },
-          {
-            label: "First sign-in",
-            value: "21:22 UTC · 198.51.100.72 · residential ISP, city A",
-          },
-          {
-            label: "Second sign-in",
-            value: "21:47 UTC · 203.0.113.140 · hosting/datacenter ASN, city B",
-          },
-          { label: "Time between", value: "25 minutes" },
-          { label: "MFA", value: "Satisfied on both sign-ins" },
-          {
-            label: "Device",
-            value: "Enrolled, Intune-compliant, same device id",
-          },
-          {
-            label: "Second IP note",
-            value: "203.0.113.140 is on Meridian's published VPN egress list",
-          },
-        ],
-      },
-      {
-        kind: "code",
-        title: "Raw sign-in risk (OCSF, excerpt)",
-        body: `{
+      sections: [
+        {
+          heading: "The two sign-ins",
+          rows: [
+            { label: "User", value: "j.okafor@meridian.example" },
+            { label: "Risk detection", value: "Atypical travel (Medium)" },
+            {
+              label: "First sign-in",
+              value: "21:22 UTC · 198.51.100.72 · residential ISP, city A",
+              wide: true,
+            },
+            {
+              label: "Second sign-in",
+              value:
+                "21:47 UTC · 203.0.113.140 · hosting/datacenter ASN, city B",
+              wide: true,
+            },
+            { label: "Time between", value: "25 minutes" },
+            { label: "MFA", value: "Satisfied on both sign-ins" },
+            {
+              label: "Device",
+              value: "Enrolled, Intune-compliant, same device id",
+              wide: true,
+            },
+          ],
+        },
+        {
+          heading: "Threat intel",
+          chips: ["Valid Accounts: Cloud Accounts (T1078.004)"],
+          rows: [],
+        },
+        {
+          heading: "Context",
+          rows: [
+            {
+              label: "VPN attribution",
+              value:
+                "203.0.113.140 is on Meridian's published VPN concentrator egress list (a datacenter in city B)",
+              wide: true,
+            },
+            {
+              label: "User",
+              value:
+                "j.okafor is a remote employee who connected to the VPN after the first sign-in",
+              wide: true,
+            },
+          ],
+        },
+        {
+          heading: "Details",
+          rows: [
+            { label: "Alert ID", value: "ENTRA-IDP-014" },
+            { label: "Category", value: "Identity" },
+            { label: "Detection source", value: "Entra Sign-in Logs" },
+            { label: "Tenant", value: "meridian.onmicrosoft.com" },
+            { label: "Event time", value: "2026-06-18 21:47:03 UTC" },
+          ],
+        },
+      ],
+      raw: `{
   "class_name": "Detection Finding",
   "severity": "Medium",
   "actor": { "user": { "name": "j.okafor@meridian.example" } },
   "finding_info": {
     "title": "Atypical travel",
-    "attacks": [{ "technique": { "uid": "T1078.004" } }]
+    "attacks": [{ "technique": { "uid": "T1078.004", "name": "Cloud Accounts" } }]
   },
   "sign_ins": [
-    {
-      "time": "2026-06-18T21:22:00Z",
-      "ip": "198.51.100.72",
-      "location": "city A",
-      "mfa": "satisfied",
-      "device_compliant": true
-    },
-    {
-      "time": "2026-06-18T21:47:00Z",
-      "ip": "203.0.113.140",
-      "location": "city B",
-      "mfa": "satisfied",
-      "device_compliant": true
-    }
-  ]
+    { "time": "2026-06-18T21:22:00Z", "ip": "198.51.100.72", "location": "city A", "mfa": "satisfied", "device_compliant": true },
+    { "time": "2026-06-18T21:47:00Z", "ip": "203.0.113.140", "location": "city B", "mfa": "satisfied", "device_compliant": true }
+  ],
+  "unmapped": {
+    "risk_level": "medium",
+    "risk_detail": "atypical travel between two geographies",
+    "second_ip_asn": "hosting/datacenter"
+  }
 }`,
-      },
-      {
-        kind: "note",
-        title: "Context",
-        body: "The automated pipeline did reach a verdict on this one: assessment source llm, disposition suspicious, confidence 55, because it could not attribute the second location on its own. Meridian routes remote staff through a VPN concentrator whose egress, 203.0.113.140, sits in a datacenter in city B and is on the published corporate egress list. j.okafor is a remote employee who connected to the VPN after the first sign-in. Your job is to confirm or overturn the automated call, not to defer to it.",
-      },
-    ],
+      unmapped: [
+        { label: "risk_level", value: "medium" },
+        {
+          label: "risk_detail",
+          value: "atypical travel between two geographies",
+          wide: true,
+        },
+        { label: "second_ip_asn", value: "hosting/datacenter", wide: true },
+      ],
+    },
   },
   aspects: [
     {

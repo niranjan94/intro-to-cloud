@@ -20,64 +20,107 @@ const investigation: Investigation = {
   mitre: "Exfiltration Over Web Service (T1567)",
   detectionSource: "Activity Log",
   evidence: {
-    blocks: [
-      {
-        kind: "summary",
-        time: "2026-06-11 12:26:31 UTC",
-        source: "Activity Log · Microsoft.Storage/storageAccounts/write",
-        message:
-          "Public access was enabled on the Meridian storage account meridianwebassets, and its $web container was set to anonymous blob access.",
+    signal: {
+      title: "Public blob access enabled on a storage account",
+      source: "Azure Activity Log",
+      time: "2026-06-11 12:26:31 UTC",
+      description:
+        "The Azure Activity Log recorded a storageAccounts/write enabling public access on the storage account meridianwebassets, followed by a container write setting its $web container to anonymous blob access.",
+      triage: {
+        source: "fallback",
+        disposition: "investigating",
+        confidence: 0,
+        note: "Not model-assessed. The pipeline applied the catalog severity and routed this to an analyst for a call.",
       },
-      {
-        kind: "kv",
-        title: "Change event",
-        rows: [
-          {
-            label: "Operation",
-            value: "Microsoft.Storage/storageAccounts/write",
-          },
-          { label: "Storage account", value: "meridianwebassets" },
-          { label: "allowBlobPublicAccess", value: "true" },
-          { label: "Public container", value: "$web (anonymous blob)" },
-          {
-            label: "Other containers",
-            value: "data, backups (remain private)",
-          },
-          {
-            label: "Actor",
-            value: "web-platform-sp (service principal)",
-          },
-          { label: "Source IP", value: "198.51.100.34 (Meridian egress)" },
-          { label: "Region", value: "eastus" },
-        ],
-      },
-      {
-        kind: "code",
-        title: "Activity Log (excerpt)",
-        body: `{
-  "operationName": "Microsoft.Storage/storageAccounts/write",
-  "caller": "web-platform-sp",
-  "callerIpAddress": "198.51.100.34",
-  "properties": {
-    "allowBlobPublicAccess": true,
-    "staticWebsite": { "enabled": true, "indexDocument": "index.html" }
+      sections: [
+        {
+          heading: "Evidence",
+          rows: [
+            {
+              label: "Operation",
+              value: "Microsoft.Storage/storageAccounts/write",
+              wide: true,
+            },
+            { label: "Storage account", value: "meridianwebassets" },
+            { label: "allowBlobPublicAccess", value: "true" },
+            { label: "Public container", value: "$web (anonymous blob)" },
+            {
+              label: "Other containers",
+              value: "data, backups (remain private)",
+            },
+            {
+              label: "Static website",
+              value: "Enabled (index.html)",
+              wide: true,
+            },
+            { label: "Actor", value: "web-platform-sp (service principal)" },
+            { label: "Source IP", value: "198.51.100.34 (Meridian egress)" },
+          ],
+        },
+        {
+          heading: "Threat intel",
+          chips: ["Exfiltration Over Web Service (T1567)"],
+          rows: [],
+        },
+        {
+          heading: "Context",
+          rows: [
+            {
+              label: "Change ticket",
+              value:
+                "CHG-5120 (approved): move the public marketing site to static website hosting, which requires anonymous read on the reserved $web container",
+              wide: true,
+            },
+            {
+              label: "Content scan of $web",
+              value:
+                "Only public marketing assets; the data and backups containers were untouched and stay private",
+              wide: true,
+            },
+          ],
+        },
+        {
+          heading: "Details",
+          rows: [
+            { label: "Alert ID", value: "AZ-STOR-001" },
+            { label: "Category", value: "Data exposure" },
+            { label: "Detection source", value: "Activity Log" },
+            { label: "Region", value: "eastus" },
+            { label: "Replication", value: "Geo-redundant (GRS)" },
+            { label: "Event time", value: "2026-06-11 12:26:31 UTC" },
+          ],
+        },
+      ],
+      raw: `{
+  "class_name": "Detection Finding",
+  "severity": "Critical",
+  "actor": { "app": { "name": "web-platform-sp" } },
+  "src_endpoint": { "ip": "198.51.100.34" },
+  "finding_info": {
+    "title": "Storage account public access enabled",
+    "attacks": [{ "technique": { "uid": "T1567", "name": "Exfiltration Over Web Service" } }]
   },
-  "status": "Succeeded"
-}
---
-{
-  "operationName": "Microsoft.Storage/storageAccounts/blobServices/containers/write",
-  "resource": "meridianwebassets/$web",
-  "properties": { "publicAccess": "Blob" },
-  "status": "Succeeded"
+  "resources": [
+    { "uid": "meridianwebassets", "type": "Microsoft.Storage/storageAccounts" }
+  ],
+  "cloud": { "provider": "azure", "region": "eastus" },
+  "unmapped": {
+    "raw_event": {
+      "operationName": "Microsoft.Storage/storageAccounts/write",
+      "caller": "web-platform-sp",
+      "callerIpAddress": "198.51.100.34",
+      "properties": { "allowBlobPublicAccess": true, "staticWebsite": { "enabled": true, "indexDocument": "index.html" } },
+      "status": "Succeeded"
+    },
+    "follow_up_event": {
+      "operationName": "Microsoft.Storage/storageAccounts/blobServices/containers/write",
+      "resource": "meridianwebassets/$web",
+      "properties": { "publicAccess": "Blob" },
+      "status": "Succeeded"
+    }
+  }
 }`,
-      },
-      {
-        kind: "note",
-        title: "Context",
-        body: "Change ticket CHG-5120 (approved) covers moving Meridian's public marketing site to storage static website hosting, which requires anonymous read on the reserved $web container. The Web Platform team's service principal made the change from Meridian's egress range. A content scan of $web confirms only public marketing assets; the data and backups containers were untouched and stay private.",
-      },
-    ],
+    },
   },
   aspects: [
     {

@@ -85,27 +85,95 @@ export interface IocField {
 }
 
 /**
- * One rendered chunk of the raw alert shown in the Evidence phase. The block
- * dispatcher renders each `kind`; adding a kind is a deliberate engine change.
+ * The automated disposition a signal carries before a human reviews it, mirroring
+ * the real console's assessment/triage verdict. `investigating` is the untriaged
+ * state (no verdict yet), which is how the overwhelming majority of real signals
+ * arrive.
  */
-export type EvidenceBlock =
-  | { kind: "summary"; time: string; source: string; message: string }
-  | { kind: "kv"; title: string; rows: { label: string; value: string }[] }
-  | { kind: "code"; title: string; body: string }
-  | { kind: "urls"; title: string; items: string[] }
-  | { kind: "note"; title: string; body: string };
+export type SignalDisposition =
+  | "investigating"
+  | "informational"
+  | "benign"
+  | "suspicious"
+  | "true_positive";
 
 /**
- * The Evidence payload. Most alerts are a list of typed blocks the engine
- * renders directly; the `componentKey` escape hatch (ADR-0004) is for evidence
- * whose shape is genuinely bespoke, such as a rendered phishing email. The key
- * resolves to a lazily-loaded component in the client-side registry in
- * `phases/evidence.tsx`. It is a string (not a loader function) so an
+ * The automated pre-triage strip shown above a signal, mirroring the console's
+ * triage hero. Most signals arrive untriaged (source "fallback", disposition
+ * "investigating", confidence 0), the realistic and non-spoiler default for an
+ * exercise: the pipeline attached the catalog severity and routed the alert to an
+ * analyst without a verdict. A case built around a wrong automated call instead
+ * sets a real disposition and confidence so the learner can overturn it.
+ */
+export interface SignalTriage {
+  source: "fallback" | "rule" | "stateful" | "llm" | "cache";
+  disposition: SignalDisposition;
+  /** 0-100; 0 when untriaged. */
+  confidence: number;
+  /** A short, non-spoiler line describing the automated state. */
+  note: string;
+}
+
+/** A single label/value fact in a signal section. */
+export interface SignalFact {
+  label: string;
+  value: string;
+  /** Render full width for long values (ARNs, resource keys, URLs). */
+  wide?: boolean;
+}
+
+/**
+ * One grouped card of facts, mirroring the console's Evidence / Threat intel /
+ * Details cards. `chips` render above the rows and are used for MITRE ATT&CK
+ * tags; `rows` are the key/value facts.
+ */
+export interface SignalSection {
+  heading: string;
+  chips?: string[];
+  rows: SignalFact[];
+}
+
+/**
+ * A signal rendered the way the real console shows one: a titled header carrying
+ * the detector's own description, the automated pre-triage state, grouped fact
+ * sections, the raw OCSF payload, and any notable `unmapped` enrichment surfaced
+ * above the raw dump. Field sourcing mirrors the console's three-way split (flat
+ * metadata, OCSF `payload`, and enrichment that rides in `unmapped`). This is the
+ * shape the Evidence phase reads for all but the bespoke-evidence Investigations.
+ */
+export interface SignalEvidence {
+  /** Alert title, sentence case, no verdict (mirrors the finding title). */
+  title: string;
+  /** The detection source, shown as a kicker (e.g. "Inspector", "CloudTrail"). */
+  source: string;
+  /** When the signal fired. */
+  time: string;
+  /** The detector's own description of what it observed. Neutral, not a verdict. */
+  description: string;
+  triage?: SignalTriage;
+  /** Grouped fact sections, in display order (Evidence, Threat intel, Details). */
+  sections: SignalSection[];
+  /** The raw OCSF payload, pretty-printed. */
+  raw: string;
+  /**
+   * Notable `unmapped` fields surfaced above the raw dump. Enrichment (CVE, EPSS,
+   * KEV, exploit availability) frequently lives here rather than in the normalized
+   * OCSF fields, so it is worth calling out explicitly.
+   */
+  unmapped?: SignalFact[];
+}
+
+/**
+ * The Evidence payload. Most alerts are a structured `signal` the engine renders
+ * as a console-style detail view; the `componentKey` escape hatch (ADR-0004) is
+ * for evidence whose shape is genuinely bespoke, such as a rendered phishing
+ * email. The key resolves to a lazily-loaded component in the client-side
+ * registry in `phases/evidence.tsx`. It is a string (not a loader function) so an
  * Investigation stays fully serializable and can cross the server/client
  * boundary as a prop.
  */
 export type EvidenceModel =
-  | { blocks: EvidenceBlock[] }
+  | { signal: SignalEvidence }
   | { componentKey: string };
 
 /** A complete, self-contained Investigation. */

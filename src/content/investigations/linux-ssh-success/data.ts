@@ -22,55 +22,128 @@ const investigation: Investigation = {
   mitre: "Brute Force: Password Cracking (T1110.003)",
   detectionSource: "/var/log/auth.log (CloudWatch Logs)",
   evidence: {
-    blocks: [
-      {
-        kind: "summary",
-        time: "2026-03-14 23:41:52 UTC",
-        source: "sshd · app-ionode-03 · /var/log/auth.log",
-        message:
-          "Fifty-one failed SSH password attempts for user deploy from 203.0.113.202 over eight minutes, ending in one Accepted password for the same account from the same address. The session then wrote to authorized_keys and probed for privileges.",
+    signal: {
+      title: "Successful SSH login after repeated failures",
+      source: "Linux auth (auth.log)",
+      time: "2026-03-14 23:41:52 UTC",
+      description:
+        "sshd on app-ionode-03 recorded fifty-one failed password attempts for user deploy from 203.0.113.202 over eight minutes, ending in one Accepted password for the same account from the same address. The session then wrote to authorized_keys and probed for privileges.",
+      triage: {
+        source: "fallback",
+        disposition: "investigating",
+        confidence: 0,
+        note: "Not model-assessed. The pipeline applied the catalog severity and routed this to an analyst for a call.",
       },
-      {
-        kind: "kv",
-        title: "Host and session",
-        rows: [
-          { label: "Host", value: "app-ionode-03" },
-          { label: "Account", value: "deploy" },
-          { label: "Source IP", value: "203.0.113.202" },
-          { label: "Failures before success", value: "51" },
-          { label: "Auth method that succeeded", value: "password" },
-          { label: "SSH exposure", value: "port 22 open to 0.0.0.0/0" },
-          {
-            label: "Expected auth for deploy",
-            value: "publickey only (password disabled by policy)",
-          },
-        ],
-      },
-      {
-        kind: "code",
-        title: "/var/log/auth.log (excerpt)",
-        body: `Mar 14 23:33:10 app-ionode-03 sshd[20418]: Failed password for deploy from 203.0.113.202 port 51044 ssh2
-Mar 14 23:33:14 app-ionode-03 sshd[20418]: Failed password for deploy from 203.0.113.202 port 51044 ssh2
-Mar 14 23:33:19 app-ionode-03 sshd[20421]: Failed password for deploy from 203.0.113.202 port 51120 ssh2
-... 47 more failures for deploy from 203.0.113.202 ...
-Mar 14 23:41:52 app-ionode-03 sshd[20655]: Accepted password for deploy from 203.0.113.202 port 51993 ssh2
-Mar 14 23:41:52 app-ionode-03 sshd[20655]: pam_unix(sshd:session): session opened for user deploy(uid=1002)`,
-      },
-      {
-        kind: "code",
-        title: "Session activity after login",
-        body: `Mar 14 23:42:07 app-ionode-03 deploy: whoami
-Mar 14 23:42:09 app-ionode-03 deploy: id
-Mar 14 23:42:26 app-ionode-03 deploy: cat >> /home/deploy/.ssh/authorized_keys <<'EOF'
-Mar 14 23:42:26 app-ionode-03 deploy: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... attacker@offbox
-Mar 14 23:42:41 app-ionode-03 sudo[20733]: deploy : command not allowed ; TTY=pts/0 ; PWD=/home/deploy ; USER=root ; COMMAND=/bin/bash`,
-      },
-      {
-        kind: "note",
-        title: "Context",
-        body: "app-ionode-03 is an internet-reachable application node. Meridian policy disables SSH password authentication for service accounts like deploy and restricts admin SSH to the office egress range 198.51.100.0/24. No change ticket references maintenance on this host tonight.",
-      },
+      sections: [
+        {
+          heading: "Evidence",
+          rows: [
+            { label: "Host", value: "app-ionode-03" },
+            { label: "Account", value: "deploy" },
+            { label: "Source IP", value: "203.0.113.202" },
+            { label: "Failures before success", value: "51" },
+            { label: "Auth method that succeeded", value: "password" },
+            { label: "SSH exposure", value: "port 22 open to 0.0.0.0/0" },
+            {
+              label: "Expected auth for deploy",
+              value: "publickey only (password disabled by policy)",
+              wide: true,
+            },
+          ],
+        },
+        {
+          heading: "Session activity after login",
+          rows: [
+            { label: "23:42:07", value: "whoami" },
+            { label: "23:42:09", value: "id" },
+            {
+              label: "23:42:26",
+              value:
+                "appended an attacker key to /home/deploy/.ssh/authorized_keys",
+              wide: true,
+            },
+            {
+              label: "23:42:41",
+              value: "sudo to root attempted (command not allowed)",
+              wide: true,
+            },
+          ],
+        },
+        {
+          heading: "Threat intel",
+          chips: ["Brute Force: Password Cracking (T1110.003)"],
+          rows: [],
+        },
+        {
+          heading: "Context",
+          rows: [
+            {
+              label: "Host exposure",
+              value: "app-ionode-03 is an internet-reachable application node",
+              wide: true,
+            },
+            {
+              label: "Auth policy",
+              value:
+                "Password auth is disabled for service accounts like deploy; admin SSH is restricted to 198.51.100.0/24",
+              wide: true,
+            },
+            {
+              label: "Change ticket",
+              value: "None references maintenance on this host tonight",
+              wide: true,
+            },
+          ],
+        },
+        {
+          heading: "Details",
+          rows: [
+            { label: "Alert ID", value: "LINUX-AUTH-002" },
+            { label: "Category", value: "Authentication" },
+            {
+              label: "Detection source",
+              value: "/var/log/auth.log (CloudWatch Logs)",
+              wide: true,
+            },
+            { label: "SSH client", value: "OpenSSH" },
+            {
+              label: "Earlier activity",
+              value:
+                "Scattered failures for other usernames from various IPs earlier in the day",
+              wide: true,
+            },
+            { label: "Event time", value: "2026-03-14 23:41:52 UTC" },
+          ],
+        },
+      ],
+      raw: `{
+  "class_name": "Detection Finding",
+  "severity": "High",
+  "actor": { "user": { "name": "deploy" } },
+  "src_endpoint": { "ip": "203.0.113.202" },
+  "finding_info": {
+    "title": "Successful SSH login after failures",
+    "attacks": [{ "technique": { "uid": "T1110.003", "name": "Password Cracking" } }]
+  },
+  "resources": [
+    { "uid": "app-ionode-03", "type": "Host" }
+  ],
+  "unmapped": {
+    "auth_log": [
+      "Mar 14 23:33:10 app-ionode-03 sshd[20418]: Failed password for deploy from 203.0.113.202 port 51044 ssh2",
+      "... 49 more failures for deploy from 203.0.113.202 ...",
+      "Mar 14 23:41:52 app-ionode-03 sshd[20655]: Accepted password for deploy from 203.0.113.202 port 51993 ssh2",
+      "Mar 14 23:41:52 app-ionode-03 sshd[20655]: pam_unix(sshd:session): session opened for user deploy(uid=1002)"
     ],
+    "session_activity": [
+      "23:42:07 deploy: whoami",
+      "23:42:09 deploy: id",
+      "23:42:26 deploy: appended ssh-ed25519 key (attacker@offbox) to authorized_keys",
+      "23:42:41 sudo: deploy attempted USER=root COMMAND=/bin/bash (command not allowed)"
+    ]
+  }
+}`,
+    },
   },
   aspects: [
     {
