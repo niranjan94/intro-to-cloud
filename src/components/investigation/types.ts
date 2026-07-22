@@ -49,8 +49,24 @@ export const SEVERITIES: readonly Severity[] = [
  */
 export type Difficulty = "guided" | "standard" | "challenge";
 
-/** The learner's terminal call on an alert. */
-export type Disposition = "escalate" | "close";
+/**
+ * The learner's terminal call on an alert. Three outcomes, because a real
+ * finding is not always an incident. `escalate` hands a true positive up the
+ * incident path. `route` accepts a genuine finding that is not an incident and
+ * refers it to the owning team to remediate on its normal cadence, closing it
+ * for SOC purposes (the canonical case is an unreachable critical CVE routed to
+ * vulnerability management for patching). `close` disposes of benign activity or
+ * a false positive, where there is nothing to hand off. Conflating `route` with
+ * `close` is a real error: the finding never reaches the team that would fix it.
+ */
+export type Disposition = "escalate" | "route" | "close";
+
+/** All dispositions, in display order. */
+export const DISPOSITIONS: readonly Disposition[] = [
+  "escalate",
+  "route",
+  "close",
+] as const;
 
 /** A single Identify checklist row: a candidate suspicious aspect of the alert. */
 export interface Aspect {

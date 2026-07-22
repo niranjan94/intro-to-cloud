@@ -191,9 +191,9 @@ const KEY_TERMS: GlossaryTerm[] = [
       "The severity after triage weighs context. A Critical finding with no real exposure often drops well below its base rating.",
   },
   {
-    term: "Escalate / Close",
+    term: "Escalate / Route / Close",
     definition:
-      "The two terminal calls. Escalate hands the alert up with your reasoning; Close ends it with a note explaining why.",
+      "The three terminal calls. Escalate hands a true positive up the incident path with your reasoning; Route refers a real finding that is not an incident to the owning team to fix on its normal cadence, closing it for SOC; Close ends a benign or false-positive alert with a note explaining why.",
   },
   {
     term: "MITRE ATT&CK",
@@ -346,7 +346,7 @@ const sections: readonly OrientationSection[] = [
             { label: "Detection rule", sub: "pattern match" },
             { label: "Alert", sub: "in the queue" },
             { label: "Triage", sub: "your call" },
-            { label: "Escalate / Close" },
+            { label: "Escalate / Route / Close" },
           ]}
         />
         <P>
@@ -522,7 +522,7 @@ const sections: readonly OrientationSection[] = [
             },
             {
               n: "Verdict",
-              body: "Make the call: Escalate or Close. This is the headline outcome you are graded on.",
+              body: "Make the call: Escalate, Route for remediation, or Close. This is the headline outcome you are graded on.",
             },
           ].map((phase, i) => (
             <div
@@ -576,9 +576,9 @@ const sections: readonly OrientationSection[] = [
   {
     navLabel: "The call",
     kicker: "The verdict",
-    title: "The two calls, and what each one costs",
+    title: "The three calls, and what each one costs",
     intro:
-      "Triage ends one of two ways. Both are legitimate outcomes, and both carry a cost when you get them wrong, which is exactly why the method exists.",
+      "Triage ends one of three ways. Not every real finding is an incident: some are handed up, some are routed to the team that owns the fix, and some simply close. All three are legitimate outcomes, and each carries a cost when you get it wrong, which is exactly why the method exists.",
     body: (
       <>
         <div className="mt-[18px] grid gap-[12px] [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
@@ -594,11 +594,23 @@ const sections: readonly OrientationSection[] = [
           </div>
           <div className="rounded-[12px] border border-line bg-surface p-[16px]">
             <div className="text-[14px] font-semibold text-ink-strong">
+              Route for remediation
+            </div>
+            <p className="mt-[5px] text-[13px] leading-[1.55] text-body">
+              A genuine finding that is not an incident, such as an unreachable
+              critical CVE. You refer it to the team that owns the fix to
+              remediate on its normal cadence, and close it for SOC. Real work,
+              but not an escalation.
+            </p>
+          </div>
+          <div className="rounded-[12px] border border-line bg-surface p-[16px]">
+            <div className="text-[14px] font-semibold text-ink-strong">
               Close
             </div>
             <p className="mt-[5px] text-[13px] leading-[1.55] text-body">
-              Benign or a false positive. It stops here, with a note explaining
-              why, so the next analyst who sees something similar has your work.
+              Benign or a false positive, with nothing to hand off. It stops
+              here, with a note explaining why, so the next analyst who sees
+              something similar has your work.
             </p>
           </div>
         </div>
@@ -606,9 +618,12 @@ const sections: readonly OrientationSection[] = [
           A false escalation burns Tier 2's time, and repeated often enough it
           trains the team to ignore you. A wrong close is the expensive one: a
           real intruder walks, and it is the mistake you will be most tempted to
-          make when the queue is deep and the evidence is ambiguous. The method
-          exists to make your call defensible: you escalate because of a signal
-          you named and an indicator you pulled, not a hunch.
+          make when the queue is deep and the evidence is ambiguous. Routing
+          exists so a third mistake does not hide inside the second, closing a
+          real finding as noise when it should have gone to the team that fixes
+          it, where it would never be patched. The method exists to make your
+          call defensible: you escalate, route, or close because of a signal you
+          named and an indicator you pulled, not a hunch.
         </P>
       </>
     ),

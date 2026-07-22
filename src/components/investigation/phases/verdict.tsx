@@ -1,4 +1,5 @@
 import {
+  ArrowBendUpRightIcon as ArrowBendUpRight,
   ArrowUpRightIcon as ArrowUpRight,
   CheckCircleIcon as CheckCircle,
 } from "@phosphor-icons/react/dist/ssr";
@@ -10,9 +11,10 @@ import type {
 import { cn } from "@/lib/utils";
 
 /**
- * The Verdict phase: the learner makes the headline call, Escalate or Close.
- * Choosing is terminal for the attempt; the result (correct/wrong call plus the
- * quality breakdown and the explanation) is revealed inline below the choice.
+ * The Verdict phase: the learner makes the headline call, one of Escalate,
+ * Route for remediation, or Close. Choosing is terminal for the attempt; the
+ * result (correct/wrong call plus the quality breakdown and the explanation) is
+ * revealed inline below the choice.
  */
 export function VerdictPhase({
   investigation,
@@ -33,18 +35,27 @@ export function VerdictPhase({
     <div className="mt-[16px]">
       <p className="text-[13.5px] leading-[1.6] text-body">
         You have reviewed the evidence, flagged the signals, and pulled the
-        indicators. Make the call: is this a true positive worth escalating, or
-        do you close it as benign?
+        indicators. Make the call. Escalate a true positive up the incident
+        path, route a real finding that is not an incident to the team that owns
+        the fix, or close benign activity and false positives.
       </p>
 
-      <div className="mt-[16px] grid grid-cols-1 gap-[12px] min-[520px]:grid-cols-2">
+      <div className="mt-[16px] grid grid-cols-1 gap-[12px]">
         <VerdictButton
           call="escalate"
           active={disposition === "escalate"}
           onChoose={onChoose}
           icon={<ArrowUpRight size={18} weight="bold" aria-hidden />}
           title="Escalate"
-          caption="True positive. Hand it up the escalation path."
+          caption="True positive. Hand it up the incident escalation path."
+        />
+        <VerdictButton
+          call="route"
+          active={disposition === "route"}
+          onChoose={onChoose}
+          icon={<ArrowBendUpRight size={18} weight="bold" aria-hidden />}
+          title="Route for remediation"
+          caption="A real finding, but not an incident. Route it to the owning team to fix on the normal cadence, and close for SOC."
         />
         <VerdictButton
           call="close"

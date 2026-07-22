@@ -71,7 +71,7 @@ const PHASES: readonly PhaseFraming[] = [
     kicker: "Phase 5",
     title: "Make the call",
     intro:
-      "Escalate or close. This is the decision the whole triage exists to support.",
+      "Escalate, route for remediation, or close. This is the decision the whole triage exists to support.",
   },
 ];
 
