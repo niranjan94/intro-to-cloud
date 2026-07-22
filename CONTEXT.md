@@ -69,3 +69,13 @@ sets the suggested order within a Source Platform group, drives a filter, and co
 much scaffolding the learner gets (e.g. whether the count of true signals is revealed). It
 never gates access; navigation is free.
 _Avoid_: Level, rank, tier (as a standalone noun)
+
+**Primer**:
+The expository orientation that prepares a learner for Investigations. Unlike an Investigation,
+a Primer is not assessed: it teaches the SOC analyst's role, the alert lifecycle, the shared
+vocabulary, and the five-phase triage method, then hands off to the alert queue. There is exactly
+one Primer. It lives inside the Investigations section (at `/investigations/orientation`) because it
+is provider-agnostic and shares the Investigation vocabulary, but it is a content type of its own,
+distinct from the provider-lensed Concept and the assessed Investigation. Its user-facing label is
+"Orientation".
+_Avoid_: Tutorial, intro, onboarding, course
