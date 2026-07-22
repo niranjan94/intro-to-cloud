@@ -21,6 +21,12 @@ export interface OrientationSection {
   title: string;
   intro: string;
   body: ReactNode;
+  /**
+   * Let the body use more horizontal room than the prose reading column. Set for
+   * all-interactive sections (the alert anatomy) that would otherwise sit cramped
+   * in the width tuned for readable paragraphs.
+   */
+  wide?: boolean;
 }
 
 /**
@@ -72,18 +78,22 @@ export function OrientationWalkthrough({
 
       <div
         key={current}
-        className="mt-[26px] max-w-[760px] motion-safe:animate-[fadeUp_0.35s_ease_both]"
+        className="mt-[26px] motion-safe:animate-[fadeUp_0.35s_ease_both]"
       >
-        <p className="font-mono text-[12px] uppercase tracking-[0.08em] text-teal">
-          {section.kicker}
-        </p>
-        <h2 className="mt-[6px] text-[26px] font-extrabold tracking-[-0.02em] text-ink max-[520px]:text-[22px]">
-          {section.title}
-        </h2>
-        <p className="mt-[10px] text-pretty text-[15px] leading-[1.6] text-body">
-          {section.intro}
-        </p>
-        {section.body}
+        <div className="max-w-[760px]">
+          <p className="font-mono text-[12px] uppercase tracking-[0.08em] text-teal">
+            {section.kicker}
+          </p>
+          <h2 className="mt-[6px] text-[26px] font-extrabold tracking-[-0.02em] text-ink max-[520px]:text-[22px]">
+            {section.title}
+          </h2>
+          <p className="mt-[10px] text-pretty text-[15px] leading-[1.6] text-body">
+            {section.intro}
+          </p>
+        </div>
+        <div className={cn(section.wide ? "max-w-[1080px]" : "max-w-[760px]")}>
+          {section.body}
+        </div>
       </div>
 
       <div className="mt-[34px] flex items-center justify-between border-t border-line pt-[20px]">

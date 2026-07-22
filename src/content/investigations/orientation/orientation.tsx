@@ -10,6 +10,12 @@ import {
   OrientationWalkthrough,
 } from "@/components/investigation/orientation-walkthrough";
 import { Callout } from "@/components/lesson/callout";
+import {
+  type DocLink,
+  FurtherReading,
+} from "@/components/lesson/further-reading";
+import { Glossary, type GlossaryTerm } from "@/components/lesson/glossary";
+import { AlertAnatomy } from "@/content/investigations/orientation/alert-anatomy";
 
 /**
  * The Primer: an expository, ungraded orientation to the SOC analyst's job that
@@ -115,6 +121,134 @@ function P({ children }: { children: ReactNode }) {
     </p>
   );
 }
+
+/** A quick-reference glossary of the terms used across the primer and the queue. */
+const KEY_TERMS: GlossaryTerm[] = [
+  {
+    term: "SOC",
+    definition:
+      "Security Operations Center. The team that watches an organization's systems for misuse and attack and decides what to do.",
+  },
+  {
+    term: "Triage",
+    definition:
+      "Working the alert queue one item at a time, sorting real problems from noise and deciding what to escalate.",
+  },
+  {
+    term: "Detection rule",
+    definition:
+      "Logic that watches raw telemetry for a pattern worth a human's attention and raises an alert when it matches.",
+  },
+  {
+    term: "Event vs alert",
+    definition:
+      "An event is one thing that happened. An alert is an event, or a pattern of them, that a rule flags for review.",
+  },
+  {
+    term: "Alert fatigue",
+    definition:
+      "The dulling of attention from reading a long queue of mostly false alarms. The discipline is treating each alert with equal care.",
+  },
+  {
+    term: "True positive",
+    definition:
+      "The alert caught something real. There is a genuine problem to act on.",
+  },
+  {
+    term: "False positive",
+    definition:
+      "The alert fired but nothing bad happened. The detection's premise did not hold up.",
+  },
+  {
+    term: "Benign true positive",
+    definition:
+      "It really happened and it is expected, such as a sanctioned admin action. Real, but not a threat, so it closes.",
+  },
+  {
+    term: "Signal vs noise",
+    definition:
+      "A signal genuinely points to a threat. Noise merely looks interesting. Triage is separating the two.",
+  },
+  {
+    term: "Indicator of compromise (IOC)",
+    definition:
+      "A concrete artifact you can act on or hand off: an IP address, a domain, a user account, a file hash.",
+  },
+  {
+    term: "Severity",
+    definition:
+      "How bad it would be if the alert were real, from Critical to Info. Pre-assigned by the rule, not your verdict.",
+  },
+  {
+    term: "Effective severity",
+    definition:
+      "The severity after triage weighs context. A Critical finding with no real exposure often drops well below its base rating.",
+  },
+  {
+    term: "Escalate / Close",
+    definition:
+      "The two terminal calls. Escalate hands the alert up with your reasoning; Close ends it with a note explaining why.",
+  },
+  {
+    term: "MITRE ATT&CK",
+    definition:
+      'A shared catalog of attacker techniques. A tag like "Valid Accounts (T1078)" names the technique an alert maps to.',
+  },
+  {
+    term: "OCSF",
+    definition:
+      "Open Cybersecurity Schema Framework. A common event schema that makes findings from different tools read alike.",
+  },
+  {
+    term: "CVSS",
+    definition:
+      "A context-free score from 0 to 10 rating how severe a vulnerability could be. It measures the flaw, not your exposure.",
+  },
+  {
+    term: "EPSS",
+    definition:
+      "Exploit Prediction Scoring System. The probability that a vulnerability will be exploited in the near term.",
+  },
+  {
+    term: "CISA KEV",
+    definition:
+      "CISA's Known Exploited Vulnerabilities catalog. A list of flaws confirmed to be exploited in the wild.",
+  },
+];
+
+/** Authoritative external references for the frameworks the exercises lean on. */
+const FURTHER_READING: DocLink[] = [
+  {
+    label: "MITRE ATT&CK",
+    href: "https://attack.mitre.org/",
+    note: "The catalog of attacker tactics and techniques behind the ATT&CK tags on each alert.",
+  },
+  {
+    label: "CISA Known Exploited Vulnerabilities",
+    href: "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+    note: "The authoritative list of CVEs confirmed to be exploited in the wild.",
+  },
+  {
+    label: "FIRST EPSS",
+    href: "https://www.first.org/epss/",
+    note: "How the Exploit Prediction Scoring System estimates the odds a CVE gets exploited.",
+  },
+  {
+    label: "FIRST CVSS",
+    href: "https://www.first.org/cvss/",
+    note: "What a CVSS base score does, and does not, tell you about real-world risk.",
+  },
+  {
+    label: "Open Cybersecurity Schema Framework",
+    href: "https://schema.ocsf.io/",
+    note: "The normalized event schema the raw alerts in this section are shaped in.",
+  },
+  {
+    label: "NIST SP 800-61: Incident Handling Guide",
+    href: "https://csrc.nist.gov/pubs/sp/800/61/r2/final",
+    note: "The standard lifecycle for detecting, triaging, and responding to incidents.",
+  },
+];
 
 const sections: readonly OrientationSection[] = [
   {
@@ -273,6 +407,15 @@ const sections: readonly OrientationSection[] = [
         />
       </>
     ),
+  },
+  {
+    navLabel: "Anatomy",
+    kicker: "Anatomy of an alert",
+    title: "What an alert is made of",
+    intro:
+      "Every alert you open has the same parts, laid out the way the Evidence phase shows them. Before you learn the method, get familiar with the shape: tap through a real one and see what each field is telling you and how much to trust it.",
+    wide: true,
+    body: <AlertAnatomy />,
   },
   {
     navLabel: "The method",
@@ -481,6 +624,9 @@ export default function Orientation() {
       </p>
 
       <OrientationWalkthrough sections={sections} />
+
+      <Glossary terms={KEY_TERMS} />
+      <FurtherReading links={FURTHER_READING} />
 
       <div className="mt-[44px] flex gap-[12px] border-t border-line pt-[24px]">
         <Link
