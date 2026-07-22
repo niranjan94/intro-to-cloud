@@ -1,4 +1,4 @@
-import type { ComponentType, LazyExoticComponent } from "react";
+import { type ComponentType, type LazyExoticComponent, lazy } from "react";
 
 /**
  * The escape-hatch registry for bespoke Evidence views (ADR-0004). An
@@ -12,5 +12,7 @@ export const EVIDENCE_COMPONENTS: Record<
   string,
   LazyExoticComponent<ComponentType>
 > = {
-  // Registered as bespoke-evidence Investigations are authored.
+  "entra-inbox-forwarding": lazy(
+    () => import("@/content/investigations/entra-inbox-forwarding/evidence"),
+  ),
 };

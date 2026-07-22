@@ -58,6 +58,77 @@ export const investigations: readonly InvestigationMeta[] = [
     mitre: "Valid Accounts (T1078)",
     data: () => import("./investigations/aws-root-login/data"),
   },
+  {
+    id: "aws-s3-public-bucket",
+    title: "Bucket turned public",
+    short: "An S3 bucket policy just opened to the world. Trace who and why.",
+    sourcePlatform: "aws",
+    difficulty: "standard",
+    severity: "critical",
+    eventType: "S3 Bucket Made Public",
+    mitre: "Transfer Data to Cloud Account (T1537)",
+    data: () => import("./investigations/aws-s3-public-bucket/data"),
+  },
+  {
+    id: "aws-iam-new-user",
+    title: "A new IAM user appears",
+    short:
+      "A fresh IAM user was provisioned overnight. Onboarding, or a foothold?",
+    sourcePlatform: "aws",
+    difficulty: "guided",
+    severity: "medium",
+    eventType: "New IAM User Created",
+    mitre: "Create Account (T1136)",
+    data: () => import("./investigations/aws-iam-new-user/data"),
+  },
+  {
+    id: "azure-rbac-owner",
+    title: "Owner granted at subscription scope",
+    short:
+      "Someone assigned a privileged RBAC role over an entire subscription.",
+    sourcePlatform: "azure",
+    difficulty: "standard",
+    severity: "critical",
+    eventType: "Privileged RBAC Role Assigned",
+    mitre: "Cloud Accounts (T1078.004)",
+    data: () => import("./investigations/azure-rbac-owner/data"),
+  },
+  {
+    id: "azure-storage-public",
+    title: "Storage account opened up",
+    short:
+      "A storage account flipped to public access. Careful before you call it.",
+    sourcePlatform: "azure",
+    difficulty: "standard",
+    severity: "critical",
+    eventType: "Storage Account Public Access Enabled",
+    mitre: "Exfiltration Over Web Service (T1567)",
+    data: () => import("./investigations/azure-storage-public/data"),
+  },
+  {
+    id: "entra-inbox-forwarding",
+    title: "A quiet forwarding rule",
+    short:
+      "A mailbox rule now copies mail to an outside address. Read it closely.",
+    sourcePlatform: "entra",
+    difficulty: "challenge",
+    severity: "high",
+    eventType: "Suspicious Inbox Forwarding",
+    mitre: "Email Forwarding Rule (T1114.003)",
+    data: () => import("./investigations/entra-inbox-forwarding/data"),
+  },
+  {
+    id: "linux-ssh-success",
+    title: "The failures stopped",
+    short:
+      "A burst of SSH failures on a host ended with one success. Then what?",
+    sourcePlatform: "linux",
+    difficulty: "challenge",
+    severity: "high",
+    eventType: "Successful SSH login after failures",
+    mitre: "Brute Force: Password Cracking (T1110.003)",
+    data: () => import("./investigations/linux-ssh-success/data"),
+  },
 ];
 
 /** Look up an Investigation's metadata by id. */
