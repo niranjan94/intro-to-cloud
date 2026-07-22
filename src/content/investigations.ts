@@ -105,6 +105,18 @@ export const investigations: readonly InvestigationMeta[] = [
     data: () => import("./investigations/aws-inspector-cve-exploitable/data"),
   },
   {
+    id: "aws-guardduty-threatlist-egress",
+    title: "A batch worker calling a flagged address",
+    short:
+      "GuardDuty says a private instance is beaconing to a threat-listed IP. Command-and-control, or something you own?",
+    sourcePlatform: "aws",
+    difficulty: "standard",
+    severity: "high",
+    eventType: "Outbound Traffic to Threat-Listed IP",
+    mitre: "Application Layer Protocol: Web Protocols (T1071.001)",
+    data: () => import("./investigations/aws-guardduty-threatlist-egress/data"),
+  },
+  {
     id: "azure-rbac-owner",
     title: "Owner granted at subscription scope",
     short:
@@ -129,6 +141,18 @@ export const investigations: readonly InvestigationMeta[] = [
     data: () => import("./investigations/azure-storage-public/data"),
   },
   {
+    id: "azure-rbac-owner-direct",
+    title: "Owner granted the direct way",
+    short:
+      "A known admin assigns Owner to a colleague from the office. Ordinary access management, or a policy the baseline forbids?",
+    sourcePlatform: "azure",
+    difficulty: "challenge",
+    severity: "critical",
+    eventType: "Privileged RBAC Role Assigned",
+    mitre: "Cloud Accounts (T1078.004)",
+    data: () => import("./investigations/azure-rbac-owner-direct/data"),
+  },
+  {
     id: "entra-impossible-travel",
     title: "Impossible travel that isn't",
     short:
@@ -151,6 +175,18 @@ export const investigations: readonly InvestigationMeta[] = [
     eventType: "Suspicious Inbox Forwarding",
     mitre: "Email Forwarding Rule (T1114.003)",
     data: () => import("./investigations/entra-inbox-forwarding/data"),
+  },
+  {
+    id: "entra-workload-identity-anomaly",
+    title: "A known service principal reaches further",
+    short:
+      "A first-party service principal signed in and pulled a broad scope. Routine automation, or a stolen credential?",
+    sourcePlatform: "entra",
+    difficulty: "challenge",
+    severity: "high",
+    eventType: "Workload Identity Sign-in Anomaly",
+    mitre: "Valid Accounts: Cloud Accounts (T1078.004)",
+    data: () => import("./investigations/entra-workload-identity-anomaly/data"),
   },
   {
     id: "linux-ssh-success",
