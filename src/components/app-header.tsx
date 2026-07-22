@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HeaderNav } from "@/components/header-nav";
 import { ProviderSwitcher } from "@/components/provider-switcher";
 
 /**
@@ -24,12 +25,7 @@ export function AppHeader() {
               INTRO<span className="text-teal-ring">/</span>CLOUD
             </span>
           </Link>
-          <Link
-            href="/investigations"
-            className="hidden text-[13px] font-medium text-ink-muted transition-colors hover:text-ink-strong min-[560px]:inline"
-          >
-            Investigations
-          </Link>
+          <HeaderNav />
         </div>
 
         <div className="flex items-center gap-[14px]">
