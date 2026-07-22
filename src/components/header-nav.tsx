@@ -20,7 +20,7 @@ export function HeaderNav() {
   const onConcepts = !onInvestigations && pathname !== "/";
 
   return (
-    <nav className="hidden items-center gap-[18px] min-[560px]:flex">
+    <nav className="flex items-center gap-[14px] min-[560px]:gap-[18px]">
       <HeaderLink href={`/${provider}`} active={onConcepts}>
         Concepts
       </HeaderLink>
