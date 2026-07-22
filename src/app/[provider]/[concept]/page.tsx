@@ -1,7 +1,15 @@
 import { notFound } from "next/navigation";
 import { ComingSoonLesson } from "@/components/lesson/coming-soon";
-import { getConcept } from "@/content/registry";
+import { concepts, getConcept } from "@/content/registry";
+import { PROVIDERS } from "@/content/types";
 import { isProvider } from "@/lib/provider";
+
+/** Prerender every provider × concept pairing so the route is fully static. */
+export function generateStaticParams() {
+  return PROVIDERS.flatMap((provider) =>
+    concepts.map((concept) => ({ provider, concept: concept.id })),
+  );
+}
 
 /**
  * Renders a concept's lesson through the chosen provider's lens. An unknown

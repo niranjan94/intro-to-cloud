@@ -1,7 +1,15 @@
 import { notFound } from "next/navigation";
 import { ProjectComingSoon } from "@/components/lesson/project-coming-soon";
-import { getProject } from "@/content/projects";
+import { getProject, projects } from "@/content/projects";
+import { PROVIDERS } from "@/content/types";
 import { isProvider } from "@/lib/provider";
+
+/** Prerender every provider × project pairing so the route is fully static. */
+export function generateStaticParams() {
+  return PROVIDERS.flatMap((provider) =>
+    projects.map((project) => ({ provider, project: project.id })),
+  );
+}
 
 /**
  * Renders a capstone project's build through the chosen provider's lens. An

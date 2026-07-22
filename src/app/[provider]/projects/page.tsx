@@ -1,8 +1,13 @@
 import { notFound } from "next/navigation";
 import { ProjectCard } from "@/components/project-card";
 import { projects } from "@/content/projects";
-import { PROVIDER_LABELS } from "@/content/types";
+import { PROVIDER_LABELS, PROVIDERS } from "@/content/types";
 import { isProvider } from "@/lib/provider";
+
+/** Prerender one projects index per provider so the route is fully static. */
+export function generateStaticParams() {
+  return PROVIDERS.map((provider) => ({ provider }));
+}
 
 /** Projects index: browse every capstone build through this provider's lens. */
 export default async function ProjectsOverview({

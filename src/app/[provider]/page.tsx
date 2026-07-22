@@ -3,10 +3,15 @@ import { ProjectCard } from "@/components/project-card";
 import { StageSection } from "@/components/stage-section";
 import { projects } from "@/content/projects";
 import { conceptsByStage } from "@/content/registry";
-import { PROVIDER_LABELS } from "@/content/types";
+import { PROVIDER_LABELS, PROVIDERS } from "@/content/types";
 import { isProvider } from "@/lib/provider";
 
 const groups = conceptsByStage();
+
+/** Prerender one overview per provider so the route is fully static. */
+export function generateStaticParams() {
+  return PROVIDERS.map((provider) => ({ provider }));
+}
 
 /** Provider overview: browse every concept through this provider's lens. */
 export default async function ProviderOverview({
