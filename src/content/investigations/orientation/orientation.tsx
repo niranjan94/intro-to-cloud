@@ -2,6 +2,7 @@ import {
   ArrowLeftIcon as ArrowLeft,
   ArrowRightIcon as ArrowRight,
   CaretRightIcon as CaretRight,
+  FileTextIcon as FileText,
 } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -133,6 +134,11 @@ const KEY_TERMS: GlossaryTerm[] = [
     term: "Triage",
     definition:
       "Working the alert queue one item at a time, sorting real problems from noise and deciding what to escalate.",
+  },
+  {
+    term: "Baseline",
+    definition:
+      "The written record of what is normal for one organization: its networks, identities, automation, accounts, and public resources. Every alert is judged against it. A living document that grows as the team learns the environment.",
   },
   {
     term: "Detection rule",
@@ -416,6 +422,77 @@ const sections: readonly OrientationSection[] = [
       "Every alert you open has the same parts, laid out the way the Evidence phase shows them. Before you learn the method, get familiar with the shape: tap through a real one and see what each field is telling you and how much to trust it.",
     wide: true,
     body: <AlertAnatomy />,
+  },
+  {
+    navLabel: "The baseline",
+    kicker: "What normal looks like",
+    title: "You cannot judge an alert without a baseline",
+    intro:
+      "An alert on its own does not tell you whether anything is wrong. The same event can be a routine Tuesday or a break-in, and what decides which is context: what is normal for this particular organization. That normal is written down in a document called the baseline.",
+    body: (
+      <>
+        <P>
+          Take a root login. For an account whose team signs in as root every
+          morning, it is unremarkable. For one where root is locked behind
+          hardware MFA and has not been touched in a year, the very same login
+          is an emergency. Nothing in the event itself tells you which world you
+          are in. Only the baseline does.
+        </P>
+        <P>
+          A baseline is the security team's written record of what normal looks
+          like for one organization: which networks its traffic comes from, who
+          is allowed to perform sensitive actions and through which channel,
+          what its automation does on its own, which cloud accounts exist, when
+          activity is expected, and which resources are meant to be public.
+          Every alert you work is judged against it. That is what the question
+          "is this normal here?" actually means.
+        </P>
+        <Callout
+          kind="note"
+          tag="A living document"
+          title="The baseline is never finished, and that is the job too."
+          body="Nobody writes down everything that is normal on day one. The team learns the environment one confirmed fact at a time, and much of that learning comes from working the queue. Every investigation you close can teach the baseline something, and a good analyst feeds it back. When you meet a fact you did not know, you do not just close the alert; you improve the picture for the next analyst."
+        />
+        <P>
+          The alerts in this section all belong to Meridian, a fictional company
+          we invented for these exercises. The name is not a technical term; it
+          is just the make-believe business whose environment you are defending,
+          and every alert is written to be judged against Meridian's baseline.
+          Read it once before you start, and keep it open while you work. When
+          an alert lines up with the baseline it is probably benign; when it
+          contradicts the baseline, you have likely found your signal.
+        </P>
+        <Link
+          href="/investigations/baseline"
+          className="mt-[18px] flex items-center gap-[14px] rounded-[16px] border border-line bg-teal-tint px-[20px] py-[16px] transition-colors hover:border-teal-ring max-[760px]:px-[16px]"
+        >
+          <span className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-[12px] bg-surface">
+            <FileText
+              size={20}
+              weight="bold"
+              aria-hidden
+              className="text-teal"
+            />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[15px] font-semibold text-ink-strong">
+              Read the Meridian baseline
+            </span>
+            <span className="mt-[2px] block text-[13.5px] leading-[1.5] text-body">
+              The sample baseline these exercises are judged against: known
+              networks, identities, automation, accounts, and what is meant to
+              be public.
+            </span>
+          </span>
+          <ArrowRight
+            size={18}
+            weight="bold"
+            aria-hidden
+            className="shrink-0 text-teal-ink"
+          />
+        </Link>
+      </>
+    ),
   },
   {
     navLabel: "The method",

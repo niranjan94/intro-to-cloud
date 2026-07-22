@@ -2,6 +2,7 @@
 
 import {
   CompassIcon as Compass,
+  FileTextIcon as FileText,
   StackIcon as Stack,
 } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
@@ -15,8 +16,8 @@ const groups = investigationsByPlatform();
 
 /**
  * The grouped Investigation navigation shared by the desktop sidebar and the
- * mobile drawer: top-level links to Orientation and the queue landing, then every
- * Investigation grouped by its source platform. Rows are single-line (a severity
+ * mobile drawer: top-level links to Orientation, the Baseline reference, and the
+ * queue landing, then every Investigation grouped by its source platform. Rows are single-line (a severity
  * dot plus the title) to stay dense as the catalog grows; full severity and
  * difficulty live in the queue and on each detail page. The entry matching the
  * current URL is highlighted by a teal rail. Unlike the concept nav this carries
@@ -31,6 +32,8 @@ export function InvestigationNavList({
   const pathname = usePathname();
   const orientationHref = "/investigations/orientation";
   const orientationActive = pathname === orientationHref;
+  const baselineHref = "/investigations/baseline";
+  const baselineActive = pathname === baselineHref;
   const queueHref = "/investigations";
   const queueActive = pathname === queueHref;
 
@@ -64,6 +67,31 @@ export function InvestigationNavList({
             Orientation
           </span>
           <span className="text-[11.5px] text-ink-muted">Start here</span>
+        </span>
+      </Link>
+      <Link
+        href={baselineHref}
+        onClick={onNavigate}
+        aria-current={baselineActive ? "page" : undefined}
+        className={cn(
+          "relative mb-[4px] flex items-center gap-[9px] rounded-[8px] py-[7px] pl-[14px] pr-[9px] transition-colors",
+          baselineActive ? "bg-teal-soft" : "hover:bg-[oklch(0.96_0.012_195)]",
+        )}
+      >
+        {baselineActive ? (
+          <span
+            aria-hidden
+            className="absolute bottom-[6px] left-[4px] top-[6px] w-[3px] rounded-[2px] bg-teal-ring"
+          />
+        ) : null}
+        <FileText
+          size={16}
+          weight="bold"
+          aria-hidden
+          className="shrink-0 text-teal"
+        />
+        <span className="text-[13px] font-medium text-ink-strong">
+          Baseline
         </span>
       </Link>
       <Link

@@ -1,6 +1,7 @@
 import {
   ArrowRightIcon as ArrowRight,
   CompassIcon as Compass,
+  FileTextIcon as FileText,
 } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { SOURCE_PLATFORM_LABELS } from "@/components/investigation/types";
@@ -52,6 +53,31 @@ export default function InvestigationsQueue() {
         </span>
         <ArrowRight
           size={18}
+          weight="bold"
+          aria-hidden
+          className="shrink-0 text-teal-ink"
+        />
+      </Link>
+
+      <Link
+        href="/investigations/baseline"
+        className="mt-[10px] flex items-center gap-[12px] rounded-[14px] border border-line bg-surface px-[20px] py-[13px] transition-colors hover:border-teal-ring max-[760px]:px-[16px]"
+      >
+        <FileText
+          size={18}
+          weight="bold"
+          aria-hidden
+          className="shrink-0 text-teal"
+        />
+        <span className="min-w-0 flex-1 text-[13.5px] leading-[1.5] text-body">
+          <span className="font-semibold text-ink-strong">
+            Know the baseline.
+          </span>{" "}
+          Every alert here is judged against what is normal for Meridian. Keep
+          the baseline open while you work.
+        </span>
+        <ArrowRight
+          size={16}
           weight="bold"
           aria-hidden
           className="shrink-0 text-teal-ink"
