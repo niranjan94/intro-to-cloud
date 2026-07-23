@@ -4,12 +4,16 @@ import {
   CompassIcon as Compass,
   FileTextIcon as FileText,
   StackIcon as Stack,
+  WarningCircleIcon as WarningCircle,
 } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { SeverityDot } from "@/components/investigation/badges";
+import type { InvestigationResult } from "@/components/investigation/types";
 import { SOURCE_PLATFORM_LABELS } from "@/components/investigation/types";
 import { investigationsByPlatform } from "@/content/investigations";
+import { getInvestigationResults } from "@/lib/investigations";
 import { cn } from "@/lib/utils";
 
 const groups = investigationsByPlatform();
@@ -30,6 +34,16 @@ export function InvestigationNavList({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  // Best result per Investigation id, read from localStorage after mount (SSR
+  // can't see it) and re-read on navigation so a freshly completed case updates
+  // its badge without a full reload. Mirrors the queue row's hydration pattern.
+  const [results, setResults] = useState<Record<string, InvestigationResult>>(
+    {},
+  );
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname is a deliberate trigger to re-read localStorage on navigation, not a value the effect reads.
+  useEffect(() => {
+    setResults(getInvestigationResults());
+  }, [pathname]);
   const orientationHref = "/investigations/orientation";
   const orientationActive = pathname === orientationHref;
   const baselineHref = "/investigations/baseline";
@@ -132,6 +146,7 @@ export function InvestigationNavList({
           {group.items.map((investigation) => {
             const href = `/investigations/${investigation.id}`;
             const active = pathname === href;
+            const result = results[investigation.id];
             return (
               <Link
                 key={investigation.id}
@@ -151,14 +166,39 @@ export function InvestigationNavList({
                   />
                 ) : null}
                 <SeverityDot severity={investigation.severity} />
-                <span className="truncate text-[13px] font-medium text-ink-soft">
+                <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-ink-soft">
                   {investigation.title}
                 </span>
+                {result ? <NavScore result={result} /> : null}
               </Link>
             );
           })}
         </div>
       ))}
     </nav>
+  );
+}
+
+/**
+ * The learner's best result for one Investigation, shown right of the title in
+ * the nav rail. Mirrors the queue row's semantics but compact for the narrow
+ * sidebar: a green quality score when the call was correct, a warning glyph
+ * (tooltip "Retry") when it was wrong so the quality isn't misread as a pass.
+ */
+function NavScore({ result }: { result: InvestigationResult }) {
+  if (result.correctCall) {
+    return (
+      <span className="shrink-0 font-mono text-[10.5px] text-[oklch(0.44_0.1_150)]">
+        {result.quality}%
+      </span>
+    );
+  }
+  return (
+    <WarningCircle
+      size={13}
+      weight="fill"
+      aria-label="Wrong call — retry"
+      className="shrink-0 text-[oklch(0.5_0.16_25)]"
+    />
   );
 }
